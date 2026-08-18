@@ -1,4 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2d4a2d" />
+  <meta name="description" content="中部・北陸エリアの山菜採り管理アプリ" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="山菜手帳" />
+  <title>山菜採り手帳</title>
+  <link rel="manifest" href="manifest.json" />
+  <!-- Apple touch icon fallback (inline SVG favicon) -->
+  <link rel="icon" href="icon-96.png" type="image/png" />
+  <link rel="apple-touch-icon" href="icon-180.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+  <!-- Babel standalone for JSX transpilation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <style>
+    body { margin: 0; padding: 0; }
+    #root { min-height: 100vh; }
+    /* PWA safe area */
+    .header { padding-top: max(0px, env(safe-area-inset-top)); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect } = React;
 
+// ===== DATA =====
+const SANSAI_DATA = [
+  { id: 1, name: "フキノトウ", emoji: "🌿", months: [2, 3], region: "全域", color: "#7cb87a", desc: "雪解け直後の早春を告げる山菜。天ぷら・味噌炒めに。" },
+  { id: 2, name: "タラノメ", emoji: "🌱", months: [4, 5], region: "山地", color: "#a8c86e", desc: "山菜の王様。天ぷらが定番。新芽のみ採取。" },
+  { id: 3, name: "コシアブラ", emoji: "🍃", months: [4, 5], region: "中部・北陸", color: "#6aab5e", desc: "香り豊かな山菜。天ぷら・おひたしに。" },
+  { id: 4, name: "ワラビ", emoji: "🌾", months: [4, 5, 6], region: "草地・斜面", color: "#8dc66b", desc: "アク抜きが必要。煮物・漬物・炒め物に。" },
+  { id: 5, name: "ゼンマイ", emoji: "🌀", months: [4, 5], region: "湿地・沢沿い", color: "#5a9e52", desc: "乾燥保存が可能。煮物・炒め物に。" },
+  { id: 6, name: "ウド", emoji: "🪴", months: [4, 5, 6], region: "林縁・谷筋", color: "#b5d97a", desc: "香りが特徴。きんぴら・天ぷら・酢味噌和えに。" },
+  { id: 7, name: "ミツバ", emoji: "🍀", months: [3, 4, 5], region: "湿地・沢沿い", color: "#79c47e", desc: "香り高い春の山菜。おひたし・吸い物に。" },
+  { id: 9, name: "ノビル", emoji: "🧅", months: [3, 4, 5], region: "草地・畦道", color: "#c8d96e", desc: "野生のネギ。酢味噌和え・炒め物に。" },
+  { id: 10, name: "アケビ", emoji: "🍇", months: [9, 10], region: "林縁・山地", color: "#9b7fc8", desc: "秋の実と皮を食べる。皮は肉詰め料理に。" },
+  { id: 11, name: "マツタケ", emoji: "🍄", months: [9, 10], region: "松林", color: "#c8945e", desc: "秋の王様。土瓶蒸し・焼き松茸に。" },
+  { id: 12, name: "ナメコ", emoji: "🍄", months: [10, 11], region: "広葉樹林", color: "#d4884a", desc: "ぬめりが特徴。味噌汁・鍋物に。" },
+  { id: 13, name: "セリ", emoji: "🌿", months: [2, 3, 4], region: "水辺・田んぼ脇", color: "#4caf6e", desc: "春の七草のひとつ。独特の香りが特徴。おひたし・鍋物・七草粥に。根っこごと採取するのがコツ。" },
+  { id: 14, name: "葉ワサビ", emoji: "🍃", months: [3, 4, 5], region: "清流・沢沿い", color: "#2e7d32", desc: "清流沿いに自生するワサビの葉。辛みと香りが特徴。醤油漬け・おひたし・天ぷらに。柔らかい若葉を選んで採取。" },
+  { id: 15, name: "花ワサビ", emoji: "🌸", months: [3, 4], region: "清流・沢沿い", color: "#7b5ea7", desc: "ワサビの白い花と花茎。葉より辛みが強く香り豊か。醤油漬け・からし和えに。開花直後の新鮮なものが最高。" },
+  { id: 16, name: "根曲がり竹", emoji: "🎋", months: [5, 6], region: "亜高山帯・笹薮", color: "#8aab3a", desc: "チシマザサの若タケノコ。北陸・信州の山の幸。味噌汁・炊き込みご飯・サバ缶との相性が絶品。群生地では一気に採れる。" },
+  { id: 17, name: "コゴミ", emoji: "🌀", months: [4, 5], region: "沢沿い・湿地", color: "#4e8f5d", desc: "クサソテツの若芽。アクが少なく扱いやすい。おひたし・天ぷら・マヨネーズ和えに。ゼンマイより採取しやすく初心者向け。" },
+  { id: 18, name: "ミョウガ", emoji: "🌺", months: [7, 8, 9], region: "山間・林縁の湿った場所", color: "#e07b8a", desc: "夏〜秋に花穂（みょうがたけ）を採取。独特の香りと風味が特徴。薬味・天ぷら・甘酢漬け・味噌汁に。群生していることが多く一度見つければ毎年採れる。" },
+  { id: 19, name: "ヨシナ（シドケ）", emoji: "🍃", months: [4, 5], region: "山地・林縁・沢沿い", color: "#5c8a4e", desc: "モミジガサの北陸・東北方言名。独特の香りとほろ苦さが特徴。おひたし・天ぷら・胡麻和えに。アクが少なく扱いやすい。群生地では大量に採れる山菜の王様のひとつ。" },
+  { id: 20, name: "ミズ（ウワバミソウ）", emoji: "💧", months: [5, 6, 7, 8, 9], region: "沢沿い・渓流脇・湿った林内", color: "#4a90c4", desc: "北陸・東北で古くから親しまれる山菜。茎が瑞々しく柔らかい。おひたし・炒め物・漬物・みそ汁に。秋にはムカゴ（肉芽）が付き、これも珍味。長期間採れるので重宝する。" },
+  { id: 21, name: "行者ニンニク", emoji: "🧄", months: [4, 5], region: "亜高山帯・湿った林内・沢沿い斜面", color: "#6d8c3e", desc: "強烈なニンニク臭が特徴の希少山菜。醤油漬け・炒め物・餃子の具・ラーメンのトッピングに絶品。成長が非常に遅く根こそぎ採取は厳禁。葉2〜3枚を残して採取すること。バイケイソウ・イヌサフランとの誤食事故に要注意。" },
+  { id: 22, name: "ウルイ（オオバギボウシ）", emoji: "🌿", months: [4, 5], region: "山地・林縁・湿った草地・沢沿い", color: "#5aab72", desc: "大ぶりで扱いやすい人気の山菜。クセがなく食べやすい。おひたし・酢味噌和え・天ぷら・炒め物に。ぬめりがあり栄養豊富。イヌサフランと葉が酷似しているため採取時は要注意。臭いがないときは絶対に採らないこと。" },
+  { id: 23, name: "ボウナ（ミヤマタラノキ）", emoji: "🌱", months: [5, 6], region: "亜高山帯・山地の林縁・明るい斜面", color: "#7db84a", desc: "タラノメに似た山菜で北陸・東北では古くから親しまれる。タラノメより柔らかくアクが少ない。天ぷら・おひたし・炒め物に。トゲが少なく採取しやすいのが特徴。旬が短いので時期を逃さないこと。" },
+];
+
+const MONTHS = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+
+const INITIAL_SPOTS = [
+  { id: 1, name: "白山麓・瀬女エリア", lat: 36.15, lng: 136.65, sansai: [1,2,3,4], notes: "林道沿いにコシアブラ多数。フキノトウは3月上旬から。", visits: 12 },
+  { id: 2, name: "飛騨・宮川源流", lat: 36.28, lng: 137.12, sansai: [2,5,6], notes: "タラノメの大型株あり。沢沿いにゼンマイも豊富。", visits: 8 },
+  { id: 3, name: "上越・棚田エリア", lat: 37.10, lng: 138.25, sansai: [4,7,9], notes: "棚田の畦道でノビル。湿地帯でミツバ群生。", visits: 5 },
+];
+
+const INITIAL_BLOG = [
+  { id: 1, date: "2026-05-10", title: "白山麓でコシアブラ大豊作！", content: "今年は雪解けが早く、例年より1週間早くコシアブラが出ていました。林道終点付近の斜面で大量に採れました。天ぷらにして最高でした！", sansai: [3], spot: 1, author: "田中", photos: [], likes: 5 },
+  { id: 2, date: "2026-04-20", title: "飛騨でタラノメ初採り", content: "山の雪もすっかり溶けて、タラノメのシーズン到来。今年初の天ぷらは格別でした。来週また行きます！", sansai: [2], spot: 2, author: "鈴木", photos: [], likes: 3 },
+];
+
+
+// ===== 危険・注意植物データ =====
+const DANGER_PLANTS = [
+  {
+    id: 101, name: "トリカブト", emoji: "💜", danger: "猛毒",
+    color: "#7b1fa2", dangerColor: "#c0392b",
+    similar: ["ニリンソウ", "ヨモギ", "セリ"],
+    similarIds: [7, 13],
+    desc: "日本最強クラスの毒草。アルカロイド系毒素（アコニチン）を含み、誤食すると心臓麻痺を起こす。根・葉・茎すべてに毒がある。",
+    howToDistinguish: "ニリンソウとの区別：葉の切れ込みが深くギザギザ。花は紫色の特徴的な兜形（ニリンソウは白い花びら状）。葉をこすると独特の嫌な臭い。",
+    region: "山地・高山の湿った斜面",
+    season: "葉は春〜夏、花は夏〜秋",
+    warning: "採取厳禁。触れるだけでも皮膚吸収の危険性あり。",
+  },
+  {
+    id: 102, name: "ドクウツギ", emoji: "🍒", danger: "猛毒",
+    color: "#b71c1c", dangerColor: "#c0392b",
+    similar: ["アケビ", "木の実全般"],
+    similarIds: [10],
+    desc: "ドクゼリ・トリカブトと並ぶ日本三大毒草のひとつ。赤黒い実が甘そうに見えるが猛毒。コリアミルチンを含み死亡例あり。",
+    howToDistinguish: "アケビとの区別：葉が対生（アケビは互生）。実が房状に密集。茎は緑色で稜がある。",
+    region: "山地・川沿い・崩壊地",
+    season: "実は夏〜秋（赤→黒に変化）",
+    warning: "実を絶対に食べない。子供が誤食しやすいため注意。",
+  },
+  {
+    id: 103, name: "ドクゼリ", emoji: "🌿", danger: "猛毒",
+    color: "#1b5e20", dangerColor: "#c0392b",
+    similar: ["セリ", "ミツバ", "ウド"],
+    similarIds: [13, 7, 6],
+    desc: "セリに非常によく似た猛毒植物。シクトキシンを含み、誤食すると痙攣・呼吸困難を引き起こす。根が特に毒性が強い。",
+    howToDistinguish: "セリとの区別：根を切ると空洞（節状の横隔壁がある竹のような構造）。茎が太く中空。葉は大型で光沢がある。セリの根は白い細根が多く香りが強い。",
+    region: "湿地・水辺・水田周辺",
+    season: "春〜夏",
+    warning: "水辺のセリ採取は根の確認必須。根ごと抜いて断面を必ず確認。",
+  },
+  {
+    id: 104, name: "スイセン", emoji: "🌼", danger: "有毒",
+    color: "#f9a825", dangerColor: "#e67e22",
+    similar: ["ノビル", "ニラ"],
+    similarIds: [9],
+    desc: "球根・葉・花すべてに毒（リコリン）を含む。ノビルやニラと葉が非常に似ており誤食事故が多発。毎年被害報告がある。",
+    howToDistinguish: "ノビルとの区別：スイセンは葉を折っても臭いがない（ノビルはネギ臭）。球根の形状が違う（スイセンは球根が大きく白い）。葉が扁平でツヤがある。",
+    region: "庭・公園・土手・山すそ",
+    season: "葉は早春から（花は2〜4月）",
+    warning: "ノビル採取時は必ず臭いで確認。無臭ならスイセンの可能性大。",
+  },
+  {
+    id: 105, name: "イヌサフラン（コルチカム）", emoji: "🌸", danger: "猛毒",
+    color: "#ad1457", dangerColor: "#c0392b",
+    similar: ["ギョウジャニンニク", "ウルイ（オオバギボウシ）"],
+    similarIds: [],
+    desc: "コルヒチンを含む猛毒植物。ギョウジャニンニクやオオバギボウシと葉が酷似。近年誤食による死亡事故が増加。",
+    howToDistinguish: "ギョウジャニンニクとの区別：葉を傷つけてもニンニク臭がしない（ギョウジャニンニクは強いニンニク臭）。葉脈が平行で光沢が強い。球根が大きい。",
+    region: "庭・公園・山地（園芸逸出）",
+    season: "葉は春（花は秋）",
+    warning: "臭いで必ず確認。無臭はすべて疑うこと。",
+  },
+  {
+    id: 106, name: "ハシリドコロ", emoji: "🍃", danger: "有毒",
+    color: "#4e342e", dangerColor: "#e67e22",
+    similar: ["フキノトウ", "ギョウジャニンニク"],
+    similarIds: [1],
+    desc: "アトロピン・スコポラミン等を含む有毒植物。早春にフキノトウと同じ場所に生えることがあり誤食事故多数。幻覚・錯乱・呼吸困難を引き起こす。",
+    howToDistinguish: "フキノトウとの区別：葉が柔らかく大きい。独特の臭いがある。茎を折ると白い液が出る。フキノトウは苞（つぼみ）の形が独特。",
+    region: "山地の沢沿い・湿った斜面",
+    season: "早春（3〜4月）",
+    warning: "フキノトウ採取時に混入注意。必ず形状を確認してから採取。",
+  },
+  {
+    id: 107, name: "ヨウシュヤマゴボウ", emoji: "🫐", danger: "有毒",
+    color: "#4a148c", dangerColor: "#e67e22",
+    similar: ["山菜全般（根）"],
+    similarIds: [],
+    desc: "根・実・葉すべてに毒を含む。黒紫の実がブルーベリーに似て見え、子供の誤食が多い。大人でも根をゴボウと間違えることがある。",
+    howToDistinguish: "ゴボウとの区別：根を切ると白く臭いが全く違う。茎が赤紫色で太い。実は黒紫色でブドウ房状。",
+    region: "道端・空き地・林縁（帰化植物）",
+    season: "葉は春〜夏、実は秋",
+    warning: "見た目が美しく子供が食べやすいため特に注意。",
+  },
+  {
+    id: 108, name: "バイケイソウ", emoji: "🌿", danger: "猛毒",
+    color: "#2e7d32", dangerColor: "#c0392b",
+    similar: ["ギョウジャニンニク", "コバイケイソウ"],
+    similarIds: [],
+    desc: "アルカロイド系毒素（ベラトルム）を含む猛毒植物。ギョウジャニンニクと春の若葉が酷似しており、北陸・東北で誤食死亡事故多数。",
+    howToDistinguish: "ギョウジャニンニクとの区別：葉が互生で大きく広い（ギョウジャニンニクは対生で細長い）。葉を傷つけてもニンニク臭がしない。葉脈が平行で目立つ。",
+    region: "亜高山帯・山地の湿った草地",
+    season: "早春〜初夏",
+    warning: "北陸の山では最重要注意植物。ギョウジャニンニク採取時は必ず臭いで確認。",
+  },
+];
+
+const DANGER_LEVEL = {
+  "猛毒": { color:"#c0392b", bg:"#fdecea", badge:"☠️ 猛毒" },
+  "有毒": { color:"#e67e22", bg:"#fef3e2", badge:"⚠️ 有毒" },
+  "注意": { color:"#f39c12", bg:"#fefde2", badge:"⚡ 注意" },
+};
+
+const INITIAL_MEMBERS = ["田中", "鈴木", "佐藤", "伊藤", "山本"];
+
+// ===== STYLES =====
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Shippori+Mincho:wght@400;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --forest: #2d4a2d;
+    --moss: #4a7a3d;
+    --fern: #6aab5e;
+    --spring: #a8d86e;
+    --earth: #7a5c3a;
+    --bark: #c8a882;
+    --soil: #f5efe6;
+    --cream: #faf7f2;
+    --paper: #fff9f0;
+    --ink: #1a2e1a;
+    --mist: #e8f0e4;
+  }
+
+  body {
+    font-family: 'Noto Serif JP', serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: var(--forest);
+    color: var(--spring);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  .header-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-subtitle {
+    font-size: 11px;
+    color: var(--bark);
+    letter-spacing: 0.15em;
+  }
+
+  /* Nav */
+  .nav {
+    background: var(--paper);
+    border-bottom: 2px solid var(--mist);
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 16px;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    padding: 14px 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: -2px;
+  }
+  .nav-btn:hover { color: var(--moss); }
+  .nav-btn.active {
+    color: var(--forest);
+    border-bottom-color: var(--fern);
+    font-weight: 600;
+  }
+
+  /* Main */
+  .main { flex: 1; padding: 24px 20px; max-width: 900px; margin: 0 auto; width: 100%; }
+
+  /* Section title */
+  .section-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--forest);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-desc { font-size: 13px; color: #666; margin-bottom: 24px; }
+
+  /* ===== CALENDAR ===== */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: 100px repeat(12, 1fr);
+    gap: 2px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+  }
+  .cal-header {
+    background: var(--forest);
+    color: var(--spring);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    padding: 10px 2px;
+    letter-spacing: 0.05em;
+  }
+  .cal-label {
+    background: var(--soil);
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--forest);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-right: 2px solid var(--mist);
+  }
+  .cal-cell {
+    height: 40px;
+    background: #f8f8f8;
+    transition: background 0.2s;
+    cursor: default;
+    position: relative;
+  }
+  .cal-cell.active {
+    background: var(--fern);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3);
+  }
+  .cal-cell.peak {
+    background: var(--forest);
+  }
+  .cal-cell.current-month::after {
+    content: '▼';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 8px;
+    color: var(--spring);
+  }
+
+  .legend {
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 8px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 16px; height: 16px; border-radius: 3px; }
+
+  /* ===== SPOTS ===== */
+  .spot-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .spot-card {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    border: 1px solid var(--mist);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .spot-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+  .spot-card-header {
+    background: linear-gradient(135deg, var(--forest), var(--moss));
+    padding: 16px;
+    color: white;
+  }
+  .spot-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .spot-visits { font-size: 11px; opacity: 0.8; }
+  .spot-card-body { padding: 14px; }
+  .spot-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .spot-tag {
+    background: var(--mist);
+    color: var(--forest);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .spot-notes { font-size: 12px; color: #666; line-height: 1.6; }
+
+  .add-btn {
+    background: var(--forest);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+  }
+  .add-btn:hover { background: var(--moss); }
+
+  /* ===== BLOG ===== */
+  .blog-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+  .blog-card {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    border-left: 4px solid var(--fern);
+  }
+  .blog-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .blog-author {
+    background: var(--forest);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .blog-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--forest);
+    margin-bottom: 8px;
+  }
+  .blog-content { font-size: 13px; line-height: 1.8; color: #444; margin-bottom: 12px; }
+  .blog-footer { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .blog-sansai-tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--soil);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--moss);
+    font-weight: 600;
+  }
+  .like-btn {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--mist);
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+  }
+  .like-btn:hover { background: #fee; border-color: #f88; color: #e55; }
+
+  /* ===== SANSAI INFO ===== */
+  .sansai-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .sansai-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    border-top: 4px solid var(--fern);
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .sansai-card:hover { transform: translateY(-2px); }
+  .sansai-emoji { font-size: 32px; margin-bottom: 8px; }
+  .sansai-name { font-size: 16px; font-weight: 700; color: var(--forest); margin-bottom: 4px; }
+  .sansai-months {
+    font-size: 11px;
+    color: var(--moss);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .sansai-region { font-size: 11px; color: #888; margin-bottom: 8px; }
+  .sansai-desc { font-size: 12px; color: #555; line-height: 1.6; }
+
+  /* ===== PLAN / SCHEDULE ===== */
+  .plan-section { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 20px; }
+  .plan-title { font-size: 16px; font-weight: 700; color: var(--forest); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .month-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .month-btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--mist);
+    background: white;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Noto Serif JP', serif;
+    transition: all 0.2s;
+  }
+  .month-btn:hover { background: var(--mist); }
+  .month-btn.active { background: var(--forest); color: white; border-color: var(--forest); font-weight: 600; }
+
+  .available-list { display: flex; flex-direction: column; gap: 10px; }
+  .available-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--soil);
+    border-radius: 10px;
+    font-size: 13px;
+  }
+  .available-item-emoji { font-size: 24px; }
+  .available-item-info { flex: 1; }
+  .available-item-name { font-weight: 700; color: var(--forest); }
+  .available-item-region { font-size: 11px; color: #888; margin-top: 2px; }
+  .peak-badge {
+    background: var(--forest);
+    color: var(--spring);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 700;
+  }
+
+  /* Form */
+  .form-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .form-box {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .form-title { font-size: 18px; font-weight: 700; color: var(--forest); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12px; font-weight: 600; color: #555; margin-bottom: 6px; display: block; }
+  .form-input, .form-textarea, .form-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--fern); }
+  .form-textarea { resize: vertical; min-height: 100px; }
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-cancel {
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 14px;
+  }
+  .btn-submit {
+    paddi
 <!DOCTYPE html>
 <html lang="ja">
 <head>
