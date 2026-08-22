@@ -573,580 +573,6 @@ const styles = `
     font-size: 14px;
   }
   .btn-submit {
-    paddi
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#2d4a2d" />
-  <meta name="description" content="中部・北陸エリアの山菜採り管理アプリ" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="山菜手帳" />
-  <title>山菜採り手帳</title>
-  <link rel="manifest" href="manifest.json" />
-  <!-- Apple touch icon fallback (inline SVG favicon) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>" />
-  <!-- Babel standalone for JSX transpilation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-  <!-- React & ReactDOM -->
-  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <style>
-    body { margin: 0; padding: 0; }
-    #root { min-height: 100vh; }
-    /* PWA safe area */
-    .header { padding-top: max(0px, env(safe-area-inset-top)); }
-  </style>
-</head>
-<body>
-  <div id="root"></div>
-  <script type="text/babel" data-presets="react">
-    const { useState, useEffect } = React;
-
-// ===== DATA =====
-const SANSAI_DATA = [
-  { id: 1, name: "フキノトウ", emoji: "🌿", months: [2, 3], region: "全域", color: "#7cb87a", desc: "雪解け直後の早春を告げる山菜。天ぷら・味噌炒めに。" },
-  { id: 2, name: "タラノメ", emoji: "🌱", months: [4, 5], region: "山地", color: "#a8c86e", desc: "山菜の王様。天ぷらが定番。新芽のみ採取。" },
-  { id: 3, name: "コシアブラ", emoji: "🍃", months: [4, 5], region: "中部・北陸", color: "#6aab5e", desc: "香り豊かな山菜。天ぷら・おひたしに。" },
-  { id: 4, name: "ワラビ", emoji: "🌾", months: [4, 5, 6], region: "草地・斜面", color: "#8dc66b", desc: "アク抜きが必要。煮物・漬物・炒め物に。" },
-  { id: 5, name: "ゼンマイ", emoji: "🌀", months: [4, 5], region: "湿地・沢沿い", color: "#5a9e52", desc: "乾燥保存が可能。煮物・炒め物に。" },
-  { id: 6, name: "ウド", emoji: "🪴", months: [4, 5, 6], region: "林縁・谷筋", color: "#b5d97a", desc: "香りが特徴。きんぴら・天ぷら・酢味噌和えに。" },
-  { id: 7, name: "ミツバ", emoji: "🍀", months: [3, 4, 5], region: "湿地・沢沿い", color: "#79c47e", desc: "香り高い春の山菜。おひたし・吸い物に。" },
-  { id: 9, name: "ノビル", emoji: "🧅", months: [3, 4, 5], region: "草地・畦道", color: "#c8d96e", desc: "野生のネギ。酢味噌和え・炒め物に。" },
-  { id: 10, name: "アケビ", emoji: "🍇", months: [9, 10], region: "林縁・山地", color: "#9b7fc8", desc: "秋の実と皮を食べる。皮は肉詰め料理に。" },
-  { id: 11, name: "マツタケ", emoji: "🍄", months: [9, 10], region: "松林", color: "#c8945e", desc: "秋の王様。土瓶蒸し・焼き松茸に。" },
-  { id: 12, name: "ナメコ", emoji: "🍄", months: [10, 11], region: "広葉樹林", color: "#d4884a", desc: "ぬめりが特徴。味噌汁・鍋物に。" },
-  { id: 13, name: "セリ", emoji: "🌿", months: [2, 3, 4], region: "水辺・田んぼ脇", color: "#4caf6e", desc: "春の七草のひとつ。独特の香りが特徴。おひたし・鍋物・七草粥に。根っこごと採取するのがコツ。" },
-  { id: 14, name: "葉ワサビ", emoji: "🍃", months: [3, 4, 5], region: "清流・沢沿い", color: "#2e7d32", desc: "清流沿いに自生するワサビの葉。辛みと香りが特徴。醤油漬け・おひたし・天ぷらに。柔らかい若葉を選んで採取。" },
-  { id: 15, name: "花ワサビ", emoji: "🌸", months: [3, 4], region: "清流・沢沿い", color: "#7b5ea7", desc: "ワサビの白い花と花茎。葉より辛みが強く香り豊か。醤油漬け・からし和えに。開花直後の新鮮なものが最高。" },
-  { id: 16, name: "根曲がり竹", emoji: "🎋", months: [5, 6], region: "亜高山帯・笹薮", color: "#8aab3a", desc: "チシマザサの若タケノコ。北陸・信州の山の幸。味噌汁・炊き込みご飯・サバ缶との相性が絶品。群生地では一気に採れる。" },
-  { id: 17, name: "コゴミ", emoji: "🌀", months: [4, 5], region: "沢沿い・湿地", color: "#4e8f5d", desc: "クサソテツの若芽。アクが少なく扱いやすい。おひたし・天ぷら・マヨネーズ和えに。ゼンマイより採取しやすく初心者向け。" },
-  { id: 18, name: "ミョウガ", emoji: "🌺", months: [7, 8, 9], region: "山間・林縁の湿った場所", color: "#e07b8a", desc: "夏〜秋に花穂（みょうがたけ）を採取。独特の香りと風味が特徴。薬味・天ぷら・甘酢漬け・味噌汁に。群生していることが多く一度見つければ毎年採れる。" },
-  { id: 19, name: "青ミズ（ヤマトキホコリ", emoji: "🍃", months: [4, 5], region: "山地・林縁・沢沿い", color: "#5c8a4e", desc: "モミジガサの北陸・東北方言名。独特の香りとほろ苦さが特徴。おひたし・天ぷら・胡麻和えに。アクが少なく扱いやすい。群生地では大量に採れる山菜の王様のひとつ。" },
-  { id: 20, name: "ミズ（ウワバミソウ）", emoji: "💧", months: [5, 6, 7, 8, 9], region: "沢沿い・渓流脇・湿った林内", color: "#4a90c4", desc: "北陸・東北で古くから親しまれる山菜。茎が瑞々しく柔らかい。おひたし・炒め物・漬物・みそ汁に。秋にはムカゴ（肉芽）が付き、これも珍味。長期間採れるので重宝する。" },
-  { id: 21, name: "行者ニンニク", emoji: "🧄", months: [4, 5], region: "亜高山帯・湿った林内・沢沿い斜面", color: "#6d8c3e", desc: "強烈なニンニク臭が特徴の希少山菜。醤油漬け・炒め物・餃子の具・ラーメンのトッピングに絶品。成長が非常に遅く根こそぎ採取は厳禁。葉2〜3枚を残して採取すること。バイケイソウ・イヌサフランとの誤食事故に要注意。" },
-  { id: 22, name: "ウルイ（オオバギボウシ）", emoji: "🌿", months: [4, 5], region: "山地・林縁・湿った草地・沢沿い", color: "#5aab72", desc: "大ぶりで扱いやすい人気の山菜。クセがなく食べやすい。おひたし・酢味噌和え・天ぷら・炒め物に。ぬめりがあり栄養豊富。イヌサフランと葉が酷似しているため採取時は要注意。臭いがないときは絶対に採らないこと。" },
-  { id: 23, name: "ボウナ（ミヤマタラノキ）", emoji: "🌱", months: [5, 6], region: "亜高山帯・山地の林縁・明るい斜面", color: "#7db84a", desc: "タラノメに似た山菜で北陸・東北では古くから親しまれる。タラノメより柔らかくアクが少ない。天ぷら・おひたし・炒め物に。トゲが少なく採取しやすいのが特徴。旬が短いので時期を逃さないこと。" },
-];
-
-const MONTHS = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
-
-const INITIAL_SPOTS = [
-  { id: 1, name: "白山麓・瀬女エリア", lat: 36.15, lng: 136.65, sansai: [1,2,3,4], notes: "林道沿いにコシアブラ多数。フキノトウは3月上旬から。", visits: 12 },
-  { id: 2, name: "飛騨・宮川源流", lat: 36.28, lng: 137.12, sansai: [2,5,6], notes: "タラノメの大型株あり。沢沿いにゼンマイも豊富。", visits: 8 },
-  { id: 3, name: "上越・棚田エリア", lat: 37.10, lng: 138.25, sansai: [4,7,9], notes: "棚田の畦道でノビル。湿地帯でミツバ群生。", visits: 5 },
-];
-
-const INITIAL_BLOG = [
-  { id: 1, date: "2026-05-10", title: "白山麓でコシアブラ大豊作！", content: "今年は雪解けが早く、例年より1週間早くコシアブラが出ていました。林道終点付近の斜面で大量に採れました。天ぷらにして最高でした！", sansai: [3], spot: 1, author: "田中", photos: [], likes: 5 },
-  { id: 2, date: "2026-04-20", title: "飛騨でタラノメ初採り", content: "山の雪もすっかり溶けて、タラノメのシーズン到来。今年初の天ぷらは格別でした。来週また行きます！", sansai: [2], spot: 2, author: "鈴木", photos: [], likes: 3 },
-];
-
-
-// ===== 危険・注意植物データ =====
-const DANGER_PLANTS = [
-  {
-    id: 101, name: "トリカブト", emoji: "💜", danger: "猛毒",
-    color: "#7b1fa2", dangerColor: "#c0392b",
-    similar: ["ニリンソウ", "ヨモギ", "セリ"],
-    similarIds: [7, 13],
-    desc: "日本最強クラスの毒草。アルカロイド系毒素（アコニチン）を含み、誤食すると心臓麻痺を起こす。根・葉・茎すべてに毒がある。",
-    howToDistinguish: "ニリンソウとの区別：葉の切れ込みが深くギザギザ。花は紫色の特徴的な兜形（ニリンソウは白い花びら状）。葉をこすると独特の嫌な臭い。",
-    region: "山地・高山の湿った斜面",
-    season: "葉は春〜夏、花は夏〜秋",
-    warning: "採取厳禁。触れるだけでも皮膚吸収の危険性あり。",
-  },
-  {
-    id: 102, name: "ドクウツギ", emoji: "🍒", danger: "猛毒",
-    color: "#b71c1c", dangerColor: "#c0392b",
-    similar: ["アケビ", "木の実全般"],
-    similarIds: [10],
-    desc: "ドクゼリ・トリカブトと並ぶ日本三大毒草のひとつ。赤黒い実が甘そうに見えるが猛毒。コリアミルチンを含み死亡例あり。",
-    howToDistinguish: "アケビとの区別：葉が対生（アケビは互生）。実が房状に密集。茎は緑色で稜がある。",
-    region: "山地・川沿い・崩壊地",
-    season: "実は夏〜秋（赤→黒に変化）",
-    warning: "実を絶対に食べない。子供が誤食しやすいため注意。",
-  },
-  {
-    id: 103, name: "ドクゼリ", emoji: "🌿", danger: "猛毒",
-    color: "#1b5e20", dangerColor: "#c0392b",
-    similar: ["セリ", "ミツバ", "ウド"],
-    similarIds: [13, 7, 6],
-    desc: "セリに非常によく似た猛毒植物。シクトキシンを含み、誤食すると痙攣・呼吸困難を引き起こす。根が特に毒性が強い。",
-    howToDistinguish: "セリとの区別：根を切ると空洞（節状の横隔壁がある竹のような構造）。茎が太く中空。葉は大型で光沢がある。セリの根は白い細根が多く香りが強い。",
-    region: "湿地・水辺・水田周辺",
-    season: "春〜夏",
-    warning: "水辺のセリ採取は根の確認必須。根ごと抜いて断面を必ず確認。",
-  },
-  {
-    id: 104, name: "スイセン", emoji: "🌼", danger: "有毒",
-    color: "#f9a825", dangerColor: "#e67e22",
-    similar: ["ノビル", "ニラ"],
-    similarIds: [9],
-    desc: "球根・葉・花すべてに毒（リコリン）を含む。ノビルやニラと葉が非常に似ており誤食事故が多発。毎年被害報告がある。",
-    howToDistinguish: "ノビルとの区別：スイセンは葉を折っても臭いがない（ノビルはネギ臭）。球根の形状が違う（スイセンは球根が大きく白い）。葉が扁平でツヤがある。",
-    region: "庭・公園・土手・山すそ",
-    season: "葉は早春から（花は2〜4月）",
-    warning: "ノビル採取時は必ず臭いで確認。無臭ならスイセンの可能性大。",
-  },
-  {
-    id: 105, name: "イヌサフラン（コルチカム）", emoji: "🌸", danger: "猛毒",
-    color: "#ad1457", dangerColor: "#c0392b",
-    similar: ["ギョウジャニンニク", "ウルイ（オオバギボウシ）"],
-    similarIds: [],
-    desc: "コルヒチンを含む猛毒植物。ギョウジャニンニクやオオバギボウシと葉が酷似。近年誤食による死亡事故が増加。",
-    howToDistinguish: "ギョウジャニンニクとの区別：葉を傷つけてもニンニク臭がしない（ギョウジャニンニクは強いニンニク臭）。葉脈が平行で光沢が強い。球根が大きい。",
-    region: "庭・公園・山地（園芸逸出）",
-    season: "葉は春（花は秋）",
-    warning: "臭いで必ず確認。無臭はすべて疑うこと。",
-  },
-  {
-    id: 106, name: "ハシリドコロ", emoji: "🍃", danger: "有毒",
-    color: "#4e342e", dangerColor: "#e67e22",
-    similar: ["フキノトウ", "ギョウジャニンニク"],
-    similarIds: [1],
-    desc: "アトロピン・スコポラミン等を含む有毒植物。早春にフキノトウと同じ場所に生えることがあり誤食事故多数。幻覚・錯乱・呼吸困難を引き起こす。",
-    howToDistinguish: "フキノトウとの区別：葉が柔らかく大きい。独特の臭いがある。茎を折ると白い液が出る。フキノトウは苞（つぼみ）の形が独特。",
-    region: "山地の沢沿い・湿った斜面",
-    season: "早春（3〜4月）",
-    warning: "フキノトウ採取時に混入注意。必ず形状を確認してから採取。",
-  },
-  {
-    id: 107, name: "ヨウシュヤマゴボウ", emoji: "🫐", danger: "有毒",
-    color: "#4a148c", dangerColor: "#e67e22",
-    similar: ["山菜全般（根）"],
-    similarIds: [],
-    desc: "根・実・葉すべてに毒を含む。黒紫の実がブルーベリーに似て見え、子供の誤食が多い。大人でも根をゴボウと間違えることがある。",
-    howToDistinguish: "ゴボウとの区別：根を切ると白く臭いが全く違う。茎が赤紫色で太い。実は黒紫色でブドウ房状。",
-    region: "道端・空き地・林縁（帰化植物）",
-    season: "葉は春〜夏、実は秋",
-    warning: "見た目が美しく子供が食べやすいため特に注意。",
-  },
-  {
-    id: 108, name: "バイケイソウ", emoji: "🌿", danger: "猛毒",
-    color: "#2e7d32", dangerColor: "#c0392b",
-    similar: ["ギョウジャニンニク", "コバイケイソウ"],
-    similarIds: [],
-    desc: "アルカロイド系毒素（ベラトルム）を含む猛毒植物。ギョウジャニンニクと春の若葉が酷似しており、北陸・東北で誤食死亡事故多数。",
-    howToDistinguish: "ギョウジャニンニクとの区別：葉が互生で大きく広い（ギョウジャニンニクは対生で細長い）。葉を傷つけてもニンニク臭がしない。葉脈が平行で目立つ。",
-    region: "亜高山帯・山地の湿った草地",
-    season: "早春〜初夏",
-    warning: "北陸の山では最重要注意植物。ギョウジャニンニク採取時は必ず臭いで確認。",
-  },
-];
-
-const DANGER_LEVEL = {
-  "猛毒": { color:"#c0392b", bg:"#fdecea", badge:"☠️ 猛毒" },
-  "有毒": { color:"#e67e22", bg:"#fef3e2", badge:"⚠️ 有毒" },
-  "注意": { color:"#f39c12", bg:"#fefde2", badge:"⚡ 注意" },
-};
-
-const INITIAL_MEMBERS = ["田中", "鈴木", "佐藤", "伊藤", "山本"];
-
-// ===== STYLES =====
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Shippori+Mincho:wght@400;600&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --forest: #2d4a2d;
-    --moss: #4a7a3d;
-    --fern: #6aab5e;
-    --spring: #a8d86e;
-    --earth: #7a5c3a;
-    --bark: #c8a882;
-    --soil: #f5efe6;
-    --cream: #faf7f2;
-    --paper: #fff9f0;
-    --ink: #1a2e1a;
-    --mist: #e8f0e4;
-  }
-
-  body {
-    font-family: 'Noto Serif JP', serif;
-    background: var(--cream);
-    color: var(--ink);
-    min-height: 100vh;
-  }
-
-  .app {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-
-  /* Header */
-  .header {
-    background: var(--forest);
-    color: var(--spring);
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-  }
-  .header-title {
-    font-family: 'Shippori Mincho', serif;
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .header-subtitle {
-    font-size: 11px;
-    color: var(--bark);
-    letter-spacing: 0.15em;
-  }
-
-  /* Nav */
-  .nav {
-    background: var(--paper);
-    border-bottom: 2px solid var(--mist);
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 0 16px;
-  }
-  .nav::-webkit-scrollbar { display: none; }
-  .nav-btn {
-    padding: 14px 20px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-family: 'Noto Serif JP', serif;
-    font-size: 13px;
-    color: #666;
-    white-space: nowrap;
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: -2px;
-  }
-  .nav-btn:hover { color: var(--moss); }
-  .nav-btn.active {
-    color: var(--forest);
-    border-bottom-color: var(--fern);
-    font-weight: 600;
-  }
-
-  /* Main */
-  .main { flex: 1; padding: 24px 20px; max-width: 900px; margin: 0 auto; width: 100%; }
-
-  /* Section title */
-  .section-title {
-    font-family: 'Shippori Mincho', serif;
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--forest);
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .section-desc { font-size: 13px; color: #666; margin-bottom: 24px; }
-
-  /* ===== CALENDAR ===== */
-  .calendar-grid {
-    display: grid;
-    grid-template-columns: 100px repeat(12, 1fr);
-    gap: 2px;
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
-    margin-bottom: 24px;
-  }
-  .cal-header {
-    background: var(--forest);
-    color: var(--spring);
-    font-size: 11px;
-    font-weight: 600;
-    text-align: center;
-    padding: 10px 2px;
-    letter-spacing: 0.05em;
-  }
-  .cal-label {
-    background: var(--soil);
-    padding: 10px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--forest);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border-right: 2px solid var(--mist);
-  }
-  .cal-cell {
-    height: 40px;
-    background: #f8f8f8;
-    transition: background 0.2s;
-    cursor: default;
-    position: relative;
-  }
-  .cal-cell.active {
-    background: var(--fern);
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3);
-  }
-  .cal-cell.peak {
-    background: var(--forest);
-  }
-  .cal-cell.current-month::after {
-    content: '▼';
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    font-size: 8px;
-    color: var(--spring);
-  }
-
-  .legend {
-    display: flex;
-    gap: 20px;
-    font-size: 12px;
-    color: #555;
-    margin-bottom: 8px;
-  }
-  .legend-item { display: flex; align-items: center; gap: 6px; }
-  .legend-dot { width: 16px; height: 16px; border-radius: 3px; }
-
-  /* ===== SPOTS ===== */
-  .spot-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .spot-card {
-    background: white;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    border: 1px solid var(--mist);
-    transition: transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
-  }
-  .spot-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-  .spot-card-header {
-    background: linear-gradient(135deg, var(--forest), var(--moss));
-    padding: 16px;
-    color: white;
-  }
-  .spot-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-  .spot-visits { font-size: 11px; opacity: 0.8; }
-  .spot-card-body { padding: 14px; }
-  .spot-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-  .spot-tag {
-    background: var(--mist);
-    color: var(--forest);
-    font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-weight: 600;
-  }
-  .spot-notes { font-size: 12px; color: #666; line-height: 1.6; }
-
-  .add-btn {
-    background: var(--forest);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: 'Noto Serif JP', serif;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: background 0.2s;
-  }
-  .add-btn:hover { background: var(--moss); }
-
-  /* ===== BLOG ===== */
-  .blog-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
-  .blog-card {
-    background: white;
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-    border-left: 4px solid var(--fern);
-  }
-  .blog-meta {
-    display: flex;
-    gap: 12px;
-    font-size: 12px;
-    color: #888;
-    margin-bottom: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .blog-author {
-    background: var(--forest);
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  .blog-title {
-    font-size: 17px;
-    font-weight: 600;
-    color: var(--forest);
-    margin-bottom: 8px;
-  }
-  .blog-content { font-size: 13px; line-height: 1.8; color: #444; margin-bottom: 12px; }
-  .blog-footer { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .blog-sansai-tag {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: var(--soil);
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    color: var(--moss);
-    font-weight: 600;
-  }
-  .like-btn {
-    margin-left: auto;
-    background: none;
-    border: 1px solid var(--mist);
-    border-radius: 20px;
-    padding: 4px 12px;
-    cursor: pointer;
-    font-size: 12px;
-    color: #888;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.2s;
-  }
-  .like-btn:hover { background: #fee; border-color: #f88; color: #e55; }
-
-  /* ===== SANSAI INFO ===== */
-  .sansai-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 14px;
-    margin-bottom: 24px;
-  }
-  .sansai-card {
-    background: white;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-    border-top: 4px solid var(--fern);
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  .sansai-card:hover { transform: translateY(-2px); }
-  .sansai-emoji { font-size: 32px; margin-bottom: 8px; }
-  .sansai-name { font-size: 16px; font-weight: 700; color: var(--forest); margin-bottom: 4px; }
-  .sansai-months {
-    font-size: 11px;
-    color: var(--moss);
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .sansai-region { font-size: 11px; color: #888; margin-bottom: 8px; }
-  .sansai-desc { font-size: 12px; color: #555; line-height: 1.6; }
-
-  /* ===== PLAN / SCHEDULE ===== */
-  .plan-section { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 20px; }
-  .plan-title { font-size: 16px; font-weight: 700; color: var(--forest); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-  .month-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-  .month-btn {
-    padding: 6px 12px;
-    border-radius: 20px;
-    border: 1px solid var(--mist);
-    background: white;
-    cursor: pointer;
-    font-size: 12px;
-    font-family: 'Noto Serif JP', serif;
-    transition: all 0.2s;
-  }
-  .month-btn:hover { background: var(--mist); }
-  .month-btn.active { background: var(--forest); color: white; border-color: var(--forest); font-weight: 600; }
-
-  .available-list { display: flex; flex-direction: column; gap: 10px; }
-  .available-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: var(--soil);
-    border-radius: 10px;
-    font-size: 13px;
-  }
-  .available-item-emoji { font-size: 24px; }
-  .available-item-info { flex: 1; }
-  .available-item-name { font-weight: 700; color: var(--forest); }
-  .available-item-region { font-size: 11px; color: #888; margin-top: 2px; }
-  .peak-badge {
-    background: var(--forest);
-    color: var(--spring);
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 700;
-  }
-
-  /* Form */
-  .form-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 200;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  .form-box {
-    background: white;
-    border-radius: 16px;
-    padding: 24px;
-    width: 100%;
-    max-width: 480px;
-    max-height: 85vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  }
-  .form-title { font-size: 18px; font-weight: 700; color: var(--forest); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-  .form-group { margin-bottom: 16px; }
-  .form-label { font-size: 12px; font-weight: 600; color: #555; margin-bottom: 6px; display: block; }
-  .form-input, .form-textarea, .form-select {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-family: 'Noto Serif JP', serif;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--fern); }
-  .form-textarea { resize: vertical; min-height: 100px; }
-  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-  .btn-cancel {
-    padding: 10px 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: white;
-    cursor: pointer;
-    font-family: 'Noto Serif JP', serif;
-    font-size: 14px;
-  }
-  .btn-submit {
     padding: 10px 24px;
     background: var(--forest);
     color: white;
@@ -1334,7 +760,7 @@ const CALENDARS = [
   { id: "6", name: "登山（一般）",            color: "#FA573C" },
 ];
 
-function ScheduleForm({ spots, onClose, onSuccess }) {
+function ScheduleForm({ spots, onClose, onSuccess, members }) {
   const today = new Date().toISOString().split("T")[0];
 
   // 複数スポットエントリ
@@ -1349,7 +775,7 @@ function ScheduleForm({ spots, onClose, onSuccess }) {
     memo: "",
   });
   const [status, setStatus] = useState("idle");
-  const MEMBER_LIST = ["田中","鈴木","佐藤","伊藤","山本"];
+  const MEMBER_LIST = (members||[]).map(m=>m.name);
 
   // --- スポット操作 ---
   const addStop = () => setForm(f => ({ ...f, stops: [...f.stops, { ...emptyStop }] }));
@@ -1578,7 +1004,8 @@ function ScheduleForm({ spots, onClose, onSuccess }) {
                 const san = s.sansai.map(id=>SANSAI_DATA.find(x=>x.id===id)?.name).filter(Boolean);
                 return sn || san.length ? `第${i+1}箇所：${sn}${san.length?` ／ ${san.join("・")}` : ""}` : "";
               }),
-            ].filter(Boolean).join("\n")}
+            ].filter(Boolean).join("
+")}
           </div>
         </div>
 
@@ -2241,7 +1668,7 @@ function AreaManager({ weatherLocations, setWeatherLocations }) {
   );
 }
 
-function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocations }) {
+function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocations, members }) {
   const currentMonth = new Date().getMonth() + 1;
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [showSchedule, setShowSchedule] = useState(false);
@@ -2299,6 +1726,7 @@ function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocati
           spots={spots}
           onClose={()=>setShowSchedule(false)}
           onSuccess={onScheduleSuccess}
+          members={members}
         />
       )}
     </div>
@@ -2587,57 +2015,210 @@ const RANK_BADGE = {
   "師匠・名人":     "👑",
 };
 
+// アバター表示（MembersViewの外に定義してantipatternを回避）
+const ROLE_COLOR_MAP = {
+  "採取リーダー":"#c0392b","料理担当":"#e67e22","ナビ担当":"#2980b9",
+  "記録係":"#8e44ad","新入り":"#27ae60","ベテラン":"#2d4a2d","一般":"#7f8c8d",
+};
+const RANK_COLOR_MAP = {
+  "初級（初心者）":"#95a5a6","中級":"#27ae60","上級":"#2980b9",
+  "エキスパート":"#8e44ad","マスター":"#e67e22","師匠・名人":"#c0392b",
+};
+const RANK_BADGE_MAP = {
+  "初級（初心者）":"🌱","中級":"🌿","上級":"🍃",
+  "エキスパート":"⭐","マスター":"🌟","師匠・名人":"👑",
+};
+const ROLES_LIST = ["採取リーダー","料理担当","ナビ担当","記録係","新入り","ベテラン","一般"];
+const RANKS_LIST = ["初級（初心者）","中級","上級","エキスパート","マスター","師匠・名人"];
+
+function MemberAvatar({ member, size }) {
+  const sz = size || 48;
+  const src = member.avatar || member.photo;
+  if (src) return (
+    <img src={src} style={{width:sz, height:sz, borderRadius:"50%", objectFit:"cover",
+      border:`3px solid ${ROLE_COLOR_MAP[member.role]||"#aaa"}`, flexShrink:0}} />
+  );
+  return (
+    <div style={{width:sz, height:sz, borderRadius:"50%", flexShrink:0,
+      background:ROLE_COLOR_MAP[member.role]||"#aaa",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      color:"white", fontWeight:700, fontSize:Math.round(sz*0.4),
+      border:`3px solid ${ROLE_COLOR_MAP[member.role]||"#aaa"}`}}>
+      {(member.name||"?").charAt(0)}
+    </div>
+  );
+}
+
+const ROLE_COLOR_MAP = {
+  "採取リーダー":"#c0392b","料理担当":"#e67e22","ナビ担当":"#2980b9",
+  "記録係":"#8e44ad","新入り":"#27ae60","ベテラン":"#2d4a2d","一般":"#7f8c8d",
+};
+const RANK_COLOR_MAP = {
+  "初級（初心者）":"#95a5a6","中級":"#27ae60","上級":"#2980b9",
+  "エキスパート":"#8e44ad","マスター":"#e67e22","師匠・名人":"#c0392b",
+};
+const RANK_BADGE_MAP = {
+  "初級（初心者）":"🌱","中級":"🌿","上級":"🍃",
+  "エキスパート":"⭐","マスター":"🌟","師匠・名人":"👑",
+};
+const ROLES_LIST = ["採取リーダー","料理担当","ナビ担当","記録係","新入り","ベテラン","一般"];
+const RANKS_LIST = ["初級（初心者）","中級","上級","エキスパート","マスター","師匠・名人"];
+
+// ローカルストレージからメンバーを読む（PWA対応）
+function loadMembersFromStorage(initial) {
+  try {
+    const saved = localStorage.getItem("sansai_members");
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return initial;
+}
+function saveMembersToStorage(members) {
+  try { localStorage.setItem("sansai_members", JSON.stringify(members)); } catch(e) {}
+}
+
 function MembersView({ members, setMembers }) {
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  // ── フォームState ──
   const [showForm, setShowForm] = useState(false);
-  const [editTarget, setEditTarget] = useState(null); // null=新規, obj=編集
-  const [form, setForm] = useState({ name:"", role:"一般", memo:"", joined: new Date().toISOString().split("T")[0] });
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [editTarget, setEditTarget] = useState(null); // null=新規、obj=編集
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [formName, setFormName] = useState("");
+  const [formNickname, setFormNickname] = useState("");
+  const [formRole, setFormRole] = useState("一般");
+  const [formRank, setFormRank] = useState("初級（初心者）");
+  const [formMemo, setFormMemo] = useState("");
+  const [formJoined, setFormJoined] = useState(todayStr);
+  const [formPhoto, setFormPhoto] = useState(null);
+  const [formAvatar, setFormAvatar] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSvg, setAiSvg] = useState(null);
+  const camRef = React.useRef(null);
+
+  const resetForm = () => {
+    setFormName(""); setFormNickname(""); setFormRole("一般");
+    setFormRank("初級（初心者）"); setFormMemo(""); setFormJoined(todayStr);
+    setFormPhoto(null); setFormAvatar(null); setAiSvg(null);
+  };
 
   const openAdd = () => {
-    setForm({ name:"", role:"一般", rank:"初級（初心者）", memo:"", joined: new Date().toISOString().split("T")[0] });
+    resetForm();
     setEditTarget(null);
     setShowForm(true);
   };
 
+  const openAddWithCam = () => {
+    resetForm();
+    setEditTarget(null);
+    setShowForm(true);
+    setTimeout(() => camRef.current?.click(), 400);
+  };
+
   const openEdit = (m) => {
-    setForm({ name: m.name, role: m.role, rank: m.rank ?? "初級（初心者）", memo: m.memo, joined: m.joined });
+    setFormName(m.name||"");
+    setFormNickname(m.nickname||"");
+    setFormRole(m.role||"一般");
+    setFormRank(m.rank||"初級（初心者）");
+    setFormMemo(m.memo||"");
+    setFormJoined(m.joined||todayStr);
+    setFormPhoto(m.photo||null);
+    setFormAvatar(m.avatar||null);
+    setAiSvg(null);
     setEditTarget(m);
     setShowForm(true);
   };
 
-  const handleSave = () => {
-    if (!form.name.trim()) return;
-    if (editTarget) {
-      setMembers(prev => prev.map(m => m.id === editTarget.id ? { ...m, ...form } : m));
-    } else {
-      setMembers(prev => [...prev, { id: Date.now(), ...form }]);
-    }
+  // ── 写真読み込み ──
+  const loadPhoto = (files) => {
+    const file = files && files[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = e => { setFormPhoto(e.target.result); setFormAvatar(null); };
+    reader.readAsDataURL(file);
+  };
+
+  // ── AI アバター生成 ──
+  const generateAvatar = async () => {
+    if (!formPhoto) return;
+    setAiLoading(true); setAiSvg(null);
+    try {
+      const b64 = formPhoto.split(",")[1];
+      const mime = formPhoto.split(";")[0].split(":")[1];
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1500,
+          messages:[{role:"user", content:[
+            {type:"image", source:{type:"base64", media_type:mime, data:b64}},
+            {type:"text", text:`この人物をアニメ風SVGアバターに変換。viewBox="0 0 200 200"の円形、大きな目、シンプル輪郭、緑系背景。SVGタグのみ出力。`}
+          ]}]
+        })
+      });
+      const data = await res.json();
+      const txt = data.content?.[0]?.text||"";
+      const m = txt.match(/<svg[\s\S]*?<\/svg>/i);
+      if (m) setAiSvg("data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(m[0]))));
+      else setAiSvg("error");
+    } catch { setAiSvg("error"); }
+    finally { setAiLoading(false); }
+  };
+
+  // ── 追加 ──
+  const handleAdd = () => {
+    if (!formName.trim()) { alert("名前を入力してください"); return; }
+    const newMember = {
+      id: Date.now(),
+      name: formName.trim(), nickname: formNickname.trim(),
+      role: formRole, rank: formRank,
+      memo: formMemo, joined: formJoined,
+      photo: formPhoto, avatar: formAvatar,
+    };
+    const updated = [...members, newMember];
+    setMembers(updated);
+    saveMembersToStorage(updated);
+    resetForm();
     setShowForm(false);
   };
 
-  const handleDelete = (id) => {
-    setMembers(prev => prev.filter(m => m.id !== id));
-    setDeleteConfirm(null);
+  // ── 編集保存 ──
+  const handleEditSave = () => {
+    if (!formName.trim()) { alert("名前を入力してください"); return; }
+    const updated = members.map(m => m.id === editTarget.id ? {
+      ...m,
+      name: formName.trim(), nickname: formNickname.trim(),
+      role: formRole, rank: formRank,
+      memo: formMemo, joined: formJoined,
+      photo: formPhoto, avatar: formAvatar,
+    } : m);
+    setMembers(updated);
+    saveMembersToStorage(updated);
+    resetForm();
+    setEditTarget(null);
+    setShowForm(false);
   };
 
-  const ROLE_COLOR = {
-    "採取リーダー": "#c0392b", "料理担当": "#e67e22", "ナビ担当": "#2980b9",
-    "記録係": "#8e44ad", "新入り": "#27ae60", "ベテラン": "#2d4a2d", "一般": "#7f8c8d",
+  // ── 削除 ──
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    const updated = members.filter(m => m.id !== deleteTarget.id);
+    setMembers(updated);
+    saveMembersToStorage(updated);
+    setDeleteTarget(null);
   };
 
   return (
     <div>
       <div className="section-title">👥 メンバー管理</div>
-      <div className="section-desc">グループメンバーの登録・編集・削除ができます。</div>
+      <div className="section-desc">メンバーの追加・編集・削除ができます。変更は全タブに反映されます。</div>
 
-      {/* サマリーバー */}
-      <div style={{display:"flex", gap:12, marginBottom:20, flexWrap:"wrap"}}>
+      {/* サマリー */}
+      <div style={{display:"flex", gap:10, marginBottom:20, flexWrap:"wrap"}}>
         {[
-          { label:"総メンバー", val:`${members.length}名`, icon:"👥" },
-          { label:"ベテラン",   val:`${members.filter(m=>m.role==="ベテラン"||m.role==="採取リーダー").length}名`, icon:"🏆" },
-          { label:"新入り",     val:`${members.filter(m=>m.role==="新入り").length}名`, icon:"🌱" },
-        ].map(item => (
-          <div key={item.label} style={{flex:1, minWidth:90, background:"white", borderRadius:12, padding:"12px 16px", boxShadow:"0 2px 10px rgba(0,0,0,0.07)", textAlign:"center", border:"1px solid var(--mist)"}}>
+          {label:"総メンバー", val:`${members.length}名`, icon:"👥"},
+          {label:"ベテラン",   val:`${members.filter(m=>["ベテラン","採取リーダー"].includes(m.role)).length}名`, icon:"🏆"},
+          {label:"新入り",     val:`${members.filter(m=>m.role==="新入り").length}名`, icon:"🌱"},
+        ].map(item=>(
+          <div key={item.label} style={{flex:1, minWidth:90, background:"white", borderRadius:12,
+            padding:"10px 14px", boxShadow:"0 2px 8px rgba(0,0,0,0.07)", textAlign:"center", border:"1px solid var(--mist)"}}>
             <div style={{fontSize:22}}>{item.icon}</div>
             <div style={{fontSize:20, fontWeight:700, color:"var(--forest)"}}>{item.val}</div>
             <div style={{fontSize:11, color:"#888"}}>{item.label}</div>
@@ -2645,114 +2226,249 @@ function MembersView({ members, setMembers }) {
         ))}
       </div>
 
-      {/* メンバーカード一覧 */}
-      <div style={{display:"flex", flexDirection:"column", gap:12, marginBottom:24}}>
-        {members.map((m, i) => (
-          <div key={m.id} style={{background:"white", borderRadius:14, overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", border:"1px solid var(--mist)", display:"flex", alignItems:"stretch"}}>
-            {/* 左カラー帯 */}
-            <div style={{width:6, background: ROLE_COLOR[m.role] ?? "#aaa", flexShrink:0}} />
-            {/* アバター */}
-            <div style={{width:56, display:"flex", alignItems:"center", justifyContent:"center", background:"var(--soil)", flexShrink:0}}>
-              <div style={{width:38, height:38, borderRadius:"50%", background: ROLE_COLOR[m.role] ?? "#aaa", display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontWeight:700, fontSize:16}}>
-                {m.name.charAt(0)}
+      {/* メンバー一覧 */}
+      {members.length === 0 ? (
+        <div style={{textAlign:"center", padding:40, color:"#ccc", fontSize:14, marginBottom:20}}>
+          メンバーがいません。追加してください。
+        </div>
+      ) : (
+        <div style={{display:"flex", flexDirection:"column", gap:12, marginBottom:20}}>
+          {members.map(m => (
+            <div key={m.id} style={{background:"white", borderRadius:14, overflow:"hidden",
+              boxShadow:"0 2px 12px rgba(0,0,0,0.07)", border:"1px solid var(--mist)", display:"flex"}}>
+              <div style={{width:6, background:ROLE_COLOR_MAP[m.role]||"#aaa", flexShrink:0}} />
+              <div style={{width:60, display:"flex", alignItems:"center", justifyContent:"center",
+                background:"var(--soil)", flexShrink:0, padding:8}}>
+                <MemberAvatar member={m} size={42} />
+              </div>
+              <div style={{flex:1, padding:"12px 14px", minWidth:0}}>
+                <div style={{display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:4}}>
+                  <span style={{fontSize:16, fontWeight:700, color:"var(--forest)"}}>{m.name}</span>
+                  {m.nickname && <span style={{fontSize:12, color:"#888"}}>「{m.nickname}」</span>}
+                </div>
+                <div style={{display:"flex", gap:4, flexWrap:"wrap", marginBottom:4}}>
+                  <span style={{fontSize:10, fontWeight:700, color:"white",
+                    background:ROLE_COLOR_MAP[m.role]||"#aaa", padding:"2px 7px", borderRadius:10}}>
+                    {m.role}
+                  </span>
+                  <span style={{fontSize:10, fontWeight:700, color:"white",
+                    background:RANK_COLOR_MAP[m.rank]||"#aaa", padding:"2px 7px", borderRadius:10}}>
+                    {RANK_BADGE_MAP[m.rank]} {m.rank}
+                  </span>
+                </div>
+                {m.memo && <div style={{fontSize:12, color:"#666"}}>{m.memo}</div>}
+                <div style={{fontSize:11, color:"#aaa"}}>参加日：{m.joined}</div>
+              </div>
+              <div style={{display:"flex", flexDirection:"column", justifyContent:"center",
+                gap:6, padding:"10px 10px", flexShrink:0}}>
+                <button onClick={()=>openEdit(m)}
+                  style={{background:"var(--mist)", border:"none", borderRadius:8,
+                    padding:"8px 12px", cursor:"pointer", fontSize:12, fontWeight:600,
+                    color:"var(--forest)", whiteSpace:"nowrap"}}>
+                  ✏️ 編集
+                </button>
+                <button onClick={()=>setDeleteTarget(m)}
+                  style={{background:"#fee", border:"none", borderRadius:8,
+                    padding:"8px 12px", cursor:"pointer", fontSize:12, fontWeight:600,
+                    color:"#c0392b", whiteSpace:"nowrap"}}>
+                  🗑 削除
+                </button>
               </div>
             </div>
-            {/* 情報 */}
-            <div style={{flex:1, padding:"12px 14px"}}>
-              <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:4}}>
-                <span style={{fontSize:16, fontWeight:700, color:"var(--forest)"}}>{m.name}</span>
-                <span style={{fontSize:11, fontWeight:700, color:"white", background: ROLE_COLOR[m.role] ?? "#aaa", padding:"2px 8px", borderRadius:12}}>{m.role}</span>
-                {m.rank && <span style={{fontSize:11, fontWeight:700, color:"white", background: RANK_COLOR[m.rank] ?? "#aaa", padding:"2px 8px", borderRadius:12}}>{RANK_BADGE[m.rank]} {m.rank}</span>}
-              </div>
-              {m.memo && <div style={{fontSize:12, color:"#666", marginBottom:4}}>{m.memo}</div>}
-              <div style={{fontSize:11, color:"#aaa"}}>参加日：{m.joined}</div>
-            </div>
-            {/* 操作ボタン */}
-            <div style={{display:"flex", flexDirection:"column", justifyContent:"center", gap:6, padding:"10px 12px"}}>
-              <button onClick={()=>openEdit(m)} style={{background:"var(--mist)", border:"none", borderRadius:8, padding:"6px 10px", cursor:"pointer", fontSize:12, color:"var(--forest)", fontWeight:600}}>編集</button>
-              <button onClick={()=>setDeleteConfirm(m)} style={{background:"#fee", border:"none", borderRadius:8, padding:"6px 10px", cursor:"pointer", fontSize:12, color:"#c0392b", fontWeight:600}}>削除</button>
-            </div>
-          </div>
-        ))}
-        {members.length === 0 && (
-          <div style={{textAlign:"center", padding:40, color:"#ccc", fontSize:14}}>メンバーがいません。追加してください。</div>
-        )}
+          ))}
+        </div>
+      )}
+
+      {/* 追加ボタン */}
+      <div style={{display:"flex", gap:10}}>
+        <button className="add-btn" style={{flex:1, justifyContent:"center"}} onClick={openAdd}>
+          ＋ メンバーを追加
+        </button>
+        <button onClick={openAddWithCam}
+          style={{padding:"12px 16px", background:"#e8f5e9", border:"2px solid #43a047",
+            borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600, color:"#2e7d32",
+            display:"flex", alignItems:"center", gap:6}}>
+          📸 撮影して追加
+        </button>
       </div>
+      <input ref={camRef} type="file" accept="image/*" capture="user"
+        style={{display:"none"}} onChange={e=>loadPhoto(e.target.files)} />
 
-      <button className="add-btn" onClick={openAdd}>＋ メンバーを追加</button>
-
-      {/* 追加・編集フォーム */}
+      {/* ───── 追加・編集フォーム（モーダル） ───── */}
       {showForm && (
         <div className="form-overlay" onClick={e=>e.target===e.currentTarget&&setShowForm(false)}>
-          <div className="form-box">
-            <div className="form-title">{editTarget ? "✏️ メンバーを編集" : "👤 メンバーを追加"}</div>
-            <div className="form-group">
-              <label className="form-label">名前 *</label>
-              <input className="form-input" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="例：田中" />
+          <div className="form-box" style={{maxHeight:"90vh", overflowY:"auto"}}>
+            <div className="form-title">
+              {editTarget ? "✏️ メンバーを編集" : "👤 メンバーを追加"}
             </div>
+
+            {/* 顔写真 */}
+            <div className="form-group">
+              <label className="form-label">📷 顔写真</label>
+              <div style={{display:"flex", gap:12, alignItems:"center"}}>
+                {formPhoto
+                  ? <img src={formAvatar||formPhoto} style={{width:64, height:64, borderRadius:"50%",
+                      objectFit:"cover", border:"3px solid var(--fern)", flexShrink:0}} />
+                  : <div style={{width:64, height:64, borderRadius:"50%", background:"var(--mist)",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontSize:28, border:"3px dashed var(--fern)", flexShrink:0}}>👤</div>
+                }
+                <div style={{flex:1, display:"flex", flexDirection:"column", gap:8}}>
+                  <label style={{display:"flex", alignItems:"center", gap:8, padding:"9px 14px",
+                    background:"var(--soil)", border:"2px dashed var(--fern)", borderRadius:10,
+                    cursor:"pointer", fontSize:12, fontWeight:600, color:"var(--moss)"}}>
+                    <input type="file" accept="image/*" style={{display:"none"}}
+                      onChange={e=>loadPhoto(e.target.files)} />
+                    🖼 フォトから選択
+                  </label>
+                  <label style={{display:"flex", alignItems:"center", gap:8, padding:"9px 14px",
+                    background:"#e8f5e9", border:"2px dashed #43a047", borderRadius:10,
+                    cursor:"pointer", fontSize:12, fontWeight:600, color:"#2e7d32"}}>
+                    <input type="file" accept="image/*" capture="user" style={{display:"none"}}
+                      onChange={e=>loadPhoto(e.target.files)} />
+                    📸 カメラ撮影（自動起動）
+                  </label>
+                  {formPhoto && (
+                    <button onClick={()=>{setFormPhoto(null);setFormAvatar(null);}}
+                      style={{background:"#fee", border:"none", borderRadius:8, padding:"6px",
+                        cursor:"pointer", fontSize:11, color:"#c0392b", fontWeight:600}}>
+                      ✕ 写真を削除
+                    </button>
+                  )}
+                </div>
+              </div>
+              {/* AI アバター */}
+              {formPhoto && (
+                <div style={{marginTop:12, background:"#1a1a2e", borderRadius:12, padding:14}}>
+                  <div style={{fontSize:12, fontWeight:700, color:"#e2e2e2", marginBottom:8}}>
+                    🤖 AIアニメアバター変換
+                  </div>
+                  {aiLoading && <div style={{color:"#90caf9", fontSize:12, textAlign:"center", padding:8}}>🌀 生成中...</div>}
+                  {aiSvg && aiSvg!=="error" && (
+                    <div style={{textAlign:"center", marginBottom:10}}>
+                      <img src={aiSvg} style={{width:64, height:64, borderRadius:"50%", border:"3px solid #90caf9"}} />
+                    </div>
+                  )}
+                  {aiSvg==="error" && <div style={{color:"#ef5350", fontSize:11, marginBottom:8}}>⚠️ 生成失敗。再試行してください。</div>}
+                  <div style={{display:"flex", gap:8}}>
+                    <button onClick={generateAvatar} disabled={aiLoading}
+                      style={{flex:1, padding:"8px", background:"#3949ab", color:"white", border:"none",
+                        borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600}}>
+                      {aiLoading ? "生成中..." : "✨ AIアバター生成"}
+                    </button>
+                    {aiSvg && aiSvg!=="error" && (
+                      <button onClick={()=>{setFormAvatar(aiSvg); setAiSvg(null);}}
+                        style={{flex:1, padding:"8px", background:"#27ae60", color:"white", border:"none",
+                          borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600}}>
+                        ✅ これを使う
+                      </button>
+                    )}
+                  </div>
+                  {formAvatar && (
+                    <div style={{marginTop:8, display:"flex", alignItems:"center", gap:8}}>
+                      <img src={formAvatar} style={{width:28, height:28, borderRadius:"50%"}} />
+                      <span style={{fontSize:11, color:"#a5d6a7"}}>AIアバター設定済み</span>
+                      <button onClick={()=>setFormAvatar(null)}
+                        style={{background:"none", border:"none", color:"#ef9a9a", cursor:"pointer", fontSize:11}}>解除</button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 名前 */}
+            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:12}}>
+              <div className="form-group">
+                <label className="form-label">名前 *</label>
+                <input className="form-input" value={formName}
+                  onChange={e=>setFormName(e.target.value)} placeholder="例：田中" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">ニックネーム</label>
+                <input className="form-input" value={formNickname}
+                  onChange={e=>setFormNickname(e.target.value)} placeholder="例：タナカン" />
+              </div>
+            </div>
+
+            {/* 役割 */}
             <div className="form-group">
               <label className="form-label">役割</label>
               <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
-                {ROLES.map(r => (
-                  <div key={r}
-                    onClick={()=>setForm(f=>({...f,role:r}))}
-                    style={{padding:"6px 14px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
-                      background: form.role===r ? (ROLE_COLOR[r]??"#555") : "var(--mist)",
-                      color: form.role===r ? "white" : "#555",
-                      border: `2px solid ${form.role===r ? (ROLE_COLOR[r]??"#555") : "transparent"}`,
-                      transition:"all 0.15s"
-                    }}>
+                {ROLES_LIST.map(r=>(
+                  <div key={r} onClick={()=>setFormRole(r)}
+                    style={{padding:"7px 14px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
+                      background:formRole===r?(ROLE_COLOR_MAP[r]||"#555"):"var(--mist)",
+                      color:formRole===r?"white":"#555",
+                      border:`2px solid ${formRole===r?(ROLE_COLOR_MAP[r]||"#555"):"transparent"}`,
+                      transition:"all 0.15s"}}>
                     {r}
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* ランク */}
             <div className="form-group">
               <label className="form-label">ランク</label>
               <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
-                {RANKS.map(r => (
-                  <div key={r}
-                    onClick={()=>setForm(f=>({...f,rank:r}))}
-                    style={{padding:"6px 14px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
-                      background: form.rank===r ? (RANK_COLOR[r]??"#555") : "var(--mist)",
-                      color: form.rank===r ? "white" : "#555",
-                      border: `2px solid ${form.rank===r ? (RANK_COLOR[r]??"#555") : "transparent"}`,
-                      transition:"all 0.15s"
-                    }}>
-                    {RANK_BADGE[r]} {r}
+                {RANKS_LIST.map(r=>(
+                  <div key={r} onClick={()=>setFormRank(r)}
+                    style={{padding:"7px 14px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
+                      background:formRank===r?(RANK_COLOR_MAP[r]||"#555"):"var(--mist)",
+                      color:formRank===r?"white":"#555",
+                      border:`2px solid ${formRank===r?(RANK_COLOR_MAP[r]||"#555"):"transparent"}`,
+                      transition:"all 0.15s"}}>
+                    {RANK_BADGE_MAP[r]} {r}
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* 参加日・メモ */}
             <div className="form-group">
               <label className="form-label">参加日</label>
-              <input type="date" className="form-input" value={form.joined} onChange={e=>setForm(f=>({...f,joined:e.target.value}))} />
+              <input type="date" className="form-input" value={formJoined}
+                onChange={e=>setFormJoined(e.target.value)} />
             </div>
             <div className="form-group">
               <label className="form-label">メモ</label>
-              <textarea className="form-textarea" style={{minHeight:60}} value={form.memo} onChange={e=>setForm(f=>({...f,memo:e.target.value}))} placeholder="得意な山菜・担当エリアなど..." />
+              <textarea className="form-textarea" style={{minHeight:60}} value={formMemo}
+                onChange={e=>setFormMemo(e.target.value)} placeholder="得意な山菜・担当エリアなど..." />
             </div>
+
             <div className="form-actions">
-              <button className="btn-cancel" onClick={()=>setShowForm(false)}>キャンセル</button>
-              <button className="btn-submit" onClick={handleSave}>{editTarget ? "保存する" : "追加する"}</button>
+              <button className="btn-cancel" onClick={()=>{setShowForm(false); resetForm();}}>
+                キャンセル
+              </button>
+              <button className="btn-submit" onClick={editTarget ? handleEditSave : handleAdd}>
+                {editTarget ? "💾 変更を保存" : "✅ 追加する"}
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {/* 削除確認ダイアログ */}
-      {deleteConfirm && (
-        <div className="form-overlay" onClick={()=>setDeleteConfirm(null)}>
+      {deleteTarget && (
+        <div className="form-overlay" onClick={()=>setDeleteTarget(null)}>
           <div className="form-box" style={{textAlign:"center"}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:40, marginBottom:12}}>🗑️</div>
+            <div style={{fontSize:48, marginBottom:12}}>🗑️</div>
             <div style={{fontSize:18, fontWeight:700, color:"var(--forest)", marginBottom:8}}>
-              {deleteConfirm.name} を削除しますか？
+              {deleteTarget.name} を削除しますか？
             </div>
-            <div style={{fontSize:13, color:"#888", marginBottom:24}}>この操作は元に戻せません。</div>
+            <div style={{fontSize:13, color:"#888", marginBottom:24}}>
+              この操作は元に戻せません。
+            </div>
             <div style={{display:"flex", gap:10, justifyContent:"center"}}>
-              <button className="btn-cancel" onClick={()=>setDeleteConfirm(null)}>キャンセル</button>
-              <button style={{padding:"10px 24px", background:"#c0392b", color:"white", border:"none", borderRadius:8, cursor:"pointer", fontFamily:"'Noto Serif JP',serif", fontSize:14, fontWeight:600}}
-                onClick={()=>handleDelete(deleteConfirm.id)}>削除する</button>
+              <button className="btn-cancel" onClick={()=>setDeleteTarget(null)}>
+                キャンセル
+              </button>
+              <button style={{padding:"12px 28px", background:"#c0392b", color:"white",
+                border:"none", borderRadius:8, cursor:"pointer",
+                fontFamily:"'Noto Serif JP',serif", fontSize:14, fontWeight:700}}
+                onClick={handleDelete}>
+                削除する
+              </button>
             </div>
           </div>
         </div>
@@ -2762,28 +2478,7 @@ function MembersView({ members, setMembers }) {
 }
 
 
-
-// ===== PATROL VIEW =====
-const GROWTH_STATUS = [
-  { id: 0, label: "未確認",     emoji: "❓", color: "#95a5a6" },
-  { id: 1, label: "まだ早い",   emoji: "🌰", color: "#795548" },
-  { id: 2, label: "芽吹き始め", emoji: "🌱", color: "#8bc34a" },
-  { id: 3, label: "採取可能",   emoji: "✅", color: "#27ae60" },
-  { id: 4, label: "旬・ピーク", emoji: "🌟", color: "#f39c12" },
-  { id: 5, label: "採り頃終わり",emoji: "🍂", color: "#e67e22" },
-  { id: 6, label: "終了",       emoji: "🍁", color: "#95a5a6" },
-];
-
-const REMAIN_LEVEL = [
-  { id: 0, label: "未調査",   emoji: "❓", color: "#bdc3c7", pct: null },
-  { id: 1, label: "枯渇寸前", emoji: "🚨", color: "#e74c3c", pct: 5  },
-  { id: 2, label: "少ない",   emoji: "⚠️", color: "#e67e22", pct: 25 },
-  { id: 3, label: "普通",     emoji: "🆗", color: "#3498db", pct: 50 },
-  { id: 4, label: "豊富",     emoji: "😊", color: "#27ae60", pct: 75 },
-  { id: 5, label: "大豊作",   emoji: "🎉", color: "#8e44ad", pct: 100},
-];
-
-function PatrolView({ spots, onScheduleSuccess, showToast }) {
+function PatrolView({ spots, onScheduleSuccess, showToast, members }) {
   const today = new Date().toISOString().split("T")[0];
   const currentMonth = new Date().getMonth() + 1;
 
@@ -2808,10 +2503,14 @@ function PatrolView({ spots, onScheduleSuccess, showToast }) {
     },
   ]);
   const [schedules, setSchedules] = useState([
-    { id: 1, spotId: 1, date: "2026-06-05", assignee: "田中", memo: "コシアブラ終盤確認" },
-    { id: 2, spotId: 2, date: "2026-06-10", assignee: "鈴木", memo: "ゼンマイ状況確認" },
-    { id: 3, spotId: 3, date: "2026-06-15", assignee: "佐藤", memo: "ワラビ採取可否チェック" },
+    { id: 1, spotId: 1, date: "2026-06-05", assignee: "田中", memo: "コシアブラ終盤確認",
+      attendance: { "田中":"参加", "鈴木":"未回答", "佐藤":"不参加", "伊藤":"未回答", "山本":"参加" } },
+    { id: 2, spotId: 2, date: "2026-06-10", assignee: "鈴木", memo: "ゼンマイ状況確認",
+      attendance: { "田中":"未回答", "鈴木":"参加", "佐藤":"未回答", "伊藤":"参加", "山本":"不参加" } },
+    { id: 3, spotId: 3, date: "2026-06-15", assignee: "佐藤", memo: "ワラビ採取可否チェック",
+      attendance: {} },
   ]);
+  const [attendanceModal, setAttendanceModal] = useState(null); // 出欠管理中のスケジュール
 
   // フォーム
   const [showRecordForm, setShowRecordForm] = useState(false);
@@ -2841,7 +2540,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast }) {
     "やや遅め":"#ffa726", "終わり":"#bdbdbd", "不明":"#90a4ae",
   };
   const QTY_COLOR = { "多い":"#2e7d32", "普通":"#1565c0", "少ない":"#e65100", "ほぼなし":"#b71c1c" };
-  const MEMBERS_LIST = ["田中", "鈴木", "佐藤", "伊藤", "山本"];
+  const MEMBERS_LIST = (members||[]).map(m=>m.name);
 
   // ===== ヘルパー =====
   const spotName = (id) => spots.find(s => s.id === Number(id))?.name ?? "不明";
@@ -2890,7 +2589,11 @@ function PatrolView({ spots, onScheduleSuccess, showToast }) {
 
   const saveSchedule = async () => {
     if (!schForm.date || !schForm.spotId) return;
-    const newSch = { id: Date.now(), ...schForm, spotId: Number(schForm.spotId) };
+    // メンバー全員分の出欠を「未回答」で初期化
+    const initAttendance = {};
+    // MEMBERS_LISTから全員を未回答で設定
+    MEMBERS_LIST.forEach(name => { initAttendance[name] = "未回答"; });
+    const newSch = { id: Date.now(), ...schForm, spotId: Number(schForm.spotId), attendance: initAttendance };
     setSchedules(prev => [...prev, newSch]);
     setSchForm(emptySchedule);
     setShowScheduleForm(false);
@@ -3108,19 +2811,53 @@ function PatrolView({ spots, onScheduleSuccess, showToast }) {
             const d = new Date(sch.date);
             const dayNames = ["日","月","火","水","木","金","土"];
             const daysSince = Math.floor((new Date(sch.date)-new Date(today))/(1000*60*60*24));
+            const att = sch.attendance ?? {};
+            const joinCount = Object.values(att).filter(v=>v==="参加").length;
+            const absentCount = Object.values(att).filter(v=>v==="不参加").length;
+            const pendingCount = Object.values(att).filter(v=>v==="未回答").length;
             return (
-              <div key={sch.id} style={{...cardStyle, display:"flex", alignItems:"center", gap:12, marginBottom:8}}>
-                <div style={{width:48, textAlign:"center", flexShrink:0}}>
-                  <div style={{fontSize:11, color:"#888"}}>{d.getMonth()+1}/{d.getDate()}</div>
-                  <div style={{fontSize:13, fontWeight:700, color:"var(--forest)"}}>{dayNames[d.getDay()]}曜</div>
-                  <div style={{fontSize:10, color: daysSince<=3?"#c0392b":daysSince<=7?"#e67e22":"#888"}}>{daysSince===0?"今日":daysSince+"日後"}</div>
+              <div key={sch.id} style={{...cardStyle, marginBottom:8}}>
+                <div style={{display:"flex", alignItems:"center", gap:12}}>
+                  <div style={{width:48, textAlign:"center", flexShrink:0}}>
+                    <div style={{fontSize:11, color:"#888"}}>{d.getMonth()+1}/{d.getDate()}</div>
+                    <div style={{fontSize:13, fontWeight:700, color:"var(--forest)"}}>{dayNames[d.getDay()]}曜</div>
+                    <div style={{fontSize:10, color: daysSince<=3?"#c0392b":daysSince<=7?"#e67e22":"#888"}}>{daysSince===0?"今日":daysSince+"日後"}</div>
+                  </div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:14, fontWeight:700, color:"var(--forest)"}}>{spotName(sch.spotId)}</div>
+                    <div style={{fontSize:12, color:"#888"}}>👤 担当：{sch.assignee}</div>
+                    {sch.memo && <div style={{fontSize:12, color:"#555", marginTop:2}}>{sch.memo}</div>}
+                  </div>
+                  <button onClick={()=>deleteSchedule(sch.id)} style={{background:"#fee", border:"none", borderRadius:8, padding:"6px 10px", cursor:"pointer", color:"#c0392b", fontSize:12}}>削除</button>
                 </div>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:14, fontWeight:700, color:"var(--forest)"}}>{spotName(sch.spotId)}</div>
-                  <div style={{fontSize:12, color:"#888"}}>👤 {sch.assignee}</div>
-                  {sch.memo && <div style={{fontSize:12, color:"#555", marginTop:2}}>{sch.memo}</div>}
+                {/* 出欠サマリー */}
+                <div style={{marginTop:10, padding:"10px 12px", background:"var(--soil)", borderRadius:10}}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
+                    <div style={{fontSize:12, fontWeight:700, color:"var(--forest)"}}>👥 出欠状況</div>
+                    <button onClick={()=>setAttendanceModal(sch)}
+                      style={{background:"var(--forest)", color:"white", border:"none", borderRadius:8,
+                        padding:"4px 12px", cursor:"pointer", fontSize:11, fontWeight:600}}>
+                      ✏️ 出欠を管理
+                    </button>
+                  </div>
+                  <div style={{display:"flex", gap:8, flexWrap:"wrap"}}>
+                    <span style={{fontSize:12, fontWeight:700, color:"#27ae60", background:"#e8f5e9",
+                      padding:"3px 10px", borderRadius:20}}>✅ 参加 {joinCount}名</span>
+                    <span style={{fontSize:12, fontWeight:700, color:"#c0392b", background:"#fdecea",
+                      padding:"3px 10px", borderRadius:20}}>❌ 不参加 {absentCount}名</span>
+                    <span style={{fontSize:12, fontWeight:700, color:"#888", background:"#f5f5f5",
+                      padding:"3px 10px", borderRadius:20}}>❓ 未回答 {pendingCount}名</span>
+                  </div>
+                  {/* 参加者名一覧 */}
+                  {joinCount > 0 && (
+                    <div style={{marginTop:6, display:"flex", gap:4, flexWrap:"wrap"}}>
+                      {Object.entries(att).filter(([,v])=>v==="参加").map(([name])=>(
+                        <span key={name} style={{fontSize:11, background:"var(--forest)", color:"white",
+                          padding:"2px 8px", borderRadius:12, fontWeight:600}}>👤 {name}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <button onClick={()=>deleteSchedule(sch.id)} style={{background:"#fee", border:"none", borderRadius:8, padding:"6px 10px", cursor:"pointer", color:"#c0392b", fontSize:12}}>削除</button>
               </div>
             );
           })}
@@ -3282,6 +3019,131 @@ function PatrolView({ spots, onScheduleSuccess, showToast }) {
         </div>
       )}
 
+
+      {/* ===== 出欠管理モーダル ===== */}
+      {attendanceModal && (
+        <div className="form-overlay" onClick={()=>setAttendanceModal(null)}>
+          <div className="form-box" style={{maxHeight:"88vh", overflowY:"auto"}}
+            onClick={e=>e.stopPropagation()}>
+            <div className="form-title">👥 出欠管理</div>
+            <div style={{background:"var(--soil)", borderRadius:10, padding:"10px 14px", marginBottom:16}}>
+              <div style={{fontSize:14, fontWeight:700, color:"var(--forest)"}}>{spotName(attendanceModal.spotId)}</div>
+              <div style={{fontSize:12, color:"#888"}}>🗓 {attendanceModal.date} ／ 担当：{attendanceModal.assignee}</div>
+              {attendanceModal.memo && <div style={{fontSize:12, color:"#555", marginTop:4}}>{attendanceModal.memo}</div>}
+            </div>
+
+            {/* 出欠サマリーバー */}
+            {(() => {
+              const att = attendanceModal.attendance ?? {};
+              const join = Object.values(att).filter(v=>v==="参加").length;
+              const absent = Object.values(att).filter(v=>v==="不参加").length;
+              const pending = Object.values(att).filter(v=>v==="未回答").length;
+              const total = join + absent + pending;
+              return (
+                <div style={{marginBottom:16}}>
+                  <div style={{display:"flex", gap:8, marginBottom:8}}>
+                    <div style={{flex:1, textAlign:"center", padding:"10px", background:"#e8f5e9",
+                      borderRadius:10, border:"2px solid #27ae60"}}>
+                      <div style={{fontSize:22, fontWeight:700, color:"#27ae60"}}>{join}</div>
+                      <div style={{fontSize:11, color:"#555"}}>✅ 参加</div>
+                    </div>
+                    <div style={{flex:1, textAlign:"center", padding:"10px", background:"#fdecea",
+                      borderRadius:10, border:"2px solid #c0392b"}}>
+                      <div style={{fontSize:22, fontWeight:700, color:"#c0392b"}}>{absent}</div>
+                      <div style={{fontSize:11, color:"#555"}}>❌ 不参加</div>
+                    </div>
+                    <div style={{flex:1, textAlign:"center", padding:"10px", background:"#f5f5f5",
+                      borderRadius:10, border:"2px solid #bdbdbd"}}>
+                      <div style={{fontSize:22, fontWeight:700, color:"#888"}}>{pending}</div>
+                      <div style={{fontSize:11, color:"#555"}}>❓ 未回答</div>
+                    </div>
+                  </div>
+                  {/* プログレスバー */}
+                  {total > 0 && (
+                    <div style={{height:8, borderRadius:10, overflow:"hidden", display:"flex", gap:1}}>
+                      {join>0 && <div style={{flex:join, background:"#27ae60"}} />}
+                      {absent>0 && <div style={{flex:absent, background:"#c0392b"}} />}
+                      {pending>0 && <div style={{flex:pending, background:"#e0e0e0"}} />}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* メンバーごとの出欠設定 */}
+            <div style={{display:"flex", flexDirection:"column", gap:8, marginBottom:20}}>
+              {MEMBERS_LIST.map(name => {
+                const status = (attendanceModal.attendance??{})[name] ?? "未回答";
+                const STATUS_CONFIG = {
+                  "参加":   { color:"#27ae60", bg:"#e8f5e9", border:"#27ae60", icon:"✅" },
+                  "不参加": { color:"#c0392b", bg:"#fdecea", border:"#c0392b", icon:"❌" },
+                  "未回答": { color:"#888",    bg:"#f5f5f5", border:"#e0e0e0", icon:"❓" },
+                };
+                const cfg = STATUS_CONFIG[status];
+                return (
+                  <div key={name} style={{display:"flex", alignItems:"center", gap:12,
+                    padding:"12px 14px", background:"white", borderRadius:12,
+                    border:`2px solid ${cfg.border}`, boxShadow:"0 1px 6px rgba(0,0,0,0.05)"}}>
+                    {/* アバター */}
+                    <div style={{width:36, height:36, borderRadius:"50%", background:"var(--forest)",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      color:"white", fontWeight:700, fontSize:15, flexShrink:0}}>
+                      {name.charAt(0)}
+                    </div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:14, fontWeight:700, color:"var(--forest)"}}>{name}</div>
+                      <div style={{fontSize:12, fontWeight:700, color:cfg.color}}>{cfg.icon} {status}</div>
+                    </div>
+                    {/* 3ボタン */}
+                    <div style={{display:"flex", gap:6}}>
+                      {["参加","未回答","不参加"].map(s => (
+                        <button key={s} onClick={()=>{
+                          const newAtt = { ...(attendanceModal.attendance??{}), [name]: s };
+                          setSchedules(prev => prev.map(sch =>
+                            sch.id === attendanceModal.id ? { ...sch, attendance: newAtt } : sch
+                          ));
+                          setAttendanceModal(prev => ({ ...prev, attendance: newAtt }));
+                        }} style={{
+                          padding:"5px 8px", border:"none", borderRadius:8, cursor:"pointer",
+                          fontSize:11, fontWeight:700,
+                          background: status===s ?
+                            (s==="参加"?"#27ae60":s==="不参加"?"#c0392b":"#888") : "#f0f0f0",
+                          color: status===s ? "white" : "#888",
+                          transition:"all 0.15s",
+                        }}>
+                          {s==="参加"?"✅":s==="不参加"?"❌":"❓"} {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 一括設定ボタン */}
+            <div style={{background:"var(--soil)", borderRadius:10, padding:"12px 14px", marginBottom:16}}>
+              <div style={{fontSize:12, fontWeight:700, color:"var(--forest)", marginBottom:8}}>⚡ 一括設定</div>
+              <div style={{display:"flex", gap:8}}>
+                {["参加","未回答","不参加"].map(s=>(
+                  <button key={s} onClick={()=>{
+                    const newAtt = {};
+                    MEMBERS_LIST.forEach(name => { newAtt[name] = s; });
+                    setSchedules(prev=>prev.map(sch=>sch.id===attendanceModal.id?{...sch,attendance:newAtt}:sch));
+                    setAttendanceModal(prev=>({...prev,attendance:newAtt}));
+                  }} style={{flex:1, padding:"8px", background:"white", border:"1px solid #ddd",
+                    borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600, color:"#555"}}>
+                    全員{s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-actions">
+              <button className="btn-submit" onClick={()=>setAttendanceModal(null)}>完了</button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* ===== スケジュールフォーム ===== */}
       {showScheduleForm && (
         <div className="form-overlay" onClick={e=>e.target===e.currentTarget&&setShowScheduleForm(false)}>
@@ -4394,11 +4256,534 @@ function HarvestView({ spots, members }) {
   );
 }
 
+
+// ===== 忘備録ビュー =====
+function MemoView({ spots }) {
+  const today = new Date().toISOString().split("T")[0];
+
+  const INITIAL_MEMOS = [
+    {
+      id: 1, title: "白山麓・瀬女エリア 詳細メモ",
+      spotId: 1, date: "2026-05-10",
+      route: "北陸自動車道 鶴来ICから国道157号を南下。道の駅瀬女を目標に。ICから約40分。",
+      parking: "道の駅瀬女の第2駐車場（無料）。林道入口まで徒歩5分。",
+      landmark: "瀬女橋を渡ったすぐ左の砂利道が林道入口。看板なし注意。",
+      terrain: "緩やかな斜面。雨後は滑りやすいため長靴必須。",
+      bestTime: "4月下旬〜5月上旬の午前中。霧が晴れる10時頃が最適。",
+      caution: "熊の目撃情報あり。鈴必携。単独行動禁止。",
+      sansai: [3, 2], tags: ["熊注意", "長靴必須", "林道"],
+      photos: [], gps: null, private: false,
+    },
+  ];
+
+  const [memos, setMemos] = useState(INITIAL_MEMOS);
+  const [mode, setMode] = useState("list"); // list | add | edit | detail
+  const [selectedId, setSelectedId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [filterTag, setFilterTag] = useState("all");
+  const [lightbox, setLightbox] = useState(null);
+  const memoGPS = useGPS();
+  const [autoCam, setAutoCam] = useState(false);
+  const camRef = React.useRef(null);
+
+  const blankForm = () => ({
+    title:"", spotId:"", date: today,
+    route:"", parking:"", landmark:"",
+    terrain:"", bestTime:"", caution:"",
+    sansai:[], tags:[], tagInput:"",
+    photos:[], gps:null, private:false,
+  });
+  const [form, setForm] = useState(blankForm());
+
+  useEffect(() => {
+    if (autoCam && camRef.current) setTimeout(() => camRef.current?.click(), 300);
+  }, [autoCam, mode]);
+
+  const updateForm = (key, val) => setForm(f => ({...f, [key]: val}));
+
+  const handlePhotoUpload = (files) => {
+    Array.from(files).forEach(file => {
+      if (!file.type.startsWith("image/")) return;
+      const reader = new FileReader();
+      reader.onload = e => setForm(f => ({...f, photos:[...f.photos, e.target.result]}));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const addTag = () => {
+    if (!form.tagInput.trim()) return;
+    if (!form.tags.includes(form.tagInput.trim())) {
+      setForm(f => ({...f, tags:[...f.tags, f.tagInput.trim()], tagInput:""}));
+    } else {
+      updateForm("tagInput","");
+    }
+  };
+
+  const toggleSansai = (id) => setForm(f => ({
+    ...f, sansai: f.sansai.includes(id) ? f.sansai.filter(x=>x!==id) : [...f.sansai, id]
+  }));
+
+  const handleSave = (isEdit) => {
+    if (!form.title.trim()) return;
+    const data = { ...form, gps: memoGPS.gps || form.gps };
+    if (isEdit) {
+      setMemos(prev => prev.map(m => m.id===selectedId ? {...m,...data} : m));
+    } else {
+      setMemos(prev => [...prev, {id:Date.now(), ...data}]);
+    }
+    setForm(blankForm()); memoGPS.clearGps();
+    setMode("list"); setSelectedId(null);
+  };
+
+  const handleDelete = (id) => {
+    setMemos(prev => prev.filter(m => m.id!==id));
+    setDeleteTarget(null); setMode("list"); setSelectedId(null);
+  };
+
+  const openEdit = (memo) => {
+    setForm({...blankForm(), ...memo, tagInput:""});
+    memoGPS.clearGps();
+    setSelectedId(memo.id);
+    setMode("edit");
+  };
+
+  const openDetail = (memo) => {
+    setSelectedId(memo.id);
+    setMode("detail");
+  };
+
+  // 全タグ収集
+  const allTags = [...new Set(memos.flatMap(m=>m.tags||[]))];
+
+  // フィルター
+  const filtered = memos.filter(m => {
+    const matchText = !searchText || m.title.includes(searchText) ||
+      (m.route||"").includes(searchText) || (m.caution||"").includes(searchText);
+    const matchTag = filterTag==="all" || (m.tags||[]).includes(filterTag);
+    return matchText && matchTag;
+  });
+
+  const sansaiName = id => SANSAI_DATA.find(s=>s.id===id)?.name??"";
+  const sansaiEmoji = id => SANSAI_DATA.find(s=>s.id===id)?.emoji??"🌿";
+  const spotName = id => spots.find(s=>s.id===Number(id))?.name??"";
+
+  const cardStyle = {background:"white", borderRadius:14, padding:16,
+    boxShadow:"0 2px 12px rgba(0,0,0,0.08)", border:"1px solid var(--mist)", marginBottom:12};
+
+  const SectionBox = ({icon, title, children}) => (
+    <div style={{background:"var(--soil)", borderRadius:12, padding:"12px 14px", marginBottom:12}}>
+      <div style={{fontSize:12, fontWeight:700, color:"var(--forest)", marginBottom:6}}>{icon} {title}</div>
+      <div style={{fontSize:13, color:"#444", lineHeight:1.8}}>{children}</div>
+    </div>
+  );
+
+  // ===== フォーム画面 =====
+  const renderForm = (isEdit) => (
+    <div>
+      <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:20}}>
+        <button onClick={()=>{setMode(isEdit?"detail":"list"); memoGPS.clearGps();}}
+          style={{background:"var(--mist)", border:"none", borderRadius:8,
+            padding:"8px 14px", cursor:"pointer", fontSize:13, fontWeight:600, color:"var(--forest)"}}>
+          ← 戻る
+        </button>
+        <div className="section-title" style={{margin:0, fontSize:20}}>
+          {isEdit ? "✏️ メモを編集" : "📝 新規メモ"}
+        </div>
+      </div>
+
+      <div style={{...cardStyle}}>
+        <div className="form-group">
+          <label className="form-label">タイトル *</label>
+          <input className="form-input" value={form.title}
+            onChange={e=>updateForm("title",e.target.value)} placeholder="例：白山麓 林道奥のコシアブラポイント" />
+        </div>
+        <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:12}}>
+          <div className="form-group" style={{margin:0}}>
+            <label className="form-label">記録日</label>
+            <input type="date" className="form-input" value={form.date}
+              onChange={e=>updateForm("date",e.target.value)} />
+          </div>
+          <div className="form-group" style={{margin:0}}>
+            <label className="form-label">関連スポット</label>
+            <select className="form-select" value={form.spotId}
+              onChange={e=>updateForm("spotId",e.target.value)}>
+              <option value="">選択（任意）</option>
+              {spots.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* 道順・アクセス */}
+      <div style={{...cardStyle}}>
+        <div style={{fontSize:14, fontWeight:700, color:"var(--forest)", marginBottom:12}}>🚗 アクセス・道順</div>
+        <div className="form-group">
+          <label className="form-label">ルート・道順</label>
+          <textarea className="form-textarea" value={form.route}
+            onChange={e=>updateForm("route",e.target.value)}
+            placeholder="例：北陸道 鶴来ICから国道157号を南下、道の駅瀬女を目標に約40分" />
+        </div>
+        <div className="form-group">
+          <label className="form-label">駐車場・駐車ポイント</label>
+          <textarea className="form-textarea" style={{minHeight:60}} value={form.parking}
+            onChange={e=>updateForm("parking",e.target.value)}
+            placeholder="例：道の駅瀬女の第2駐車場（無料）。入口まで徒歩5分。" />
+        </div>
+        <div className="form-group" style={{marginBottom:0}}>
+          <label className="form-label">目印・ランドマーク</label>
+          <textarea className="form-textarea" style={{minHeight:60}} value={form.landmark}
+            onChange={e=>updateForm("landmark",e.target.value)}
+            placeholder="例：瀬女橋を渡った左の砂利道。看板なし。赤いテープが目印。" />
+        </div>
+      </div>
+
+      {/* 現地情報 */}
+      <div style={{...cardStyle}}>
+        <div style={{fontSize:14, fontWeight:700, color:"var(--forest)", marginBottom:12}}>🏔 現地情報</div>
+        <div className="form-group">
+          <label className="form-label">地形・環境</label>
+          <textarea className="form-textarea" style={{minHeight:60}} value={form.terrain}
+            onChange={e=>updateForm("terrain",e.target.value)}
+            placeholder="例：緩やかな南向き斜面。雨後は滑りやすい。沢沿いにミズあり。" />
+        </div>
+        <div className="form-group">
+          <label className="form-label">ベストな採取時期・時間帯</label>
+          <textarea className="form-textarea" style={{minHeight:60}} value={form.bestTime}
+            onChange={e=>updateForm("bestTime",e.target.value)}
+            placeholder="例：4月下旬〜5月上旬。午前10時頃、霧が晴れてから。" />
+        </div>
+        <div className="form-group" style={{marginBottom:0}}>
+          <label className="form-label" style={{color:"#c0392b"}}>⚠️ 注意事項</label>
+          <textarea className="form-textarea" style={{minHeight:60, borderColor:"#ffcdd2"}} value={form.caution}
+            onChange={e=>updateForm("caution",e.target.value)}
+            placeholder="例：熊の目撃情報あり。鈴必携。単独行動禁止。増水注意。" />
+        </div>
+      </div>
+
+      {/* 採れる山菜 */}
+      <div style={{...cardStyle}}>
+        <div style={{fontSize:14, fontWeight:700, color:"var(--forest)", marginBottom:10}}>🌿 採れる山菜</div>
+        <div style={{display:"flex", flexWrap:"wrap", gap:6}}>
+          {SANSAI_DATA.map(s=>(
+            <div key={s.id} onClick={()=>toggleSansai(s.id)}
+              style={{padding:"5px 12px", borderRadius:20, cursor:"pointer", fontSize:11, fontWeight:600,
+                background: form.sansai.includes(s.id) ? s.color : "var(--mist)",
+                color: form.sansai.includes(s.id) ? "white" : "#666",
+                border:`1.5px solid ${form.sansai.includes(s.id) ? s.color : "#ddd"}`,
+                transition:"all 0.15s"}}>
+              {s.emoji} {s.name}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* タグ */}
+      <div style={{...cardStyle}}>
+        <div style={{fontSize:14, fontWeight:700, color:"var(--forest)", marginBottom:10}}>🏷 タグ</div>
+        <div style={{display:"flex", gap:8, marginBottom:10}}>
+          <input className="form-input" style={{flex:1}} value={form.tagInput}
+            onChange={e=>updateForm("tagInput",e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&addTag()}
+            placeholder="例：熊注意・長靴必須・林道・秘密ポイント" />
+          <button onClick={addTag} style={{padding:"0 16px", background:"var(--forest)",
+            color:"white", border:"none", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600}}>
+            追加
+          </button>
+        </div>
+        <div style={{display:"flex", flexWrap:"wrap", gap:6}}>
+          {form.tags.map(t=>(
+            <span key={t} style={{background:"var(--forest)", color:"white", fontSize:11, fontWeight:600,
+              padding:"3px 10px", borderRadius:20, display:"flex", alignItems:"center", gap:4}}>
+              #{t}
+              <span style={{cursor:"pointer", opacity:0.7}} onClick={()=>setForm(f=>({...f,tags:f.tags.filter(x=>x!==t)}))}>✕</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* GPS */}
+      <GPSCapture gps={memoGPS.gps} gpsStatus={memoGPS.gpsStatus}
+        gpsError={memoGPS.gpsError} onCapture={memoGPS.getLocation}
+        onClear={memoGPS.clearGps} googleMapsUrl={memoGPS.googleMapsUrl} />
+
+      {/* 写真 */}
+      <div className="form-group">
+        <label className="form-label">📷 写真（複数可）</label>
+        <div style={{display:"flex", gap:10, marginBottom:10}}>
+          <label style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center",
+            justifyContent:"center", gap:6, padding:"14px 10px", borderRadius:12, cursor:"pointer",
+            background:"var(--soil)", border:"2px dashed var(--fern)", textAlign:"center"}}>
+            <input type="file" accept="image/*" multiple style={{display:"none"}}
+              onChange={e=>handlePhotoUpload(e.target.files)} />
+            <span style={{fontSize:24}}>🖼</span>
+            <span style={{fontSize:12, fontWeight:600, color:"var(--moss)"}}>フォトから選択</span>
+          </label>
+          <CameraCapture onCapture={handlePhotoUpload} label="カメラで撮影" autoOpen={autoCam} />
+        </div>
+        {form.photos.length > 0 && (
+          <div className="photo-grid">
+            {form.photos.map((src,i)=>(
+              <div key={i} className="photo-thumb">
+                <img src={src} alt="" />
+                <button className="del-btn"
+                  onClick={()=>setForm(f=>({...f,photos:f.photos.filter((_,idx)=>idx!==i)}))}>✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 保存 */}
+      <div style={{display:"flex", gap:10, marginBottom:24}}>
+        <button onClick={()=>{setMode(isEdit?"detail":"list"); memoGPS.clearGps();}}
+          className="btn-cancel" style={{flex:1, padding:14, fontSize:14}}>キャンセル</button>
+        <button onClick={()=>handleSave(isEdit)}
+          style={{flex:2, padding:14, background:"var(--forest)", color:"white", border:"none",
+            borderRadius:8, cursor:"pointer", fontSize:15, fontWeight:700, fontFamily:"'Noto Serif JP',serif"}}>
+          {isEdit ? "💾 変更を保存" : "📝 メモを保存"}
+        </button>
+      </div>
+    </div>
+  );
+
+  // ===== 詳細画面 =====
+  const renderDetail = () => {
+    const memo = memos.find(m=>m.id===selectedId);
+    if (!memo) return null;
+    return (
+      <div>
+        <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:20}}>
+          <button onClick={()=>setMode("list")}
+            style={{background:"var(--mist)", border:"none", borderRadius:8,
+              padding:"8px 14px", cursor:"pointer", fontSize:13, fontWeight:600, color:"var(--forest)"}}>
+            ← 戻る
+          </button>
+          <div style={{flex:1}}>
+            <div style={{fontSize:18, fontWeight:700, color:"var(--forest)"}}>{memo.title}</div>
+            <div style={{fontSize:11, color:"#aaa"}}>{memo.date}</div>
+          </div>
+        </div>
+
+        {/* タグ */}
+        {memo.tags?.length > 0 && (
+          <div style={{display:"flex", flexWrap:"wrap", gap:6, marginBottom:14}}>
+            {memo.tags.map(t=>(
+              <span key={t} style={{background:"var(--forest)", color:"white", fontSize:11,
+                fontWeight:600, padding:"3px 10px", borderRadius:20}}>#{t}</span>
+            ))}
+          </div>
+        )}
+
+        {/* 採れる山菜 */}
+        {memo.sansai?.length > 0 && (
+          <div style={{display:"flex", flexWrap:"wrap", gap:6, marginBottom:14}}>
+            {memo.sansai.map(id=>(
+              <span key={id} style={{background:SANSAI_DATA.find(s=>s.id===id)?.color||"var(--fern)",
+                color:"white", fontSize:12, fontWeight:600, padding:"4px 12px", borderRadius:20}}>
+                {sansaiEmoji(id)} {sansaiName(id)}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* 写真 */}
+        {memo.photos?.length > 0 && (
+          <div className="blog-photos" style={{marginBottom:14}}>
+            {memo.photos.map((src,i)=>(
+              <div key={i} className="blog-photo" onClick={()=>setLightbox({images:memo.photos,index:i})}>
+                <img src={src} alt="" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* アクセス情報 */}
+        {memo.route && <SectionBox icon="🚗" title="ルート・道順">{memo.route}</SectionBox>}
+        {memo.parking && <SectionBox icon="🅿️" title="駐車場">{memo.parking}</SectionBox>}
+        {memo.landmark && <SectionBox icon="🚩" title="目印・ランドマーク">{memo.landmark}</SectionBox>}
+        {memo.terrain && <SectionBox icon="🏔" title="地形・環境">{memo.terrain}</SectionBox>}
+        {memo.bestTime && <SectionBox icon="⏰" title="ベスト採取時期・時間帯">{memo.bestTime}</SectionBox>}
+        {memo.caution && (
+          <div style={{background:"#fdecea", borderRadius:12, padding:"12px 14px", marginBottom:12,
+            border:"2px solid #e57373"}}>
+            <div style={{fontSize:12, fontWeight:700, color:"#c0392b", marginBottom:6}}>⚠️ 注意事項</div>
+            <div style={{fontSize:13, color:"#c0392b", lineHeight:1.8}}>{memo.caution}</div>
+          </div>
+        )}
+
+        {/* GPS */}
+        {memo.gps && (
+          <div style={{background:"#e8f5e9", borderRadius:12, padding:"12px 14px", marginBottom:12,
+            border:"1px solid #a5d6a7"}}>
+            <div style={{fontSize:12, fontWeight:700, color:"#2e7d32", marginBottom:6}}>📡 GPS座標</div>
+            <div style={{fontSize:11, color:"#555", lineHeight:1.8}}>
+              緯度：{memo.gps.lat.toFixed(6)} / 経度：{memo.gps.lng.toFixed(6)}<br/>
+              精度：±{memo.gps.accuracy}m ・ {memo.gps.timestamp}
+            </div>
+            <a href={`https://maps.google.com/?q=${memo.gps.lat},${memo.gps.lng}`}
+              target="_blank" rel="noopener noreferrer"
+              style={{display:"inline-block", marginTop:8, fontSize:12, fontWeight:600, color:"#1565c0",
+                background:"white", padding:"4px 14px", borderRadius:20, border:"1px solid #90caf9",
+                textDecoration:"none"}}>
+              🗺 Googleマップで開く
+            </a>
+          </div>
+        )}
+
+        {/* 操作ボタン */}
+        <div style={{display:"flex", gap:10, marginBottom:24}}>
+          <button onClick={()=>openEdit(memo)}
+            style={{flex:1, padding:14, background:"var(--mist)", border:"none", borderRadius:8,
+              cursor:"pointer", fontSize:14, fontWeight:600, color:"var(--forest)"}}>
+            ✏️ 編集
+          </button>
+          <button onClick={()=>setDeleteTarget(memo)}
+            style={{flex:1, padding:14, background:"#fee", border:"none", borderRadius:8,
+              cursor:"pointer", fontSize:14, fontWeight:600, color:"#c0392b"}}>
+            🗑 削除
+          </button>
+        </div>
+
+        {lightbox && <Lightbox images={lightbox.images} startIndex={lightbox.index} onClose={()=>setLightbox(null)} />}
+      </div>
+    );
+  };
+
+  // ===== 一覧画面 =====
+  if (mode === "add") return <div><div className="section-title">📒 採取場所 忘備録</div>{renderForm(false)}</div>;
+  if (mode === "edit") return <div><div className="section-title">📒 採取場所 忘備録</div>{renderForm(true)}</div>;
+  if (mode === "detail") return <div><div className="section-title">📒 採取場所 忘備録</div>{renderDetail()}</div>;
+
+  return (
+    <div>
+      <div className="section-title">📒 採取場所 忘備録</div>
+      <div className="section-desc">採取場所の道順・駐車場・目印・注意事項などを詳しく記録</div>
+
+      {/* 検索・フィルター */}
+      <div style={{display:"flex", gap:8, marginBottom:14}}>
+        <input className="form-input" style={{flex:1}} value={searchText}
+          onChange={e=>setSearchText(e.target.value)} placeholder="🔍 キーワードで検索..." />
+        <select className="form-select" style={{width:100}} value={filterTag}
+          onChange={e=>setFilterTag(e.target.value)}>
+          <option value="all">全タグ</option>
+          {allTags.map(t=><option key={t} value={t}>#{t}</option>)}
+        </select>
+      </div>
+
+      {/* 件数 */}
+      <div style={{fontSize:12, color:"#888", marginBottom:12}}>
+        {filtered.length}件 / 全{memos.length}件
+      </div>
+
+      {/* メモカード一覧 */}
+      {filtered.length === 0 && (
+        <div style={{textAlign:"center", padding:40, color:"#ccc"}}>メモがありません</div>
+      )}
+      {filtered.map(memo => (
+        <div key={memo.id} style={{...cardStyle, cursor:"pointer",
+          borderLeft:`4px solid var(--fern)`}}
+          onClick={()=>openDetail(memo)}>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8}}>
+            <div style={{flex:1}}>
+              <div style={{fontSize:15, fontWeight:700, color:"var(--forest)", marginBottom:4}}>{memo.title}</div>
+              <div style={{fontSize:11, color:"#aaa"}}>{memo.date}
+                {memo.spotId && <span> ・ 📍{spotName(memo.spotId)}</span>}
+              </div>
+            </div>
+            {memo.photos?.length > 0 && (
+              <div style={{width:44, height:44, borderRadius:8, overflow:"hidden", flexShrink:0, marginLeft:10}}>
+                <img src={memo.photos[0]} style={{width:"100%", height:"100%", objectFit:"cover"}} />
+              </div>
+            )}
+          </div>
+          {/* 採れる山菜 */}
+          {memo.sansai?.length > 0 && (
+            <div style={{display:"flex", gap:5, flexWrap:"wrap", marginBottom:6}}>
+              {memo.sansai.map(id=>(
+                <span key={id} style={{fontSize:10, fontWeight:600,
+                  background:SANSAI_DATA.find(s=>s.id===id)?.color+"22"||"#eee",
+                  color:SANSAI_DATA.find(s=>s.id===id)?.color||"#666",
+                  border:`1px solid ${SANSAI_DATA.find(s=>s.id===id)?.color||"#ccc"}`,
+                  padding:"2px 8px", borderRadius:20}}>
+                  {sansaiEmoji(id)} {sansaiName(id)}
+                </span>
+              ))}
+            </div>
+          )}
+          {/* タグ */}
+          {memo.tags?.length > 0 && (
+            <div style={{display:"flex", gap:4, flexWrap:"wrap", marginBottom:6}}>
+              {memo.tags.map(t=>(
+                <span key={t} style={{fontSize:10, background:"var(--forest)", color:"white",
+                  padding:"2px 7px", borderRadius:10, fontWeight:600}}>#{t}</span>
+              ))}
+            </div>
+          )}
+          {/* ルート冒頭 */}
+          {memo.route && (
+            <div style={{fontSize:12, color:"#777", marginTop:4}}>
+              🚗 {memo.route.slice(0,60)}{memo.route.length>60?"…":""}
+            </div>
+          )}
+          {/* 注意事項バッジ */}
+          {memo.caution && (
+            <div style={{fontSize:11, color:"#c0392b", fontWeight:600, marginTop:4}}>
+              ⚠️ {memo.caution.slice(0,40)}{memo.caution.length>40?"…":""}
+            </div>
+          )}
+          {/* GPS・写真バッジ */}
+          <div style={{display:"flex", gap:8, marginTop:6}}>
+            {memo.gps && <span style={{fontSize:10, color:"#2e7d32", fontWeight:600}}>📡 GPS登録済み</span>}
+            {memo.photos?.length > 0 && <span style={{fontSize:10, color:"#888"}}>📷 {memo.photos.length}枚</span>}
+          </div>
+        </div>
+      ))}
+
+      {/* 追加ボタン */}
+      <div style={{display:"flex", gap:10, marginTop:8}}>
+        <button className="add-btn" style={{flex:1, justifyContent:"center"}}
+          onClick={()=>{ setForm(blankForm()); memoGPS.clearGps(); setAutoCam(false); setMode("add"); }}>
+          ＋ 忘備録を追加
+        </button>
+        <button style={{padding:"12px 16px", background:"#e8f5e9", border:"2px solid #43a047", borderRadius:8,
+          cursor:"pointer", fontSize:13, fontWeight:600, color:"#2e7d32", display:"flex", alignItems:"center", gap:6}}
+          onClick={()=>{ setForm(blankForm()); memoGPS.clearGps(); setAutoCam(true); setMode("add"); }}>
+          📸 撮影して追加
+        </button>
+      </div>
+
+      {/* 削除確認 */}
+      {deleteTarget && (
+        <div className="form-overlay" onClick={()=>setDeleteTarget(null)}>
+          <div className="form-box" style={{textAlign:"center"}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:48, marginBottom:12}}>🗑️</div>
+            <div style={{fontSize:17, fontWeight:700, color:"var(--forest)", marginBottom:8}}>
+              「{deleteTarget.title}」を削除しますか？
+            </div>
+            <div style={{fontSize:13, color:"#888", marginBottom:24}}>この操作は元に戻せません。</div>
+            <div style={{display:"flex", gap:10, justifyContent:"center"}}>
+              <button className="btn-cancel" onClick={()=>setDeleteTarget(null)}>キャンセル</button>
+              <button style={{padding:"12px 28px", background:"#c0392b", color:"white", border:"none",
+                borderRadius:8, cursor:"pointer", fontFamily:"'Noto Serif JP',serif", fontSize:14, fontWeight:700}}
+                onClick={()=>handleDelete(deleteTarget.id)}>削除する</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ===== APP =====
 function App() {
   const [tab, setTab] = useState("calendar");
   const [spots, setSpots] = useState(INITIAL_SPOTS);
-  const [members, setMembers] = useState(INITIAL_MEMBERS.map((name, i) => ({ id: i+1, name, role: i===0?"採取リーダー":"一般", rank:"初級（初心者）", memo:"", joined:"2024-01-01" })));
+  const [members, setMembers] = useState(() =>
+    loadMembersFromStorage(
+      INITIAL_MEMBERS.map((name, i) => ({ id: i+1, name, nickname:"", role: i===0?"採取リーダー":"一般", rank:"初級（初心者）", memo:"", joined:"2024-01-01", photo:null, avatar:null }))
+    )
+  );
   const [posts, setPosts] = useState(INITIAL_BLOG);
   const [calEvents, setCalEvents] = useState([]);
   const [weatherLocations, setWeatherLocations] = useState(INITIAL_WEATHER_LOCATIONS);
@@ -4449,6 +4834,7 @@ function App() {
     { id: "members",  label: "メンバー",   icon: "👥" },
     { id: "patrol",   label: "パトロール", icon: "🔍" },
     { id: "harvest",  label: "収穫記録",   icon: "🧺" },
+    { id: "memo",     label: "忘備録",     icon: "📒" },
   ];
 
   return (
@@ -4488,13 +4874,14 @@ function App() {
 
         <main className="main">
           {tab === "calendar" && <CalendarView />}
-          {tab === "plan"     && <PlanView spots={spots} onScheduleSuccess={handleScheduleSuccess} weatherLocations={weatherLocations} setWeatherLocations={setWeatherLocations} />}
+          {tab === "plan"     && <PlanView spots={spots} onScheduleSuccess={handleScheduleSuccess} weatherLocations={weatherLocations} setWeatherLocations={setWeatherLocations} members={members} />}
           {tab === "spots"    && <SpotsView spots={spots} setSpots={setSpots} />}
           {tab === "blog"     && <BlogView posts={posts} setPosts={setPosts} spots={spots} members={members} />}
           {tab === "info"     && <SansaiInfoView spots={spots} />}
           {tab === "members"  && <MembersView members={members} setMembers={setMembers} />}
-          {tab === "patrol"   && <PatrolView spots={spots} onScheduleSuccess={handleScheduleSuccess} showToast={showToast} />}
+          {tab === "patrol"   && <PatrolView spots={spots} onScheduleSuccess={handleScheduleSuccess} showToast={showToast} members={members} />}
           {tab === "harvest"  && <HarvestView spots={spots} members={members} />}
+          {tab === "memo"     && <MemoView spots={spots} />}
         </main>
       </div>
     </>
