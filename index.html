@@ -760,7 +760,7 @@ const CALENDARS = [
   { id: "6", name: "登山（一般）",            color: "#FA573C" },
 ];
 
-function ScheduleForm({ spots, onClose, onSuccess, members }) {
+function ScheduleForm({ spots, onClose, onSuccess }) {
   const today = new Date().toISOString().split("T")[0];
 
   // 複数スポットエントリ
@@ -775,7 +775,7 @@ function ScheduleForm({ spots, onClose, onSuccess, members }) {
     memo: "",
   });
   const [status, setStatus] = useState("idle");
-  const MEMBER_LIST = (members||[]).map(m=>m.name);
+  const MEMBER_LIST = ["田中","鈴木","佐藤","伊藤","山本"];
 
   // --- スポット操作 ---
   const addStop = () => setForm(f => ({ ...f, stops: [...f.stops, { ...emptyStop }] }));
@@ -1668,7 +1668,7 @@ function AreaManager({ weatherLocations, setWeatherLocations }) {
   );
 }
 
-function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocations, members }) {
+function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocations }) {
   const currentMonth = new Date().getMonth() + 1;
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [showSchedule, setShowSchedule] = useState(false);
@@ -1726,7 +1726,6 @@ function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocati
           spots={spots}
           onClose={()=>setShowSchedule(false)}
           onSuccess={onScheduleSuccess}
-          members={members}
         />
       )}
     </div>
@@ -2040,182 +2039,302 @@ function MemberAvatar({ member, size }) {
   );
   return (
     <div style={{width:sz, height:sz, borderRadius:"50%", flexShrink:0,
-      background:ROLE_COLOR_MAP[member.role]||"#aaa",
+      background: ROLE_COLOR_MAP[member.role]||"#aaa",
       display:"flex", alignItems:"center", justifyContent:"center",
-      color:"white", fontWeight:700, fontSize:Math.round(sz*0.4),
+      color:"white", fontWeight:700, fontSize:sz*0.4,
       border:`3px solid ${ROLE_COLOR_MAP[member.role]||"#aaa"}`}}>
       {(member.name||"?").charAt(0)}
     </div>
   );
 }
 
-const ROLE_COLOR_MAP = {
-  "採取リーダー":"#c0392b","料理担当":"#e67e22","ナビ担当":"#2980b9",
-  "記録係":"#8e44ad","新入り":"#27ae60","ベテラン":"#2d4a2d","一般":"#7f8c8d",
-};
-const RANK_COLOR_MAP = {
-  "初級（初心者）":"#95a5a6","中級":"#27ae60","上級":"#2980b9",
-  "エキスパート":"#8e44ad","マスター":"#e67e22","師匠・名人":"#c0392b",
-};
-const RANK_BADGE_MAP = {
-  "初級（初心者）":"🌱","中級":"🌿","上級":"🍃",
-  "エキスパート":"⭐","マスター":"🌟","師匠・名人":"👑",
-};
-const ROLES_LIST = ["採取リーダー","料理担当","ナビ担当","記録係","新入り","ベテラン","一般"];
-const RANKS_LIST = ["初級（初心者）","中級","上級","エキスパート","マスター","師匠・名人"];
-
-// ローカルストレージからメンバーを読む（PWA対応）
-function loadMembersFromStorage(initial) {
-  try {
-    const saved = localStorage.getItem("sansai_members");
-    if (saved) return JSON.parse(saved);
-  } catch(e) {}
-  return initial;
-}
-function saveMembersToStorage(members) {
-  try { localStorage.setItem("sansai_members", JSON.stringify(members)); } catch(e) {}
-}
-
 function MembersView({ members, setMembers }) {
   const todayStr = new Date().toISOString().split("T")[0];
 
-  // ── フォームState ──
-  const [showForm, setShowForm] = useState(false);
-  const [editTarget, setEditTarget] = useState(null); // null=新規、obj=編集
+  // ── State ──
+  const [mode, setMode] = useState("list"); // list | add | edit
+  const [editId, setEditId] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [formName, setFormName] = useState("");
-  const [formNickname, setFormNickname] = useState("");
-  const [formRole, setFormRole] = useState("一般");
-  const [formRank, setFormRank] = useState("初級（初心者）");
-  const [formMemo, setFormMemo] = useState("");
-  const [formJoined, setFormJoined] = useState(todayStr);
-  const [formPhoto, setFormPhoto] = useState(null);
-  const [formAvatar, setFormAvatar] = useState(null);
+  const [photoModal, setPhotoModal] = useState(null); // メンバーid
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSvg, setAiSvg] = useState(null);
   const camRef = React.useRef(null);
 
-  const resetForm = () => {
-    setFormName(""); setFormNickname(""); setFormRole("一般");
-    setFormRank("初級（初心者）"); setFormMemo(""); setFormJoined(todayStr);
-    setFormPhoto(null); setFormAvatar(null); setAiSvg(null);
-  };
+  const blankForm = () => ({
+    name:"", nickname:"", role:"一般", rank:"初級（初心者）",
+    memo:"", joined: todayStr, photo:null, avatar:null,
+  });
+  const [form, setForm] = useState(blankForm());
 
-  const openAdd = () => {
-    resetForm();
-    setEditTarget(null);
-    setShowForm(true);
-  };
-
-  const openAddWithCam = () => {
-    resetForm();
-    setEditTarget(null);
-    setShowForm(true);
-    setTimeout(() => camRef.current?.click(), 400);
-  };
-
-  const openEdit = (m) => {
-    setFormName(m.name||"");
-    setFormNickname(m.nickname||"");
-    setFormRole(m.role||"一般");
-    setFormRank(m.rank||"初級（初心者）");
-    setFormMemo(m.memo||"");
-    setFormJoined(m.joined||todayStr);
-    setFormPhoto(m.photo||null);
-    setFormAvatar(m.avatar||null);
-    setAiSvg(null);
-    setEditTarget(m);
-    setShowForm(true);
-  };
+  const updateForm = (key, val) => setForm(f => ({...f, [key]: val}));
 
   // ── 写真読み込み ──
   const loadPhoto = (files) => {
     const file = files && files[0];
     if (!file || !file.type.startsWith("image/")) return;
     const reader = new FileReader();
-    reader.onload = e => { setFormPhoto(e.target.result); setFormAvatar(null); };
+    reader.onload = e => updateForm("photo", e.target.result);
     reader.readAsDataURL(file);
   };
 
   // ── AI アバター生成 ──
-  const generateAvatar = async () => {
-    if (!formPhoto) return;
-    setAiLoading(true); setAiSvg(null);
+  const generateAvatar = async (photoB64) => {
+    if (!photoB64) return;
+    setAiLoading(true);
+    setAiSvg(null);
     try {
-      const b64 = formPhoto.split(",")[1];
-      const mime = formPhoto.split(";")[0].split(":")[1];
+      const b64 = photoB64.split(",")[1];
+      const mime = photoB64.split(";")[0].split(":")[1];
       const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1500,
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          model:"claude-sonnet-4-6", max_tokens:1500,
           messages:[{role:"user", content:[
             {type:"image", source:{type:"base64", media_type:mime, data:b64}},
-            {type:"text", text:`この人物をアニメ風SVGアバターに変換。viewBox="0 0 200 200"の円形、大きな目、シンプル輪郭、緑系背景。SVGタグのみ出力。`}
+            {type:"text", text:`この人物をアニメ・マンガ風SVGアバターに変換。viewBox="0 0 200 200"の円形アバター、大きな目、シンプル輪郭、写真の髪色・肌色を参考に、緑系背景。SVGタグのみ出力（説明文不要）`}
           ]}]
         })
       });
       const data = await res.json();
-      const txt = data.content?.[0]?.text||"";
+      const txt = data.content?.[0]?.text || "";
       const m = txt.match(/<svg[\s\S]*?<\/svg>/i);
-      if (m) setAiSvg("data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(m[0]))));
+      if (m) setAiSvg("data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(m[0]))));
       else setAiSvg("error");
     } catch { setAiSvg("error"); }
     finally { setAiLoading(false); }
   };
 
-  // ── 追加 ──
+  // ── CRUD ──
   const handleAdd = () => {
-    if (!formName.trim()) { alert("名前を入力してください"); return; }
-    const newMember = {
-      id: Date.now(),
-      name: formName.trim(), nickname: formNickname.trim(),
-      role: formRole, rank: formRank,
-      memo: formMemo, joined: formJoined,
-      photo: formPhoto, avatar: formAvatar,
-    };
-    const updated = [...members, newMember];
-    setMembers(updated);
-    saveMembersToStorage(updated);
-    resetForm();
-    setShowForm(false);
+    if (!form.name.trim()) return;
+    const newMember = { id: Date.now(), ...form };
+    setMembers(prev => [...prev, newMember]);
+    setForm(blankForm());
+    setMode("list");
   };
 
-  // ── 編集保存 ──
-  const handleEditSave = () => {
-    if (!formName.trim()) { alert("名前を入力してください"); return; }
-    const updated = members.map(m => m.id === editTarget.id ? {
-      ...m,
-      name: formName.trim(), nickname: formNickname.trim(),
-      role: formRole, rank: formRank,
-      memo: formMemo, joined: formJoined,
-      photo: formPhoto, avatar: formAvatar,
-    } : m);
-    setMembers(updated);
-    saveMembersToStorage(updated);
-    resetForm();
-    setEditTarget(null);
-    setShowForm(false);
+  const handleEdit = () => {
+    if (!form.name.trim()) return;
+    setMembers(prev => prev.map(m => m.id === editId ? { ...m, ...form } : m));
+    setEditId(null);
+    setForm(blankForm());
+    setMode("list");
   };
 
-  // ── 削除 ──
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    const updated = members.filter(m => m.id !== deleteTarget.id);
-    setMembers(updated);
-    saveMembersToStorage(updated);
+  const handleDelete = (id) => {
+    setMembers(prev => prev.filter(m => m.id !== id));
     setDeleteTarget(null);
   };
 
+  const openEdit = (m) => {
+    setEditId(m.id);
+    setForm({
+      name: m.name||"", nickname: m.nickname||"",
+      role: m.role||"一般", rank: m.rank||"初級（初心者）",
+      memo: m.memo||"", joined: m.joined||todayStr,
+      photo: m.photo||null, avatar: m.avatar||null,
+    });
+    setAiSvg(null);
+    setMode("edit");
+  };
+
+  const openAdd = () => {
+    setForm(blankForm());
+    setAiSvg(null);
+    setMode("add");
+  };
+
+  const openAddWithCam = () => {
+    setForm(blankForm());
+    setAiSvg(null);
+    setMode("add");
+    setTimeout(() => camRef.current?.click(), 400);
+  };
+
+  // ── 写真モーダル内でのアバター更新 ──
+  const applyAvatarToMember = (id, avatar) => {
+    setMembers(prev => prev.map(m => m.id === id ? {...m, avatar} : m));
+  };
+  const applyPhotoToMember = (id, photo) => {
+    setMembers(prev => prev.map(m => m.id === id ? {...m, photo} : m));
+  };
+
+  // ── フォームUI（追加・編集共通）──
+  const renderForm = (isEdit) => (
+    <div>
+      <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:20}}>
+        <button onClick={()=>setMode("list")} style={{background:"var(--mist)", border:"none",
+          borderRadius:8, padding:"8px 14px", cursor:"pointer", fontSize:13, fontWeight:600, color:"var(--forest)"}}>
+          ← 戻る
+        </button>
+        <div className="section-title" style={{margin:0, fontSize:20}}>
+          {isEdit ? "✏️ メンバーを編集" : "👤 メンバーを追加"}
+        </div>
+      </div>
+
+      {/* 顔写真 */}
+      <div style={{background:"white", borderRadius:14, padding:16, boxShadow:"0 2px 10px rgba(0,0,0,0.07)", marginBottom:16}}>
+        <div className="form-label" style={{marginBottom:10}}>📷 顔写真</div>
+        <div style={{display:"flex", gap:14, alignItems:"center"}}>
+          {form.photo
+            ? <img src={form.avatar||form.photo} style={{width:70, height:70, borderRadius:"50%", objectFit:"cover", border:"3px solid var(--fern)", flexShrink:0}} />
+            : <div style={{width:70, height:70, borderRadius:"50%", background:"var(--mist)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:30, border:"3px dashed var(--fern)", flexShrink:0}}>👤</div>
+          }
+          <div style={{flex:1, display:"flex", flexDirection:"column", gap:8}}>
+            <label style={{display:"flex", alignItems:"center", gap:8, padding:"9px 14px",
+              background:"var(--soil)", border:"2px dashed var(--fern)", borderRadius:10,
+              cursor:"pointer", fontSize:12, fontWeight:600, color:"var(--moss)"}}>
+              <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>loadPhoto(e.target.files)} />
+              🖼 フォトから選択
+            </label>
+            <label style={{display:"flex", alignItems:"center", gap:8, padding:"9px 14px",
+              background:"#e8f5e9", border:"2px dashed #43a047", borderRadius:10,
+              cursor:"pointer", fontSize:12, fontWeight:600, color:"#2e7d32"}}>
+              <input ref={camRef} type="file" accept="image/*" capture="user" style={{display:"none"}}
+                onChange={e=>loadPhoto(e.target.files)} />
+              📸 カメラで撮影（前面カメラ）
+            </label>
+            {form.photo && (
+              <button onClick={()=>{ updateForm("photo",null); updateForm("avatar",null); }}
+                style={{background:"#fee", border:"none", borderRadius:8, padding:"6px",
+                  cursor:"pointer", fontSize:11, color:"#c0392b", fontWeight:600}}>
+                ✕ 写真を削除
+              </button>
+            )}
+          </div>
+        </div>
+        {/* AIアバター */}
+        {form.photo && (
+          <div style={{marginTop:12, background:"#1a1a2e", borderRadius:12, padding:14}}>
+            <div style={{fontSize:12, fontWeight:700, color:"#e2e2e2", marginBottom:8}}>🤖 AIアニメアバター変換</div>
+            {aiLoading && <div style={{color:"#90caf9", fontSize:12, textAlign:"center", padding:8}}>🌀 AI生成中...</div>}
+            {aiSvg && aiSvg !== "error" && (
+              <div style={{textAlign:"center", marginBottom:10}}>
+                <img src={aiSvg} style={{width:70, height:70, borderRadius:"50%", border:"3px solid #90caf9"}} />
+                <div style={{fontSize:11, color:"#90caf9", marginTop:4}}>生成完了！</div>
+              </div>
+            )}
+            {aiSvg === "error" && <div style={{color:"#ef5350", fontSize:11, marginBottom:8}}>⚠️ 生成失敗。再試行してください。</div>}
+            <div style={{display:"flex", gap:8}}>
+              <button onClick={()=>generateAvatar(form.photo)} disabled={aiLoading}
+                style={{flex:1, padding:"8px", background:"#3949ab", color:"white", border:"none",
+                  borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600}}>
+                {aiLoading ? "生成中..." : "✨ AIアバター生成"}
+              </button>
+              {aiSvg && aiSvg !== "error" && (
+                <button onClick={()=>{ updateForm("avatar", aiSvg); setAiSvg(null); }}
+                  style={{flex:1, padding:"8px", background:"#27ae60", color:"white", border:"none",
+                    borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600}}>
+                  ✅ これを使う
+                </button>
+              )}
+            </div>
+            {form.avatar && (
+              <div style={{marginTop:8, display:"flex", alignItems:"center", gap:8}}>
+                <img src={form.avatar} style={{width:28, height:28, borderRadius:"50%"}} />
+                <span style={{fontSize:11, color:"#a5d6a7"}}>アバター設定済み</span>
+                <button onClick={()=>updateForm("avatar",null)}
+                  style={{background:"none", border:"none", color:"#ef9a9a", cursor:"pointer", fontSize:11}}>解除</button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 名前・ニックネーム */}
+      <div style={{background:"white", borderRadius:14, padding:16, boxShadow:"0 2px 10px rgba(0,0,0,0.07)", marginBottom:16}}>
+        <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:12}}>
+          <div className="form-group" style={{margin:0}}>
+            <label className="form-label">名前 *</label>
+            <input className="form-input" value={form.name}
+              onChange={e=>updateForm("name", e.target.value)} placeholder="例：田中" />
+          </div>
+          <div className="form-group" style={{margin:0}}>
+            <label className="form-label">ニックネーム</label>
+            <input className="form-input" value={form.nickname}
+              onChange={e=>updateForm("nickname", e.target.value)} placeholder="例：タナカン" />
+          </div>
+        </div>
+        <div className="form-group" style={{marginTop:12, marginBottom:0}}>
+          <label className="form-label">参加日</label>
+          <input type="date" className="form-input" value={form.joined}
+            onChange={e=>updateForm("joined", e.target.value)} />
+        </div>
+      </div>
+
+      {/* 役割 */}
+      <div style={{background:"white", borderRadius:14, padding:16, boxShadow:"0 2px 10px rgba(0,0,0,0.07)", marginBottom:16}}>
+        <div className="form-label" style={{marginBottom:10}}>役割</div>
+        <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
+          {ROLES_LIST.map(r=>(
+            <div key={r} onClick={()=>updateForm("role",r)}
+              style={{padding:"7px 14px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
+                background: form.role===r ? (ROLE_COLOR_MAP[r]||"#555") : "var(--mist)",
+                color: form.role===r ? "white" : "#555",
+                border:`2px solid ${form.role===r ? (ROLE_COLOR_MAP[r]||"#555") : "transparent"}`,
+                transition:"all 0.15s"}}>
+              {r}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ランク */}
+      <div style={{background:"white", borderRadius:14, padding:16, boxShadow:"0 2px 10px rgba(0,0,0,0.07)", marginBottom:16}}>
+        <div className="form-label" style={{marginBottom:10}}>ランク</div>
+        <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
+          {RANKS_LIST.map(r=>(
+            <div key={r} onClick={()=>updateForm("rank",r)}
+              style={{padding:"7px 14px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
+                background: form.rank===r ? (RANK_COLOR_MAP[r]||"#555") : "var(--mist)",
+                color: form.rank===r ? "white" : "#555",
+                border:`2px solid ${form.rank===r ? (RANK_COLOR_MAP[r]||"#555") : "transparent"}`,
+                transition:"all 0.15s"}}>
+              {RANK_BADGE_MAP[r]} {r}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* メモ */}
+      <div style={{background:"white", borderRadius:14, padding:16, boxShadow:"0 2px 10px rgba(0,0,0,0.07)", marginBottom:24}}>
+        <div className="form-label" style={{marginBottom:8}}>メモ</div>
+        <textarea className="form-textarea" style={{minHeight:60}} value={form.memo}
+          onChange={e=>updateForm("memo", e.target.value)}
+          placeholder="得意な山菜・担当エリアなど..." />
+      </div>
+
+      {/* 保存ボタン */}
+      <div style={{display:"flex", gap:10}}>
+        <button onClick={()=>setMode("list")} className="btn-cancel" style={{flex:1, padding:"14px", fontSize:14}}>
+          キャンセル
+        </button>
+        <button onClick={isEdit ? handleEdit : handleAdd}
+          style={{flex:2, padding:"14px", background:"var(--forest)", color:"white", border:"none",
+            borderRadius:8, cursor:"pointer", fontSize:15, fontWeight:700, fontFamily:"'Noto Serif JP',serif"}}>
+          {isEdit ? "💾 変更を保存" : "✅ メンバーを追加"}
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── 追加・編集画面 ──
+  if (mode === "add") return <div><div className="section-title">👥 メンバー管理</div>{renderForm(false)}</div>;
+  if (mode === "edit") return <div><div className="section-title">👥 メンバー管理</div>{renderForm(true)}</div>;
+
+  // ── 一覧画面 ──
   return (
     <div>
       <div className="section-title">👥 メンバー管理</div>
-      <div className="section-desc">メンバーの追加・編集・削除ができます。変更は全タブに反映されます。</div>
+      <div className="section-desc">グループメンバーの登録・編集・削除ができます。</div>
 
       {/* サマリー */}
       <div style={{display:"flex", gap:10, marginBottom:20, flexWrap:"wrap"}}>
         {[
-          {label:"総メンバー", val:`${members.length}名`, icon:"👥"},
-          {label:"ベテラン",   val:`${members.filter(m=>["ベテラン","採取リーダー"].includes(m.role)).length}名`, icon:"🏆"},
-          {label:"新入り",     val:`${members.filter(m=>m.role==="新入り").length}名`, icon:"🌱"},
+          { label:"総メンバー", val:`${members.length}名`, icon:"👥" },
+          { label:"ベテラン",   val:`${members.filter(m=>["ベテラン","採取リーダー"].includes(m.role)).length}名`, icon:"🏆" },
+          { label:"新入り",     val:`${members.filter(m=>m.role==="新入り").length}名`, icon:"🌱" },
         ].map(item=>(
           <div key={item.label} style={{flex:1, minWidth:90, background:"white", borderRadius:12,
             padding:"10px 14px", boxShadow:"0 2px 8px rgba(0,0,0,0.07)", textAlign:"center", border:"1px solid var(--mist)"}}>
@@ -2227,57 +2346,54 @@ function MembersView({ members, setMembers }) {
       </div>
 
       {/* メンバー一覧 */}
-      {members.length === 0 ? (
-        <div style={{textAlign:"center", padding:40, color:"#ccc", fontSize:14, marginBottom:20}}>
-          メンバーがいません。追加してください。
-        </div>
-      ) : (
-        <div style={{display:"flex", flexDirection:"column", gap:12, marginBottom:20}}>
-          {members.map(m => (
-            <div key={m.id} style={{background:"white", borderRadius:14, overflow:"hidden",
-              boxShadow:"0 2px 12px rgba(0,0,0,0.07)", border:"1px solid var(--mist)", display:"flex"}}>
-              <div style={{width:6, background:ROLE_COLOR_MAP[m.role]||"#aaa", flexShrink:0}} />
-              <div style={{width:60, display:"flex", alignItems:"center", justifyContent:"center",
-                background:"var(--soil)", flexShrink:0, padding:8}}>
-                <MemberAvatar member={m} size={42} />
-              </div>
-              <div style={{flex:1, padding:"12px 14px", minWidth:0}}>
-                <div style={{display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:4}}>
-                  <span style={{fontSize:16, fontWeight:700, color:"var(--forest)"}}>{m.name}</span>
-                  {m.nickname && <span style={{fontSize:12, color:"#888"}}>「{m.nickname}」</span>}
-                </div>
-                <div style={{display:"flex", gap:4, flexWrap:"wrap", marginBottom:4}}>
-                  <span style={{fontSize:10, fontWeight:700, color:"white",
-                    background:ROLE_COLOR_MAP[m.role]||"#aaa", padding:"2px 7px", borderRadius:10}}>
-                    {m.role}
-                  </span>
-                  <span style={{fontSize:10, fontWeight:700, color:"white",
-                    background:RANK_COLOR_MAP[m.rank]||"#aaa", padding:"2px 7px", borderRadius:10}}>
-                    {RANK_BADGE_MAP[m.rank]} {m.rank}
-                  </span>
-                </div>
-                {m.memo && <div style={{fontSize:12, color:"#666"}}>{m.memo}</div>}
-                <div style={{fontSize:11, color:"#aaa"}}>参加日：{m.joined}</div>
-              </div>
-              <div style={{display:"flex", flexDirection:"column", justifyContent:"center",
-                gap:6, padding:"10px 10px", flexShrink:0}}>
-                <button onClick={()=>openEdit(m)}
-                  style={{background:"var(--mist)", border:"none", borderRadius:8,
-                    padding:"8px 12px", cursor:"pointer", fontSize:12, fontWeight:600,
-                    color:"var(--forest)", whiteSpace:"nowrap"}}>
-                  ✏️ 編集
-                </button>
-                <button onClick={()=>setDeleteTarget(m)}
-                  style={{background:"#fee", border:"none", borderRadius:8,
-                    padding:"8px 12px", cursor:"pointer", fontSize:12, fontWeight:600,
-                    color:"#c0392b", whiteSpace:"nowrap"}}>
-                  🗑 削除
-                </button>
-              </div>
+      <div style={{display:"flex", flexDirection:"column", gap:12, marginBottom:24}}>
+        {members.map(m => (
+          <div key={m.id} style={{background:"white", borderRadius:14, overflow:"hidden",
+            boxShadow:"0 2px 12px rgba(0,0,0,0.07)", border:"1px solid var(--mist)", display:"flex"}}>
+            {/* 左カラー帯 */}
+            <div style={{width:6, background:ROLE_COLOR_MAP[m.role]||"#aaa", flexShrink:0}} />
+            {/* アバター（タップで写真変更） */}
+            <div style={{width:64, display:"flex", alignItems:"center", justifyContent:"center",
+              background:"var(--soil)", flexShrink:0, cursor:"pointer", padding:10}}
+              onClick={()=>{ setPhotoModal(m.id); setAiSvg(null); }}>
+              <MemberAvatar member={m} size={44} />
             </div>
-          ))}
-        </div>
-      )}
+            {/* 情報 */}
+            <div style={{flex:1, padding:"12px 14px"}}>
+              <div style={{display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:4}}>
+                <span style={{fontSize:16, fontWeight:700, color:"var(--forest)"}}>{m.name}</span>
+                {m.nickname && <span style={{fontSize:12, color:"#888"}}>「{m.nickname}」</span>}
+              </div>
+              <div style={{display:"flex", gap:5, flexWrap:"wrap", marginBottom:4}}>
+                <span style={{fontSize:10, fontWeight:700, color:"white", background:ROLE_COLOR_MAP[m.role]||"#aaa",
+                  padding:"2px 7px", borderRadius:10}}>{m.role}</span>
+                <span style={{fontSize:10, fontWeight:700, color:"white", background:RANK_COLOR_MAP[m.rank]||"#aaa",
+                  padding:"2px 7px", borderRadius:10}}>{RANK_BADGE_MAP[m.rank]} {m.rank}</span>
+              </div>
+              {m.memo && <div style={{fontSize:12, color:"#666"}}>{m.memo}</div>}
+              <div style={{fontSize:11, color:"#aaa", marginTop:2}}>参加日：{m.joined}</div>
+            </div>
+            {/* 操作ボタン */}
+            <div style={{display:"flex", flexDirection:"column", justifyContent:"center", gap:6, padding:"10px 12px", flexShrink:0}}>
+              <button onClick={()=>openEdit(m)}
+                style={{background:"var(--mist)", border:"none", borderRadius:8, padding:"7px 12px",
+                  cursor:"pointer", fontSize:12, fontWeight:600, color:"var(--forest)", whiteSpace:"nowrap"}}>
+                ✏️ 編集
+              </button>
+              <button onClick={()=>setDeleteTarget(m)}
+                style={{background:"#fee", border:"none", borderRadius:8, padding:"7px 12px",
+                  cursor:"pointer", fontSize:12, fontWeight:600, color:"#c0392b", whiteSpace:"nowrap"}}>
+                🗑 削除
+              </button>
+            </div>
+          </div>
+        ))}
+        {members.length === 0 && (
+          <div style={{textAlign:"center", padding:40, color:"#ccc", fontSize:14}}>
+            メンバーがいません。追加してください。
+          </div>
+        )}
+      </div>
 
       {/* 追加ボタン */}
       <div style={{display:"flex", gap:10}}>
@@ -2285,170 +2401,98 @@ function MembersView({ members, setMembers }) {
           ＋ メンバーを追加
         </button>
         <button onClick={openAddWithCam}
-          style={{padding:"12px 16px", background:"#e8f5e9", border:"2px solid #43a047",
-            borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600, color:"#2e7d32",
-            display:"flex", alignItems:"center", gap:6}}>
+          style={{padding:"12px 16px", background:"#e8f5e9", border:"2px solid #43a047", borderRadius:8,
+            cursor:"pointer", fontSize:13, fontWeight:600, color:"#2e7d32", display:"flex", alignItems:"center", gap:6}}>
           📸 撮影して追加
         </button>
       </div>
-      <input ref={camRef} type="file" accept="image/*" capture="user"
-        style={{display:"none"}} onChange={e=>loadPhoto(e.target.files)} />
 
-      {/* ───── 追加・編集フォーム（モーダル） ───── */}
-      {showForm && (
-        <div className="form-overlay" onClick={e=>e.target===e.currentTarget&&setShowForm(false)}>
-          <div className="form-box" style={{maxHeight:"90vh", overflowY:"auto"}}>
-            <div className="form-title">
-              {editTarget ? "✏️ メンバーを編集" : "👤 メンバーを追加"}
-            </div>
+      {/* 非表示カメラ（撮影して追加用） */}
+      <label style={{display:"none"}}>
+        <input ref={camRef} type="file" accept="image/*" capture="user"
+          onChange={e=>{ loadPhoto(e.target.files); openAdd(); }} />
+      </label>
 
-            {/* 顔写真 */}
-            <div className="form-group">
-              <label className="form-label">📷 顔写真</label>
-              <div style={{display:"flex", gap:12, alignItems:"center"}}>
-                {formPhoto
-                  ? <img src={formAvatar||formPhoto} style={{width:64, height:64, borderRadius:"50%",
-                      objectFit:"cover", border:"3px solid var(--fern)", flexShrink:0}} />
-                  : <div style={{width:64, height:64, borderRadius:"50%", background:"var(--mist)",
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      fontSize:28, border:"3px dashed var(--fern)", flexShrink:0}}>👤</div>
-                }
-                <div style={{flex:1, display:"flex", flexDirection:"column", gap:8}}>
-                  <label style={{display:"flex", alignItems:"center", gap:8, padding:"9px 14px",
-                    background:"var(--soil)", border:"2px dashed var(--fern)", borderRadius:10,
-                    cursor:"pointer", fontSize:12, fontWeight:600, color:"var(--moss)"}}>
-                    <input type="file" accept="image/*" style={{display:"none"}}
-                      onChange={e=>loadPhoto(e.target.files)} />
-                    🖼 フォトから選択
-                  </label>
-                  <label style={{display:"flex", alignItems:"center", gap:8, padding:"9px 14px",
-                    background:"#e8f5e9", border:"2px dashed #43a047", borderRadius:10,
-                    cursor:"pointer", fontSize:12, fontWeight:600, color:"#2e7d32"}}>
-                    <input type="file" accept="image/*" capture="user" style={{display:"none"}}
-                      onChange={e=>loadPhoto(e.target.files)} />
-                    📸 カメラ撮影（自動起動）
-                  </label>
-                  {formPhoto && (
-                    <button onClick={()=>{setFormPhoto(null);setFormAvatar(null);}}
-                      style={{background:"#fee", border:"none", borderRadius:8, padding:"6px",
-                        cursor:"pointer", fontSize:11, color:"#c0392b", fontWeight:600}}>
-                      ✕ 写真を削除
-                    </button>
-                  )}
-                </div>
+      {/* 写真・アバター変更モーダル */}
+      {photoModal && (() => {
+        const target = members.find(m=>m.id===photoModal);
+        if (!target) return null;
+        return (
+          <div className="form-overlay" onClick={()=>{ setPhotoModal(null); setAiSvg(null); }}>
+            <div className="form-box" onClick={e=>e.stopPropagation()} style={{maxHeight:"88vh", overflowY:"auto"}}>
+              <div style={{textAlign:"center", marginBottom:16}}>
+                <MemberAvatar member={target} size={80} />
+                <div style={{fontSize:18, fontWeight:700, color:"var(--forest)", marginTop:8}}>{target.name}</div>
               </div>
-              {/* AI アバター */}
-              {formPhoto && (
-                <div style={{marginTop:12, background:"#1a1a2e", borderRadius:12, padding:14}}>
-                  <div style={{fontSize:12, fontWeight:700, color:"#e2e2e2", marginBottom:8}}>
-                    🤖 AIアニメアバター変換
-                  </div>
-                  {aiLoading && <div style={{color:"#90caf9", fontSize:12, textAlign:"center", padding:8}}>🌀 生成中...</div>}
+              <div className="form-label" style={{marginBottom:8}}>📷 写真・アバターを変更</div>
+              <div style={{display:"flex", flexDirection:"column", gap:8, marginBottom:14}}>
+                <label style={{display:"flex", alignItems:"center", gap:10, padding:"10px 14px",
+                  background:"var(--soil)", border:"2px dashed var(--fern)", borderRadius:10,
+                  cursor:"pointer", fontSize:13, fontWeight:600, color:"var(--moss)"}}>
+                  <input type="file" accept="image/*" style={{display:"none"}}
+                    onChange={e=>{
+                      const f=e.target.files[0]; if(!f) return;
+                      const r=new FileReader();
+                      r.onload=ev=>applyPhotoToMember(photoModal, ev.target.result);
+                      r.readAsDataURL(f);
+                    }} />
+                  🖼 フォトから選択
+                </label>
+                <label style={{display:"flex", alignItems:"center", gap:10, padding:"10px 14px",
+                  background:"#e8f5e9", border:"2px dashed #43a047", borderRadius:10,
+                  cursor:"pointer", fontSize:13, fontWeight:600, color:"#2e7d32"}}>
+                  <input type="file" accept="image/*" capture="user" style={{display:"none"}}
+                    onChange={e=>{
+                      const f=e.target.files[0]; if(!f) return;
+                      const r=new FileReader();
+                      r.onload=ev=>applyPhotoToMember(photoModal, ev.target.result);
+                      r.readAsDataURL(f);
+                    }} />
+                  📸 カメラで撮影（自動起動）
+                </label>
+              </div>
+              {target.photo && (
+                <div style={{background:"#1a1a2e", borderRadius:12, padding:14, marginBottom:14}}>
+                  <div style={{fontSize:12, fontWeight:700, color:"#e2e2e2", marginBottom:8}}>🤖 AIアニメアバター</div>
+                  {aiLoading && <div style={{color:"#90caf9", fontSize:12, textAlign:"center"}}>🌀 生成中...</div>}
                   {aiSvg && aiSvg!=="error" && (
                     <div style={{textAlign:"center", marginBottom:10}}>
-                      <img src={aiSvg} style={{width:64, height:64, borderRadius:"50%", border:"3px solid #90caf9"}} />
+                      <img src={aiSvg} style={{width:70, height:70, borderRadius:"50%", border:"3px solid #90caf9"}} />
                     </div>
                   )}
-                  {aiSvg==="error" && <div style={{color:"#ef5350", fontSize:11, marginBottom:8}}>⚠️ 生成失敗。再試行してください。</div>}
                   <div style={{display:"flex", gap:8}}>
-                    <button onClick={generateAvatar} disabled={aiLoading}
+                    <button onClick={()=>generateAvatar(target.photo)} disabled={aiLoading}
                       style={{flex:1, padding:"8px", background:"#3949ab", color:"white", border:"none",
                         borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600}}>
-                      {aiLoading ? "生成中..." : "✨ AIアバター生成"}
+                      {aiLoading?"生成中...":"✨ AIアバター生成"}
                     </button>
                     {aiSvg && aiSvg!=="error" && (
-                      <button onClick={()=>{setFormAvatar(aiSvg); setAiSvg(null);}}
+                      <button onClick={()=>{ applyAvatarToMember(photoModal, aiSvg); setAiSvg(null); }}
                         style={{flex:1, padding:"8px", background:"#27ae60", color:"white", border:"none",
                           borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600}}>
-                        ✅ これを使う
+                        ✅ 設定する
                       </button>
                     )}
                   </div>
-                  {formAvatar && (
-                    <div style={{marginTop:8, display:"flex", alignItems:"center", gap:8}}>
-                      <img src={formAvatar} style={{width:28, height:28, borderRadius:"50%"}} />
-                      <span style={{fontSize:11, color:"#a5d6a7"}}>AIアバター設定済み</span>
-                      <button onClick={()=>setFormAvatar(null)}
-                        style={{background:"none", border:"none", color:"#ef9a9a", cursor:"pointer", fontSize:11}}>解除</button>
-                    </div>
-                  )}
                 </div>
               )}
-            </div>
-
-            {/* 名前 */}
-            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:12}}>
-              <div className="form-group">
-                <label className="form-label">名前 *</label>
-                <input className="form-input" value={formName}
-                  onChange={e=>setFormName(e.target.value)} placeholder="例：田中" />
+              {target.avatar && (
+                <button onClick={()=>applyAvatarToMember(photoModal, null)}
+                  style={{width:"100%", padding:"8px", background:"#fee", border:"none", borderRadius:8,
+                    cursor:"pointer", fontSize:12, color:"#c0392b", fontWeight:600, marginBottom:12}}>
+                  🗑 AIアバターを削除して写真に戻す
+                </button>
+              )}
+              <div style={{display:"flex", gap:10}}>
+                <button onClick={()=>openEdit(target)} className="btn-cancel" style={{flex:1}}>✏️ 詳細を編集</button>
+                <button onClick={()=>{ setPhotoModal(null); setAiSvg(null); }} className="btn-submit" style={{flex:1}}>閉じる</button>
               </div>
-              <div className="form-group">
-                <label className="form-label">ニックネーム</label>
-                <input className="form-input" value={formNickname}
-                  onChange={e=>setFormNickname(e.target.value)} placeholder="例：タナカン" />
-              </div>
-            </div>
-
-            {/* 役割 */}
-            <div className="form-group">
-              <label className="form-label">役割</label>
-              <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
-                {ROLES_LIST.map(r=>(
-                  <div key={r} onClick={()=>setFormRole(r)}
-                    style={{padding:"7px 14px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
-                      background:formRole===r?(ROLE_COLOR_MAP[r]||"#555"):"var(--mist)",
-                      color:formRole===r?"white":"#555",
-                      border:`2px solid ${formRole===r?(ROLE_COLOR_MAP[r]||"#555"):"transparent"}`,
-                      transition:"all 0.15s"}}>
-                    {r}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ランク */}
-            <div className="form-group">
-              <label className="form-label">ランク</label>
-              <div style={{display:"flex", flexWrap:"wrap", gap:8}}>
-                {RANKS_LIST.map(r=>(
-                  <div key={r} onClick={()=>setFormRank(r)}
-                    style={{padding:"7px 14px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
-                      background:formRank===r?(RANK_COLOR_MAP[r]||"#555"):"var(--mist)",
-                      color:formRank===r?"white":"#555",
-                      border:`2px solid ${formRank===r?(RANK_COLOR_MAP[r]||"#555"):"transparent"}`,
-                      transition:"all 0.15s"}}>
-                    {RANK_BADGE_MAP[r]} {r}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 参加日・メモ */}
-            <div className="form-group">
-              <label className="form-label">参加日</label>
-              <input type="date" className="form-input" value={formJoined}
-                onChange={e=>setFormJoined(e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">メモ</label>
-              <textarea className="form-textarea" style={{minHeight:60}} value={formMemo}
-                onChange={e=>setFormMemo(e.target.value)} placeholder="得意な山菜・担当エリアなど..." />
-            </div>
-
-            <div className="form-actions">
-              <button className="btn-cancel" onClick={()=>{setShowForm(false); resetForm();}}>
-                キャンセル
-              </button>
-              <button className="btn-submit" onClick={editTarget ? handleEditSave : handleAdd}>
-                {editTarget ? "💾 変更を保存" : "✅ 追加する"}
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
-      {/* 削除確認ダイアログ */}
+      {/* 削除確認 */}
       {deleteTarget && (
         <div className="form-overlay" onClick={()=>setDeleteTarget(null)}>
           <div className="form-box" style={{textAlign:"center"}} onClick={e=>e.stopPropagation()}>
@@ -2456,17 +2500,12 @@ function MembersView({ members, setMembers }) {
             <div style={{fontSize:18, fontWeight:700, color:"var(--forest)", marginBottom:8}}>
               {deleteTarget.name} を削除しますか？
             </div>
-            <div style={{fontSize:13, color:"#888", marginBottom:24}}>
-              この操作は元に戻せません。
-            </div>
+            <div style={{fontSize:13, color:"#888", marginBottom:24}}>この操作は元に戻せません。</div>
             <div style={{display:"flex", gap:10, justifyContent:"center"}}>
-              <button className="btn-cancel" onClick={()=>setDeleteTarget(null)}>
-                キャンセル
-              </button>
-              <button style={{padding:"12px 28px", background:"#c0392b", color:"white",
-                border:"none", borderRadius:8, cursor:"pointer",
-                fontFamily:"'Noto Serif JP',serif", fontSize:14, fontWeight:700}}
-                onClick={handleDelete}>
+              <button className="btn-cancel" onClick={()=>setDeleteTarget(null)}>キャンセル</button>
+              <button style={{padding:"12px 28px", background:"#c0392b", color:"white", border:"none",
+                borderRadius:8, cursor:"pointer", fontFamily:"'Noto Serif JP',serif", fontSize:14, fontWeight:700}}
+                onClick={()=>handleDelete(deleteTarget.id)}>
                 削除する
               </button>
             </div>
@@ -2478,7 +2517,7 @@ function MembersView({ members, setMembers }) {
 }
 
 
-function PatrolView({ spots, onScheduleSuccess, showToast, members }) {
+function PatrolView({ spots, onScheduleSuccess, showToast }) {
   const today = new Date().toISOString().split("T")[0];
   const currentMonth = new Date().getMonth() + 1;
 
@@ -2540,7 +2579,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members }) {
     "やや遅め":"#ffa726", "終わり":"#bdbdbd", "不明":"#90a4ae",
   };
   const QTY_COLOR = { "多い":"#2e7d32", "普通":"#1565c0", "少ない":"#e65100", "ほぼなし":"#b71c1c" };
-  const MEMBERS_LIST = (members||[]).map(m=>m.name);
+  const MEMBERS_LIST = ["田中", "鈴木", "佐藤", "伊藤", "山本"];
 
   // ===== ヘルパー =====
   const spotName = (id) => spots.find(s => s.id === Number(id))?.name ?? "不明";
@@ -4256,534 +4295,11 @@ function HarvestView({ spots, members }) {
   );
 }
 
-
-// ===== 忘備録ビュー =====
-function MemoView({ spots }) {
-  const today = new Date().toISOString().split("T")[0];
-
-  const INITIAL_MEMOS = [
-    {
-      id: 1, title: "白山麓・瀬女エリア 詳細メモ",
-      spotId: 1, date: "2026-05-10",
-      route: "北陸自動車道 鶴来ICから国道157号を南下。道の駅瀬女を目標に。ICから約40分。",
-      parking: "道の駅瀬女の第2駐車場（無料）。林道入口まで徒歩5分。",
-      landmark: "瀬女橋を渡ったすぐ左の砂利道が林道入口。看板なし注意。",
-      terrain: "緩やかな斜面。雨後は滑りやすいため長靴必須。",
-      bestTime: "4月下旬〜5月上旬の午前中。霧が晴れる10時頃が最適。",
-      caution: "熊の目撃情報あり。鈴必携。単独行動禁止。",
-      sansai: [3, 2], tags: ["熊注意", "長靴必須", "林道"],
-      photos: [], gps: null, private: false,
-    },
-  ];
-
-  const [memos, setMemos] = useState(INITIAL_MEMOS);
-  const [mode, setMode] = useState("list"); // list | add | edit | detail
-  const [selectedId, setSelectedId] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [searchText, setSearchText] = useState("");
-  const [filterTag, setFilterTag] = useState("all");
-  const [lightbox, setLightbox] = useState(null);
-  const memoGPS = useGPS();
-  const [autoCam, setAutoCam] = useState(false);
-  const camRef = React.useRef(null);
-
-  const blankForm = () => ({
-    title:"", spotId:"", date: today,
-    route:"", parking:"", landmark:"",
-    terrain:"", bestTime:"", caution:"",
-    sansai:[], tags:[], tagInput:"",
-    photos:[], gps:null, private:false,
-  });
-  const [form, setForm] = useState(blankForm());
-
-  useEffect(() => {
-    if (autoCam && camRef.current) setTimeout(() => camRef.current?.click(), 300);
-  }, [autoCam, mode]);
-
-  const updateForm = (key, val) => setForm(f => ({...f, [key]: val}));
-
-  const handlePhotoUpload = (files) => {
-    Array.from(files).forEach(file => {
-      if (!file.type.startsWith("image/")) return;
-      const reader = new FileReader();
-      reader.onload = e => setForm(f => ({...f, photos:[...f.photos, e.target.result]}));
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const addTag = () => {
-    if (!form.tagInput.trim()) return;
-    if (!form.tags.includes(form.tagInput.trim())) {
-      setForm(f => ({...f, tags:[...f.tags, f.tagInput.trim()], tagInput:""}));
-    } else {
-      updateForm("tagInput","");
-    }
-  };
-
-  const toggleSansai = (id) => setForm(f => ({
-    ...f, sansai: f.sansai.includes(id) ? f.sansai.filter(x=>x!==id) : [...f.sansai, id]
-  }));
-
-  const handleSave = (isEdit) => {
-    if (!form.title.trim()) return;
-    const data = { ...form, gps: memoGPS.gps || form.gps };
-    if (isEdit) {
-      setMemos(prev => prev.map(m => m.id===selectedId ? {...m,...data} : m));
-    } else {
-      setMemos(prev => [...prev, {id:Date.now(), ...data}]);
-    }
-    setForm(blankForm()); memoGPS.clearGps();
-    setMode("list"); setSelectedId(null);
-  };
-
-  const handleDelete = (id) => {
-    setMemos(prev => prev.filter(m => m.id!==id));
-    setDeleteTarget(null); setMode("list"); setSelectedId(null);
-  };
-
-  const openEdit = (memo) => {
-    setForm({...blankForm(), ...memo, tagInput:""});
-    memoGPS.clearGps();
-    setSelectedId(memo.id);
-    setMode("edit");
-  };
-
-  const openDetail = (memo) => {
-    setSelectedId(memo.id);
-    setMode("detail");
-  };
-
-  // 全タグ収集
-  const allTags = [...new Set(memos.flatMap(m=>m.tags||[]))];
-
-  // フィルター
-  const filtered = memos.filter(m => {
-    const matchText = !searchText || m.title.includes(searchText) ||
-      (m.route||"").includes(searchText) || (m.caution||"").includes(searchText);
-    const matchTag = filterTag==="all" || (m.tags||[]).includes(filterTag);
-    return matchText && matchTag;
-  });
-
-  const sansaiName = id => SANSAI_DATA.find(s=>s.id===id)?.name??"";
-  const sansaiEmoji = id => SANSAI_DATA.find(s=>s.id===id)?.emoji??"🌿";
-  const spotName = id => spots.find(s=>s.id===Number(id))?.name??"";
-
-  const cardStyle = {background:"white", borderRadius:14, padding:16,
-    boxShadow:"0 2px 12px rgba(0,0,0,0.08)", border:"1px solid var(--mist)", marginBottom:12};
-
-  const SectionBox = ({icon, title, children}) => (
-    <div style={{background:"var(--soil)", borderRadius:12, padding:"12px 14px", marginBottom:12}}>
-      <div style={{fontSize:12, fontWeight:700, color:"var(--forest)", marginBottom:6}}>{icon} {title}</div>
-      <div style={{fontSize:13, color:"#444", lineHeight:1.8}}>{children}</div>
-    </div>
-  );
-
-  // ===== フォーム画面 =====
-  const renderForm = (isEdit) => (
-    <div>
-      <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:20}}>
-        <button onClick={()=>{setMode(isEdit?"detail":"list"); memoGPS.clearGps();}}
-          style={{background:"var(--mist)", border:"none", borderRadius:8,
-            padding:"8px 14px", cursor:"pointer", fontSize:13, fontWeight:600, color:"var(--forest)"}}>
-          ← 戻る
-        </button>
-        <div className="section-title" style={{margin:0, fontSize:20}}>
-          {isEdit ? "✏️ メモを編集" : "📝 新規メモ"}
-        </div>
-      </div>
-
-      <div style={{...cardStyle}}>
-        <div className="form-group">
-          <label className="form-label">タイトル *</label>
-          <input className="form-input" value={form.title}
-            onChange={e=>updateForm("title",e.target.value)} placeholder="例：白山麓 林道奥のコシアブラポイント" />
-        </div>
-        <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:12}}>
-          <div className="form-group" style={{margin:0}}>
-            <label className="form-label">記録日</label>
-            <input type="date" className="form-input" value={form.date}
-              onChange={e=>updateForm("date",e.target.value)} />
-          </div>
-          <div className="form-group" style={{margin:0}}>
-            <label className="form-label">関連スポット</label>
-            <select className="form-select" value={form.spotId}
-              onChange={e=>updateForm("spotId",e.target.value)}>
-              <option value="">選択（任意）</option>
-              {spots.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* 道順・アクセス */}
-      <div style={{...cardStyle}}>
-        <div style={{fontSize:14, fontWeight:700, color:"var(--forest)", marginBottom:12}}>🚗 アクセス・道順</div>
-        <div className="form-group">
-          <label className="form-label">ルート・道順</label>
-          <textarea className="form-textarea" value={form.route}
-            onChange={e=>updateForm("route",e.target.value)}
-            placeholder="例：北陸道 鶴来ICから国道157号を南下、道の駅瀬女を目標に約40分" />
-        </div>
-        <div className="form-group">
-          <label className="form-label">駐車場・駐車ポイント</label>
-          <textarea className="form-textarea" style={{minHeight:60}} value={form.parking}
-            onChange={e=>updateForm("parking",e.target.value)}
-            placeholder="例：道の駅瀬女の第2駐車場（無料）。入口まで徒歩5分。" />
-        </div>
-        <div className="form-group" style={{marginBottom:0}}>
-          <label className="form-label">目印・ランドマーク</label>
-          <textarea className="form-textarea" style={{minHeight:60}} value={form.landmark}
-            onChange={e=>updateForm("landmark",e.target.value)}
-            placeholder="例：瀬女橋を渡った左の砂利道。看板なし。赤いテープが目印。" />
-        </div>
-      </div>
-
-      {/* 現地情報 */}
-      <div style={{...cardStyle}}>
-        <div style={{fontSize:14, fontWeight:700, color:"var(--forest)", marginBottom:12}}>🏔 現地情報</div>
-        <div className="form-group">
-          <label className="form-label">地形・環境</label>
-          <textarea className="form-textarea" style={{minHeight:60}} value={form.terrain}
-            onChange={e=>updateForm("terrain",e.target.value)}
-            placeholder="例：緩やかな南向き斜面。雨後は滑りやすい。沢沿いにミズあり。" />
-        </div>
-        <div className="form-group">
-          <label className="form-label">ベストな採取時期・時間帯</label>
-          <textarea className="form-textarea" style={{minHeight:60}} value={form.bestTime}
-            onChange={e=>updateForm("bestTime",e.target.value)}
-            placeholder="例：4月下旬〜5月上旬。午前10時頃、霧が晴れてから。" />
-        </div>
-        <div className="form-group" style={{marginBottom:0}}>
-          <label className="form-label" style={{color:"#c0392b"}}>⚠️ 注意事項</label>
-          <textarea className="form-textarea" style={{minHeight:60, borderColor:"#ffcdd2"}} value={form.caution}
-            onChange={e=>updateForm("caution",e.target.value)}
-            placeholder="例：熊の目撃情報あり。鈴必携。単独行動禁止。増水注意。" />
-        </div>
-      </div>
-
-      {/* 採れる山菜 */}
-      <div style={{...cardStyle}}>
-        <div style={{fontSize:14, fontWeight:700, color:"var(--forest)", marginBottom:10}}>🌿 採れる山菜</div>
-        <div style={{display:"flex", flexWrap:"wrap", gap:6}}>
-          {SANSAI_DATA.map(s=>(
-            <div key={s.id} onClick={()=>toggleSansai(s.id)}
-              style={{padding:"5px 12px", borderRadius:20, cursor:"pointer", fontSize:11, fontWeight:600,
-                background: form.sansai.includes(s.id) ? s.color : "var(--mist)",
-                color: form.sansai.includes(s.id) ? "white" : "#666",
-                border:`1.5px solid ${form.sansai.includes(s.id) ? s.color : "#ddd"}`,
-                transition:"all 0.15s"}}>
-              {s.emoji} {s.name}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* タグ */}
-      <div style={{...cardStyle}}>
-        <div style={{fontSize:14, fontWeight:700, color:"var(--forest)", marginBottom:10}}>🏷 タグ</div>
-        <div style={{display:"flex", gap:8, marginBottom:10}}>
-          <input className="form-input" style={{flex:1}} value={form.tagInput}
-            onChange={e=>updateForm("tagInput",e.target.value)}
-            onKeyDown={e=>e.key==="Enter"&&addTag()}
-            placeholder="例：熊注意・長靴必須・林道・秘密ポイント" />
-          <button onClick={addTag} style={{padding:"0 16px", background:"var(--forest)",
-            color:"white", border:"none", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600}}>
-            追加
-          </button>
-        </div>
-        <div style={{display:"flex", flexWrap:"wrap", gap:6}}>
-          {form.tags.map(t=>(
-            <span key={t} style={{background:"var(--forest)", color:"white", fontSize:11, fontWeight:600,
-              padding:"3px 10px", borderRadius:20, display:"flex", alignItems:"center", gap:4}}>
-              #{t}
-              <span style={{cursor:"pointer", opacity:0.7}} onClick={()=>setForm(f=>({...f,tags:f.tags.filter(x=>x!==t)}))}>✕</span>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* GPS */}
-      <GPSCapture gps={memoGPS.gps} gpsStatus={memoGPS.gpsStatus}
-        gpsError={memoGPS.gpsError} onCapture={memoGPS.getLocation}
-        onClear={memoGPS.clearGps} googleMapsUrl={memoGPS.googleMapsUrl} />
-
-      {/* 写真 */}
-      <div className="form-group">
-        <label className="form-label">📷 写真（複数可）</label>
-        <div style={{display:"flex", gap:10, marginBottom:10}}>
-          <label style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center",
-            justifyContent:"center", gap:6, padding:"14px 10px", borderRadius:12, cursor:"pointer",
-            background:"var(--soil)", border:"2px dashed var(--fern)", textAlign:"center"}}>
-            <input type="file" accept="image/*" multiple style={{display:"none"}}
-              onChange={e=>handlePhotoUpload(e.target.files)} />
-            <span style={{fontSize:24}}>🖼</span>
-            <span style={{fontSize:12, fontWeight:600, color:"var(--moss)"}}>フォトから選択</span>
-          </label>
-          <CameraCapture onCapture={handlePhotoUpload} label="カメラで撮影" autoOpen={autoCam} />
-        </div>
-        {form.photos.length > 0 && (
-          <div className="photo-grid">
-            {form.photos.map((src,i)=>(
-              <div key={i} className="photo-thumb">
-                <img src={src} alt="" />
-                <button className="del-btn"
-                  onClick={()=>setForm(f=>({...f,photos:f.photos.filter((_,idx)=>idx!==i)}))}>✕</button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 保存 */}
-      <div style={{display:"flex", gap:10, marginBottom:24}}>
-        <button onClick={()=>{setMode(isEdit?"detail":"list"); memoGPS.clearGps();}}
-          className="btn-cancel" style={{flex:1, padding:14, fontSize:14}}>キャンセル</button>
-        <button onClick={()=>handleSave(isEdit)}
-          style={{flex:2, padding:14, background:"var(--forest)", color:"white", border:"none",
-            borderRadius:8, cursor:"pointer", fontSize:15, fontWeight:700, fontFamily:"'Noto Serif JP',serif"}}>
-          {isEdit ? "💾 変更を保存" : "📝 メモを保存"}
-        </button>
-      </div>
-    </div>
-  );
-
-  // ===== 詳細画面 =====
-  const renderDetail = () => {
-    const memo = memos.find(m=>m.id===selectedId);
-    if (!memo) return null;
-    return (
-      <div>
-        <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:20}}>
-          <button onClick={()=>setMode("list")}
-            style={{background:"var(--mist)", border:"none", borderRadius:8,
-              padding:"8px 14px", cursor:"pointer", fontSize:13, fontWeight:600, color:"var(--forest)"}}>
-            ← 戻る
-          </button>
-          <div style={{flex:1}}>
-            <div style={{fontSize:18, fontWeight:700, color:"var(--forest)"}}>{memo.title}</div>
-            <div style={{fontSize:11, color:"#aaa"}}>{memo.date}</div>
-          </div>
-        </div>
-
-        {/* タグ */}
-        {memo.tags?.length > 0 && (
-          <div style={{display:"flex", flexWrap:"wrap", gap:6, marginBottom:14}}>
-            {memo.tags.map(t=>(
-              <span key={t} style={{background:"var(--forest)", color:"white", fontSize:11,
-                fontWeight:600, padding:"3px 10px", borderRadius:20}}>#{t}</span>
-            ))}
-          </div>
-        )}
-
-        {/* 採れる山菜 */}
-        {memo.sansai?.length > 0 && (
-          <div style={{display:"flex", flexWrap:"wrap", gap:6, marginBottom:14}}>
-            {memo.sansai.map(id=>(
-              <span key={id} style={{background:SANSAI_DATA.find(s=>s.id===id)?.color||"var(--fern)",
-                color:"white", fontSize:12, fontWeight:600, padding:"4px 12px", borderRadius:20}}>
-                {sansaiEmoji(id)} {sansaiName(id)}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* 写真 */}
-        {memo.photos?.length > 0 && (
-          <div className="blog-photos" style={{marginBottom:14}}>
-            {memo.photos.map((src,i)=>(
-              <div key={i} className="blog-photo" onClick={()=>setLightbox({images:memo.photos,index:i})}>
-                <img src={src} alt="" />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* アクセス情報 */}
-        {memo.route && <SectionBox icon="🚗" title="ルート・道順">{memo.route}</SectionBox>}
-        {memo.parking && <SectionBox icon="🅿️" title="駐車場">{memo.parking}</SectionBox>}
-        {memo.landmark && <SectionBox icon="🚩" title="目印・ランドマーク">{memo.landmark}</SectionBox>}
-        {memo.terrain && <SectionBox icon="🏔" title="地形・環境">{memo.terrain}</SectionBox>}
-        {memo.bestTime && <SectionBox icon="⏰" title="ベスト採取時期・時間帯">{memo.bestTime}</SectionBox>}
-        {memo.caution && (
-          <div style={{background:"#fdecea", borderRadius:12, padding:"12px 14px", marginBottom:12,
-            border:"2px solid #e57373"}}>
-            <div style={{fontSize:12, fontWeight:700, color:"#c0392b", marginBottom:6}}>⚠️ 注意事項</div>
-            <div style={{fontSize:13, color:"#c0392b", lineHeight:1.8}}>{memo.caution}</div>
-          </div>
-        )}
-
-        {/* GPS */}
-        {memo.gps && (
-          <div style={{background:"#e8f5e9", borderRadius:12, padding:"12px 14px", marginBottom:12,
-            border:"1px solid #a5d6a7"}}>
-            <div style={{fontSize:12, fontWeight:700, color:"#2e7d32", marginBottom:6}}>📡 GPS座標</div>
-            <div style={{fontSize:11, color:"#555", lineHeight:1.8}}>
-              緯度：{memo.gps.lat.toFixed(6)} / 経度：{memo.gps.lng.toFixed(6)}<br/>
-              精度：±{memo.gps.accuracy}m ・ {memo.gps.timestamp}
-            </div>
-            <a href={`https://maps.google.com/?q=${memo.gps.lat},${memo.gps.lng}`}
-              target="_blank" rel="noopener noreferrer"
-              style={{display:"inline-block", marginTop:8, fontSize:12, fontWeight:600, color:"#1565c0",
-                background:"white", padding:"4px 14px", borderRadius:20, border:"1px solid #90caf9",
-                textDecoration:"none"}}>
-              🗺 Googleマップで開く
-            </a>
-          </div>
-        )}
-
-        {/* 操作ボタン */}
-        <div style={{display:"flex", gap:10, marginBottom:24}}>
-          <button onClick={()=>openEdit(memo)}
-            style={{flex:1, padding:14, background:"var(--mist)", border:"none", borderRadius:8,
-              cursor:"pointer", fontSize:14, fontWeight:600, color:"var(--forest)"}}>
-            ✏️ 編集
-          </button>
-          <button onClick={()=>setDeleteTarget(memo)}
-            style={{flex:1, padding:14, background:"#fee", border:"none", borderRadius:8,
-              cursor:"pointer", fontSize:14, fontWeight:600, color:"#c0392b"}}>
-            🗑 削除
-          </button>
-        </div>
-
-        {lightbox && <Lightbox images={lightbox.images} startIndex={lightbox.index} onClose={()=>setLightbox(null)} />}
-      </div>
-    );
-  };
-
-  // ===== 一覧画面 =====
-  if (mode === "add") return <div><div className="section-title">📒 採取場所 忘備録</div>{renderForm(false)}</div>;
-  if (mode === "edit") return <div><div className="section-title">📒 採取場所 忘備録</div>{renderForm(true)}</div>;
-  if (mode === "detail") return <div><div className="section-title">📒 採取場所 忘備録</div>{renderDetail()}</div>;
-
-  return (
-    <div>
-      <div className="section-title">📒 採取場所 忘備録</div>
-      <div className="section-desc">採取場所の道順・駐車場・目印・注意事項などを詳しく記録</div>
-
-      {/* 検索・フィルター */}
-      <div style={{display:"flex", gap:8, marginBottom:14}}>
-        <input className="form-input" style={{flex:1}} value={searchText}
-          onChange={e=>setSearchText(e.target.value)} placeholder="🔍 キーワードで検索..." />
-        <select className="form-select" style={{width:100}} value={filterTag}
-          onChange={e=>setFilterTag(e.target.value)}>
-          <option value="all">全タグ</option>
-          {allTags.map(t=><option key={t} value={t}>#{t}</option>)}
-        </select>
-      </div>
-
-      {/* 件数 */}
-      <div style={{fontSize:12, color:"#888", marginBottom:12}}>
-        {filtered.length}件 / 全{memos.length}件
-      </div>
-
-      {/* メモカード一覧 */}
-      {filtered.length === 0 && (
-        <div style={{textAlign:"center", padding:40, color:"#ccc"}}>メモがありません</div>
-      )}
-      {filtered.map(memo => (
-        <div key={memo.id} style={{...cardStyle, cursor:"pointer",
-          borderLeft:`4px solid var(--fern)`}}
-          onClick={()=>openDetail(memo)}>
-          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8}}>
-            <div style={{flex:1}}>
-              <div style={{fontSize:15, fontWeight:700, color:"var(--forest)", marginBottom:4}}>{memo.title}</div>
-              <div style={{fontSize:11, color:"#aaa"}}>{memo.date}
-                {memo.spotId && <span> ・ 📍{spotName(memo.spotId)}</span>}
-              </div>
-            </div>
-            {memo.photos?.length > 0 && (
-              <div style={{width:44, height:44, borderRadius:8, overflow:"hidden", flexShrink:0, marginLeft:10}}>
-                <img src={memo.photos[0]} style={{width:"100%", height:"100%", objectFit:"cover"}} />
-              </div>
-            )}
-          </div>
-          {/* 採れる山菜 */}
-          {memo.sansai?.length > 0 && (
-            <div style={{display:"flex", gap:5, flexWrap:"wrap", marginBottom:6}}>
-              {memo.sansai.map(id=>(
-                <span key={id} style={{fontSize:10, fontWeight:600,
-                  background:SANSAI_DATA.find(s=>s.id===id)?.color+"22"||"#eee",
-                  color:SANSAI_DATA.find(s=>s.id===id)?.color||"#666",
-                  border:`1px solid ${SANSAI_DATA.find(s=>s.id===id)?.color||"#ccc"}`,
-                  padding:"2px 8px", borderRadius:20}}>
-                  {sansaiEmoji(id)} {sansaiName(id)}
-                </span>
-              ))}
-            </div>
-          )}
-          {/* タグ */}
-          {memo.tags?.length > 0 && (
-            <div style={{display:"flex", gap:4, flexWrap:"wrap", marginBottom:6}}>
-              {memo.tags.map(t=>(
-                <span key={t} style={{fontSize:10, background:"var(--forest)", color:"white",
-                  padding:"2px 7px", borderRadius:10, fontWeight:600}}>#{t}</span>
-              ))}
-            </div>
-          )}
-          {/* ルート冒頭 */}
-          {memo.route && (
-            <div style={{fontSize:12, color:"#777", marginTop:4}}>
-              🚗 {memo.route.slice(0,60)}{memo.route.length>60?"…":""}
-            </div>
-          )}
-          {/* 注意事項バッジ */}
-          {memo.caution && (
-            <div style={{fontSize:11, color:"#c0392b", fontWeight:600, marginTop:4}}>
-              ⚠️ {memo.caution.slice(0,40)}{memo.caution.length>40?"…":""}
-            </div>
-          )}
-          {/* GPS・写真バッジ */}
-          <div style={{display:"flex", gap:8, marginTop:6}}>
-            {memo.gps && <span style={{fontSize:10, color:"#2e7d32", fontWeight:600}}>📡 GPS登録済み</span>}
-            {memo.photos?.length > 0 && <span style={{fontSize:10, color:"#888"}}>📷 {memo.photos.length}枚</span>}
-          </div>
-        </div>
-      ))}
-
-      {/* 追加ボタン */}
-      <div style={{display:"flex", gap:10, marginTop:8}}>
-        <button className="add-btn" style={{flex:1, justifyContent:"center"}}
-          onClick={()=>{ setForm(blankForm()); memoGPS.clearGps(); setAutoCam(false); setMode("add"); }}>
-          ＋ 忘備録を追加
-        </button>
-        <button style={{padding:"12px 16px", background:"#e8f5e9", border:"2px solid #43a047", borderRadius:8,
-          cursor:"pointer", fontSize:13, fontWeight:600, color:"#2e7d32", display:"flex", alignItems:"center", gap:6}}
-          onClick={()=>{ setForm(blankForm()); memoGPS.clearGps(); setAutoCam(true); setMode("add"); }}>
-          📸 撮影して追加
-        </button>
-      </div>
-
-      {/* 削除確認 */}
-      {deleteTarget && (
-        <div className="form-overlay" onClick={()=>setDeleteTarget(null)}>
-          <div className="form-box" style={{textAlign:"center"}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:48, marginBottom:12}}>🗑️</div>
-            <div style={{fontSize:17, fontWeight:700, color:"var(--forest)", marginBottom:8}}>
-              「{deleteTarget.title}」を削除しますか？
-            </div>
-            <div style={{fontSize:13, color:"#888", marginBottom:24}}>この操作は元に戻せません。</div>
-            <div style={{display:"flex", gap:10, justifyContent:"center"}}>
-              <button className="btn-cancel" onClick={()=>setDeleteTarget(null)}>キャンセル</button>
-              <button style={{padding:"12px 28px", background:"#c0392b", color:"white", border:"none",
-                borderRadius:8, cursor:"pointer", fontFamily:"'Noto Serif JP',serif", fontSize:14, fontWeight:700}}
-                onClick={()=>handleDelete(deleteTarget.id)}>削除する</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ===== APP =====
 function App() {
   const [tab, setTab] = useState("calendar");
   const [spots, setSpots] = useState(INITIAL_SPOTS);
-  const [members, setMembers] = useState(() =>
-    loadMembersFromStorage(
-      INITIAL_MEMBERS.map((name, i) => ({ id: i+1, name, nickname:"", role: i===0?"採取リーダー":"一般", rank:"初級（初心者）", memo:"", joined:"2024-01-01", photo:null, avatar:null }))
-    )
-  );
+  const [members, setMembers] = useState(INITIAL_MEMBERS.map((name, i) => ({ id: i+1, name, nickname:"", role: i===0?"採取リーダー":"一般", rank:"初級（初心者）", memo:"", joined:"2024-01-01", photo:null, avatar:null })));
   const [posts, setPosts] = useState(INITIAL_BLOG);
   const [calEvents, setCalEvents] = useState([]);
   const [weatherLocations, setWeatherLocations] = useState(INITIAL_WEATHER_LOCATIONS);
@@ -4834,7 +4350,6 @@ function App() {
     { id: "members",  label: "メンバー",   icon: "👥" },
     { id: "patrol",   label: "パトロール", icon: "🔍" },
     { id: "harvest",  label: "収穫記録",   icon: "🧺" },
-    { id: "memo",     label: "忘備録",     icon: "📒" },
   ];
 
   return (
@@ -4874,14 +4389,13 @@ function App() {
 
         <main className="main">
           {tab === "calendar" && <CalendarView />}
-          {tab === "plan"     && <PlanView spots={spots} onScheduleSuccess={handleScheduleSuccess} weatherLocations={weatherLocations} setWeatherLocations={setWeatherLocations} members={members} />}
+          {tab === "plan"     && <PlanView spots={spots} onScheduleSuccess={handleScheduleSuccess} weatherLocations={weatherLocations} setWeatherLocations={setWeatherLocations} />}
           {tab === "spots"    && <SpotsView spots={spots} setSpots={setSpots} />}
           {tab === "blog"     && <BlogView posts={posts} setPosts={setPosts} spots={spots} members={members} />}
           {tab === "info"     && <SansaiInfoView spots={spots} />}
           {tab === "members"  && <MembersView members={members} setMembers={setMembers} />}
-          {tab === "patrol"   && <PatrolView spots={spots} onScheduleSuccess={handleScheduleSuccess} showToast={showToast} members={members} />}
+          {tab === "patrol"   && <PatrolView spots={spots} onScheduleSuccess={handleScheduleSuccess} showToast={showToast} />}
           {tab === "harvest"  && <HarvestView spots={spots} members={members} />}
-          {tab === "memo"     && <MemoView spots={spots} />}
         </main>
       </div>
     </>
