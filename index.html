@@ -1258,11 +1258,41 @@ const styles = `
 
 // ===== COMPONENTS =====
 
-function CalendarView() {
+function CalendarView({ sansaiList, setSansaiList }) {
   const currentMonth = new Date().getMonth() + 1;
+  const [showEdit, setShowEdit] = useState(false);
+  const [editForm, setEditForm] = useState({ name:"", emoji:"\ud83c\udf3f", months:[], region:"", color:"#6aab5e", desc:"" });
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+  const MONTH_LABELS = ["1\u6708","2\u6708","3\u6708","4\u6708","5\u6708","6\u6708","7\u6708","8\u6708","9\u6708","10\u6708","11\u6708","12\u6708"];
+
+  const toggleMonth = (m) => setEditForm(f => ({
+    ...f, months: f.months.includes(m) ? f.months.filter(x=>x!==m) : [...f.months, m].sort((a,b)=>a-b)
+  }));
+
+  const handleAddSansai = () => {
+    if (!editForm.name.trim() || editForm.months.length === 0) return;
+    const newItem = { ...editForm, id: Date.now() };
+    setSansaiList(prev => [...prev, newItem]);
+    setEditForm({ name:"", emoji:"\ud83c\udf3f", months:[], region:"", color:"#6aab5e", desc:"" });
+    setShowEdit(false);
+  };
+
+  const handleDeleteSansai = (id) => {
+    setSansaiList(prev => prev.filter(s => s.id !== id));
+    setDeleteConfirm(null);
+  };
+
   return (
     React.createElement('div', null
-      , React.createElement('div', { className: "section-title",}, "\ud83c\udf43 \u5c71\u83dc\u30ab\u30ec\u30f3\u30c0\u30fc" )
+      , React.createElement('div', { style: {display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6},}
+        , React.createElement('div', { className: "section-title", style: {margin:0},}, "\ud83c\udf43 \u5c71\u83dc\u30ab\u30ec\u30f3\u30c0\u30fc" )
+        , React.createElement('button', { onClick: ()=>setShowEdit(true),
+          style: {background:"var(--forest)", color:"white", border:"none", borderRadius:8,
+            padding:"8px 14px", cursor:"pointer", fontSize:12, fontWeight:600},}, "\uff0b \u5c71\u83dc\u3092\u8ffd\u52a0"
+
+        )
+      )
       , React.createElement('div', { className: "section-desc",}, "\u4e2d\u90e8\u30fb\u5317\u9678\u30a8\u30ea\u30a2\u306e\u63a1\u53d6\u9069\u671f\u4e00\u89a7\u3002\u6fc3\u3044\u7dd1\u304c\u65ec\u306e\u30d4\u30fc\u30af\u3001\u8584\u3044\u7dd1\u304c\u63a1\u53d6\u53ef\u80fd\u671f\u9593\u3067\u3059\u3002")
 
       , React.createElement('div', { className: "legend",}
@@ -1276,10 +1306,13 @@ function CalendarView() {
         , MONTHS.map((m, i) => (
           React.createElement('div', { key: i, className: "cal-header", style: i+1===currentMonth?{background:"#4a7a3d"}:{},}, m)
         ))
-        , SANSAI_DATA.map(s => {
+        , sansaiList.map(s => {
           const peak = s.months[Math.floor(s.months.length / 2)];
           return [
-            React.createElement('div', { key: `l${s.id}`, className: "cal-label",}, s.emoji, " " , s.name),
+            React.createElement('div', { key: `l${s.id}`, className: "cal-label", style: {cursor:"pointer"},
+              onClick: ()=>setDeleteConfirm(s),}
+              , s.emoji, " " , s.name, " " , React.createElement('span', { style: {fontSize:9, color:"#e57373"},}, "\u2715")
+            ),
             ...Array.from({length:12}, (_,i) => {
               const m = i + 1;
               const inSeason = s.months.includes(m);
@@ -2168,11 +2201,11 @@ function AreaManager({ weatherLocations, setWeatherLocations }) {
                 , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:10},}
                   , React.createElement('div', { className: "form-group",}
                     , React.createElement('label', { className: "form-label",}, "\u7def\u5ea6\uff08\u5317\u7def\uff09")
-                    , React.createElement('input', { className: "form-input", type: "number", step: "0.0001", value: form.lat, onChange: e=>setForm(f=>({...f,lat:e.target.value})), placeholder: "\u4f8b\u11786\ude36.9072",} )
+                    , React.createElement('input', { className: "form-input", type: "number", step: "0.0001", value: form.lat, onChange: e=>setForm(f=>({...f,lat:e.target.value})), placeholder: "\u4f8b\ud805\udf86\ude36.9072",} )
                   )
                   , React.createElement('div', { className: "form-group",}
                     , React.createElement('label', { className: "form-label",}, "\u7d4c\u5ea6\uff08\u6771\u7d4c\uff09")
-                    , React.createElement('input', { className: "form-input", type: "number", step: "0.0001", value: form.lng, onChange: e=>setForm(f=>({...f,lng:e.target.value})), placeholder: "\u4f8b\u4d428\udd38.1203",} )
+                    , React.createElement('input', { className: "form-input", type: "number", step: "0.0001", value: form.lng, onChange: e=>setForm(f=>({...f,lng:e.target.value})), placeholder: "\u4f8b\ud8f5\udc28\udd38.1203",} )
                   )
                 )
                 , React.createElement('div', { style: {fontSize:11, color:"#aaa", padding:"8px 12px", background:"var(--soil)", borderRadius:8},}, "\ud83d\udca1 \u7def\u5ea6\u7d4c\u5ea6\u306fGoogle\u30de\u30c3\u30d7\u3067\u53f3\u30af\u30ea\u30c3\u30af\u2192\u300c\u3053\u306e\u5834\u6240\u306b\u3064\u3044\u3066\u300d\u3067\u78ba\u8a8d\u3067\u304d\u307e\u3059"
@@ -2208,16 +2241,94 @@ function AreaManager({ weatherLocations, setWeatherLocations }) {
           )
         )
       )
+
+      /* \u8ffd\u52a0\u30d5\u30a9\u30fc\u30e0 */
+      , showEdit && (
+        React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setShowEdit(false),}
+          , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},}
+            , React.createElement('div', { className: "form-title",}, "\ud83c\udf3f \u5c71\u83dc\u3092\u30ab\u30ec\u30f3\u30c0\u30fc\u306b\u8ffd\u52a0" )
+            , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"60px 1fr", gap:10},}
+              , React.createElement('div', { className: "form-group",}
+                , React.createElement('label', { className: "form-label",}, "\u7d75\u6587\u5b57")
+                , React.createElement('select', { className: "form-select", value: editForm.emoji,
+                  onChange: e=>setEditForm(f=>({...f,emoji:e.target.value})),}
+                  , ["\ud83c\udf3f","\ud83c\udf43","\ud83c\udf31","\ud83c\udf3e","\ud83c\udf00","\ud83e\uddc5","\ud83c\udf40","\ud83e\udeb4","\ud83c\udf47","\ud83c\udf44","\ud83c\udf38","\ud83c\udf8b","\ud83c\udf3a","\ud83e\udd6c","\ud83e\uddc4","\ud83d\udca7"].map(e=>
+                    React.createElement('option', { key: e,}, e)
+                  )
+                )
+              )
+              , React.createElement('div', { className: "form-group",}
+                , React.createElement('label', { className: "form-label",}, "\u5c71\u83dc\u540d *" )
+                , React.createElement('input', { className: "form-input", value: editForm.name,
+                  onChange: e=>setEditForm(f=>({...f,name:e.target.value})),
+                  placeholder: "\u4f8b\uff1a\u30e8\u30e2\u30ae",} )
+              )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "\u63a1\u53d6\u6642\u671f *\uff08\u8907\u6570\u9078\u629e\u53ef\uff09" )
+              , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6},}
+                , MONTH_LABELS.map((m,i) => (
+                  React.createElement('div', { key: i, onClick: ()=>toggleMonth(i+1),
+                    style: {padding:"5px 10px", borderRadius:20, cursor:"pointer", fontSize:12,
+                      fontWeight:600,
+                      background:editForm.months.includes(i+1)?"var(--forest)":"var(--mist)",
+                      color:editForm.months.includes(i+1)?"white":"#666",
+                      border:`2px solid ${editForm.months.includes(i+1)?"var(--forest)":"transparent"}`,
+                      transition:"all 0.15s"},}
+                    , m
+                  )
+                ))
+              )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "\u751f\u80b2\u5834\u6240")
+              , React.createElement('input', { className: "form-input", value: editForm.region,
+                onChange: e=>setEditForm(f=>({...f,region:e.target.value})),
+                placeholder: "\u4f8b\uff1a\u6ca2\u6cbf\u3044\u30fb\u6e7f\u5730",} )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "\u8aac\u660e")
+              , React.createElement('textarea', { className: "form-textarea", style: {minHeight:60}, value: editForm.desc,
+                onChange: e=>setEditForm(f=>({...f,desc:e.target.value})),
+                placeholder: "\u8abf\u7406\u6cd5\u30fb\u63a1\u53d6\u306e\u30b3\u30c4\u306a\u3069...",} )
+            )
+            , React.createElement('div', { className: "form-actions",}
+              , React.createElement('button', { className: "btn-cancel", onClick: ()=>setShowEdit(false),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
+              , React.createElement('button', { className: "btn-submit", onClick: handleAddSansai,}, "\u8ffd\u52a0\u3059\u308b")
+            )
+          )
+        )
+      )
+
+      /* \u524a\u9664\u78ba\u8a8d */
+      , deleteConfirm && (
+        React.createElement('div', { className: "form-overlay", onClick: ()=>setDeleteConfirm(null),}
+          , React.createElement('div', { className: "form-box", style: {textAlign:"center"}, onClick: e=>e.stopPropagation(),}
+            , React.createElement('div', { style: {fontSize:40, marginBottom:12},}, deleteConfirm.emoji)
+            , React.createElement('div', { style: {fontSize:17, fontWeight:700, color:"var(--forest)", marginBottom:8},}, "\u300c"
+              , deleteConfirm.name, "\u300d\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f"
+            )
+            , React.createElement('div', { style: {fontSize:13, color:"#888", marginBottom:24},}, "\u30ab\u30ec\u30f3\u30c0\u30fc\u304b\u3089\u524a\u9664\u3055\u308c\u307e\u3059")
+            , React.createElement('div', { style: {display:"flex", gap:10, justifyContent:"center"},}
+              , React.createElement('button', { className: "btn-cancel", onClick: ()=>setDeleteConfirm(null),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
+              , React.createElement('button', { style: {padding:"10px 24px", background:"#c0392b", color:"white",
+                border:"none", borderRadius:8, cursor:"pointer",
+                fontFamily:"'Noto Serif JP',serif", fontSize:14, fontWeight:700},
+                onClick: ()=>handleDeleteSansai(deleteConfirm.id),}, "\u524a\u9664\u3059\u308b")
+            )
+          )
+        )
+      )
     )
   );
 }
 
-function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocations, members }) {
+function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocations, members, sansaiList }) {
   const currentMonth = new Date().getMonth() + 1;
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [showSchedule, setShowSchedule] = useState(false);
 
-  const available = SANSAI_DATA.filter(s => s.months.includes(selectedMonth));
+  const available = (sansaiList||SANSAI_DATA).filter(s => s.months.includes(selectedMonth));
   const peak = available.filter(s => s.months[Math.floor(s.months.length/2)] === selectedMonth);
 
   return (
@@ -4618,7 +4729,7 @@ function HarvestView({ spots, members }) {
             , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"2fr 1fr", gap:10},}
               , React.createElement('div', { className: "form-group",}
                 , React.createElement('label', { className: "form-label",}, "\u63a1\u53d6\u91cf *" )
-                , React.createElement('input', { type: "number", className: "form-input", value: form.amount, onChange: e=>setForm(f=>({...f,amount:e.target.value})), placeholder: "\u4f8b\u4d429\udd00", min: "0",} )
+                , React.createElement('input', { type: "number", className: "form-input", value: form.amount, onChange: e=>setForm(f=>({...f,amount:e.target.value})), placeholder: "\u4f8b\ud8f5\udc29\udd00", min: "0",} )
               )
               , React.createElement('div', { className: "form-group",}
                 , React.createElement('label', { className: "form-label",}, "\u5358\u4f4d")
@@ -4794,7 +4905,7 @@ function MemoView({ spots }) {
     {
       id: 1, title: "\u767d\u5c71\u9e93\u30fb\u702c\u5973\u30a8\u30ea\u30a2 \u8a73\u7d30\u30e1\u30e2",
       spotId: 1, date: "2026-05-10",
-      route: "\u5317\u9678\u81ea\u52d5\u8eca\u9053 \u9db4\u6765IC\u304b\u3089\u56fd\u3190c\udd57\u53f7\u3092\u5357\u4e0b\u3002\u9053\u306e\u99c5\u702c\u5973\u3092\u76ee\u6a19\u306b\u3002IC\u304b\u3089\uf701\udc40\u5206\u3002",
+      route: "\u5317\u9678\u81ea\u52d5\u8eca\u9053 \u9db4\u6765IC\u304b\u3089\u56fd\ud886\udd0c\udd57\u53f7\u3092\u5357\u4e0b\u3002\u9053\u306e\u99c5\u702c\u5973\u3092\u76ee\u6a19\u306b\u3002IC\u304b\u3089\uf701\udc40\u5206\u3002",
       parking: "\u9053\u306e\u99c5\u702c\u5973\u306e\ud9ac\udec2\u99d0\u8eca\u5834\uff08\u7121\u6599\uff09\u3002\u6797\u9053\u5165\u53e3\u307e\u3067\u5f92\ud96d\ude95\u5206\u3002",
       landmark: "\u702c\u5973\u6a4b\u3092\u6e21\u3063\u305f\u3059\u3050\u5de6\u306e\u7802\u5229\u9053\u304c\u6797\u9053\u5165\u53e3\u3002\u770b\u677f\u306a\u3057\u6ce8\u610f\u3002",
       terrain: "\u7de9\u3084\u304b\u306a\u659c\u9762\u3002\u96e8\u5f8c\u306f\u6ed1\u308a\u3084\u3059\u3044\u305f\u3081\u9577\u9774\u5fc5\u9808\u3002",
@@ -4951,7 +5062,7 @@ function MemoView({ spots }) {
           , React.createElement('label', { className: "form-label",}, "\u30eb\u30fc\u30c8\u30fb\u9053\u9806")
           , React.createElement('textarea', { className: "form-textarea", value: form.route,
             onChange: e=>updateForm("route",e.target.value),
-            placeholder: "\u4f8b\uff1a\u5317\u9678\u9053 \u9db4\u6765IC\u304b\u3089\u56fd\u3190c\udd57\u53f7\u3092\u5357\u4e0b\u3001\u9053\u306e\u99c5\u702c\u5973\u3092\u76ee\u6a19\u306b\uf701\udc40\u5206" ,} )
+            placeholder: "\u4f8b\uff1a\u5317\u9678\u9053 \u9db4\u6765IC\u304b\u3089\u56fd\ud886\udd0c\udd57\u53f7\u3092\u5357\u4e0b\u3001\u9053\u306e\u99c5\u702c\u5973\u3092\u76ee\u6a19\u306b\uf701\udc40\u5206" ,} )
         )
         , React.createElement('div', { className: "form-group",}
           , React.createElement('label', { className: "form-label",}, "\u99d0\u8eca\u5834\u30fb\u99d0\u8eca\u30dd\u30a4\u30f3\u30c8")
@@ -5315,6 +5426,18 @@ function App() {
   );
   const [posts, setPosts] = useState(INITIAL_BLOG);
   const [calEvents, setCalEvents] = useState([]);
+  const [sansaiList, setSansaiList] = useState(() => {
+    try {
+      const saved = localStorage.getItem("sansai_list");
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return SANSAI_DATA;
+  });
+
+  // sansaiList\u5909\u66f4\u6642\u306blocalStorage\u306b\u4fdd\u5b58
+  useEffect(() => {
+    try { localStorage.setItem("sansai_list", JSON.stringify(sansaiList)); } catch(e) {}
+  }, [sansaiList]);
   const [weatherLocations, setWeatherLocations] = useState(INITIAL_WEATHER_LOCATIONS);
   const [toast, setToast] = useState(null);
 
@@ -5402,8 +5525,8 @@ function App() {
         )
 
         , React.createElement('main', { className: "main",}
-          , tab === "calendar" && React.createElement(CalendarView, null )
-          , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members,} )
+          , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList,} )
+          , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList,} )
           , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots,} )
           , tab === "blog"     && React.createElement(BlogView, { posts: posts, setPosts: setPosts, spots: spots, members: members,} )
           , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots,} )
