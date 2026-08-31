@@ -556,20 +556,11 @@ body{margin:0;padding:0;}
   </style>
 </head>
 <body>
-  <div id="root">
-    <div style="text-align:center;padding:60px 20px;font-family:sans-serif;color:#2d4a2d;">
-      <div style="font-size:48px;">🌿</div>
-      <div style="font-size:18px;font-weight:bold;margin:12px 0 8px;">山菜採り手帳</div>
-      <div style="font-size:13px;color:#888;">読み込み中...</div>
-    </div>
-  </div>
+  <div id="root"><div style="text-align:center;padding:60px 20px;font-family:sans-serif;color:#2d4a2d;"><div style="font-size:48px;">🌿</div><div style="font-size:18px;font-weight:bold;margin:12px 0 8px;">山菜採り手帳</div><div style="font-size:13px;color:#888;">読み込み中...</div></div></div>
   <script>
-    window.onerror = function(msg, src, line, col, err) {
-      var detail = err ? (err.stack || err.message || msg) : msg;
-      document.getElementById('root').innerHTML =
-        '<div style="padding:20px;font-family:sans-serif;color:#c0392b;background:#fdecea;border-radius:12px;margin:20px;">' +
-        '<b>Error</b><p style="font-size:12px;word-break:break-all;">' + detail + '</p><p>Line:' + line + '</p>' +
-        '<button onclick="location.reload(true)" style="background:#2d4a2d;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">Reload</button></div>';
+    window.onerror = function(msg,src,line,col,err){
+      var d=err?(err.stack||err.message||msg):msg;
+      document.getElementById('root').innerHTML='<div style="padding:20px;font-family:sans-serif;color:#c0392b;background:#fdecea;border-radius:12px;margin:20px;"><b>Error</b><p style="font-size:11px;word-break:break-all;">'+d+'</p><p>Line:'+line+'</p><button onclick="location.reload(true)" style="background:#2d4a2d;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">Reload</button></div>';
     };
   </script>
   <script>
@@ -602,6 +593,68 @@ const SANSAI_DATA = [
   { id: 21, name: "\u884c\u8005\u30cb\u30f3\u30cb\u30af", emoji: "\ud83e\uddc4", months: [4, 5], region: "\u4e9c\u9ad8\u5c71\u5e2f\u30fb\u6e7f\u3063\u305f\u6797\u5185\u30fb\u6ca2\u6cbf\u3044\u659c\u9762", color: "#6d8c3e", desc: "\u5f37\u70c8\u306a\u30cb\u30f3\u30cb\u30af\u81ed\u304c\u7279\u5fb4\u306e\u5e0c\u5c11\u5c71\u83dc\u3002\u91a4\u6cb9\u6f2c\u3051\u30fb\u7092\u3081\u7269\u30fb\u9903\u5b50\u306e\u5177\u30fb\u30e9\u30fc\u30e1\u30f3\u306e\u30c8\u30c3\u30d4\u30f3\u30b0\u306b\u7d76\u54c1\u3002\u6210\u9577\u304c\u975e\u5e38\u306b\u9045\u304f\u6839\u3053\u305d\u304e\u63a1\u53d6\u306f\u53b3\u7981\u3002\ud9d1\udc92\ud880\uddc3\u679a\u3092\u6b8b\u3057\u3066\u63a1\u53d6\u3059\u308b\u3053\u3068\u3002\u30d0\u30a4\u30b1\u30a4\u30bd\u30a6\u30fb\u30a4\u30cc\u30b5\u30d5\u30e9\u30f3\u3068\u306e\u8aa4\u98df\u4e8b\u6545\u306b\u8981\u6ce8\u610f\u3002" },
   { id: 22, name: "\u30a6\u30eb\u30a4\uff08\u30aa\u30aa\u30d0\u30ae\u30dc\u30a6\u30b7\uff09", emoji: "\ud83c\udf3f", months: [4, 5], region: "\u5c71\u5730\u30fb\u6797\u7e01\u30fb\u6e7f\u3063\u305f\u8349\u5730\u30fb\u6ca2\u6cbf\u3044", color: "#5aab72", desc: "\u5927\u3076\u308a\u3067\u6271\u3044\u3084\u3059\u3044\u4eba\u6c17\u306e\u5c71\u83dc\u3002\u30af\u30bb\u304c\u306a\u304f\u98df\u3079\u3084\u3059\u3044\u3002\u304a\u3072\u305f\u3057\u30fb\u9162\u5473\u564c\u548c\u3048\u30fb\u5929\u3077\u3089\u30fb\u7092\u3081\u7269\u306b\u3002\u306c\u3081\u308a\u304c\u3042\u308a\u6804\u990a\u8c4a\u5bcc\u3002\u30a4\u30cc\u30b5\u30d5\u30e9\u30f3\u3068\u8449\u304c\u9177\u4f3c\u3057\u3066\u3044\u308b\u305f\u3081\u63a1\u53d6\u6642\u306f\u8981\u6ce8\u610f\u3002\u81ed\u3044\u304c\u306a\u3044\u3068\u304d\u306f\u7d76\u5bfe\u306b\u63a1\u3089\u306a\u3044\u3053\u3068\u3002" },
   { id: 23, name: "\u30dc\u30a6\u30ca\uff08\u30df\u30e4\u30de\u30bf\u30e9\u30ce\u30ad\uff09", emoji: "\ud83c\udf31", months: [5, 6], region: "\u4e9c\u9ad8\u5c71\u5e2f\u30fb\u5c71\u5730\u306e\u6797\u7e01\u30fb\u660e\u308b\u3044\u659c\u9762", color: "#7db84a", desc: "\u30bf\u30e9\u30ce\u30e1\u306b\u4f3c\u305f\u5c71\u83dc\u3067\u5317\u9678\u30fb\u6771\u5317\u3067\u306f\u53e4\u304f\u304b\u3089\u89aa\u3057\u307e\u308c\u308b\u3002\u30bf\u30e9\u30ce\u30e1\u3088\u308a\u67d4\u3089\u304b\u304f\u30a2\u30af\u304c\u5c11\u306a\u3044\u3002\u5929\u3077\u3089\u30fb\u304a\u3072\u305f\u3057\u30fb\u7092\u3081\u7269\u306b\u3002\u30c8\u30b2\u304c\u5c11\u306a\u304f\u63a1\u53d6\u3057\u3084\u3059\u3044\u306e\u304c\u7279\u5fb4\u3002\u65ec\u304c\u77ed\u3044\u306e\u3067\u6642\u671f\u3092\u9003\u3055\u306a\u3044\u3053\u3068\u3002" },
+];
+
+const CALENDARS = [
+  { id: "3", name: "tsurughi2999\uff08\u30e1\u30a4\u30f3\uff09", color: "#A47AE2" },
+  { id: "5", name: "\u30ab\u30fc\ud883\udde3\u5cb3\u4f1a \u767b\u5c71",       color: "#1967D2" },
+  { id: "6", name: "\u767b\u5c71\uff08\u4e00\u822c\uff09",            color: "#FA573C" },
+];
+
+const WEATHER_SITES = [
+  { name:"\u30a6\u30a7\u30b6\u30fc\u30cb\u30e5\u30fc\u30b9", icon:"\ud83c\udf24", buildUrl: (lat,lng,name) => `https://weathernews.jp/onebox/tenki/pref/?area=${encodeURIComponent(name)}` },
+  { name:"tenki.jp",         icon:"\ud83c\udf38", buildUrl: (lat,lng,name) => `https://tenki.jp/forecast/` },
+  { name:"Yahoo!\u5929\u6c17",       icon:"\ud83d\udfe1", buildUrl: (lat,lng,name) => `https://weather.yahoo.co.jp/weather/` },
+  { name:"\u6c17\u8c61\u5e81",           icon:"\ud83c\udfdb", buildUrl: (lat,lng,name) => `https://www.jma.go.jp/bosai/forecast/` },
+  { name:"AccuWeather",      icon:"\ud83c\udf0d", buildUrl: (lat,lng,name) => `https://www.accuweather.com/ja/jp/search-locations?query=${encodeURIComponent(name)}` },
+  { name:"Weather.com",      icon:"\ud83c\udf10", buildUrl: (lat,lng,name) => `https://weather.com/ja-JP/weather/today/l/${lat},${lng}` },
+];
+
+const AREA_PRESETS = [
+  { name:"\u65b0\u6f5f",     lat:37.9026, lng:139.0232 },
+  { name:"\u4e0a\u8d8a",     lat:37.1478, lng:138.2362 },
+  { name:"\u7cf8\u9b5a\u5ddd",   lat:36.9143, lng:137.8634 },
+  { name:"\u52a0\u8cc0",     lat:36.3065, lng:136.3147 },
+  { name:"\u5c0f\u677e",     lat:36.4060, lng:136.4456 },
+  { name:"\u4e03\u5c3e",     lat:37.0413, lng:136.9653 },
+  { name:"\u8f2a\u5cf6",     lat:37.3903, lng:136.8999 },
+  { name:"\u6566\u8cc0",     lat:35.6454, lng:136.0560 },
+  { name:"\u5927\u91ce\uff08\u798f\u4e95\uff09", lat:35.9780, lng:136.4882 },
+  { name:"\u9ad8\u5c71",     lat:36.1404, lng:137.2520 },
+  { name:"\u677e\u672c",     lat:36.2380, lng:137.9720 },
+  { name:"\u98ef\u5c71",     lat:36.8528, lng:138.3694 },
+  { name:"\u5999\u9ad8",     lat:36.9072, lng:138.1203 },
+  { name:"\u767d\u99ac",     lat:36.6983, lng:137.8612 },
+];
+
+const WMO_CODE = {
+  0:"\u5feb\u6674",1:"\u6674\u308c",2:"\u4e00\u90e8\u66c7\u308a",3:"\u66c7\u308a",
+  45:"\u9727",48:"\u7740\u6c37\u9727",
+  51:"\u9727\u96e8\uff08\u5f31\uff09",53:"\u9727\u96e8",55:"\u9727\u96e8\uff08\u5f37\uff09",
+  61:"\u5c0f\u96e8",63:"\u96e8",65:"\u5927\u96e8",
+  71:"\u5c0f\u96ea",73:"\u96ea",75:"\u5927\u96ea",77:"\u96ea\u7c92",
+  80:"\u306b\u308f\u304b\u96e8\uff08\u5f31\uff09",81:"\u306b\u308f\u304b\u96e8",82:"\u306b\u308f\u304b\u96e8\uff08\u5f37\uff09",
+  85:"\u306b\u308f\u304b\u96ea",86:"\u5927\u96ea\uff08\u306b\u308f\u304b\uff09",
+  95:"\u96f7\u96e8",96:"\u96f7\u96e8\uff0b\u96f9",99:"\u6fc0\u3057\u3044\u96f7\u96e8",
+};
+const WMO_EMOJI = {
+  0:"\u2600\ufe0f",1:"\ud83c\udf24",2:"\u26c5",3:"\u2601\ufe0f",
+  45:"\ud83c\udf2b",48:"\ud83c\udf2b",
+  51:"\ud83c\udf26",53:"\ud83c\udf26",55:"\ud83c\udf27",
+  61:"\ud83c\udf27",63:"\ud83c\udf27",65:"\ud83c\udf27",
+  71:"\ud83c\udf28",73:"\u2744\ufe0f",75:"\u2744\ufe0f",77:"\ud83c\udf28",
+  80:"\ud83c\udf26",81:"\ud83c\udf27",82:"\u26c8",
+  85:"\ud83c\udf28",86:"\u2744\ufe0f",95:"\u26c8",96:"\u26c8",99:"\u26c8",
+};
+
+const INITIAL_WEATHER_LOCATIONS = [
+  { id:"wl1", name:"\u91d1\u6ca2\uff08\u77f3\u5ddd\uff09", lat:36.5944, lng:136.6256 },
+  { id:"wl2", name:"\u5bcc\u5c71",         lat:36.6953, lng:137.2113 },
+  { id:"wl3", name:"\u798f\u4e95",         lat:36.0652, lng:136.2216 },
+  { id:"wl4", name:"\u5c90\u961c",         lat:35.3911, lng:136.7222 },
+  { id:"wl5", name:"\u9577\u91ce",         lat:36.6513, lng:138.1812 },
+  { id:"wl6", name:"\u767d\u5c71\u9e93",       lat:36.15,   lng:136.65   },
+  { id:"wl7", name:"\u98db\u9a28\u9ad8\u5c71",     lat:36.1401, lng:137.2522 },
 ];
 
 const MONTHS = ["1\u6708","2\u6708","3\u6708","4\u6708","5\u6708","6\u6708","7\u6708","8\u6708","9\u6708","10\u6708","11\u6708","12\u6708"];
@@ -1259,6 +1312,851 @@ const styles = `
 
 // ===== COMPONENTS =====
 
+
+
+function getOutdoorScore(wmo, wind, precip) {
+  if ([95,96,99,65,75].includes(wmo)) return { score:0, label:"\u274c \u4e0d\u5411\u304d", color:"#e74c3c" };
+  if ([61,63,71,73,80,81,82].includes(wmo)) return { score:1, label:"\u26a0\ufe0f \u3084\u3084\u4e0d\u5411\u304d", color:"#e67e22" };
+  if (wind > 30) return { score:1, label:"\u26a0\ufe0f \u5f37\u98a8\u6ce8\u610f", color:"#e67e22" };
+  if ([0,1,2].includes(wmo) && precip < 1) return { score:3, label:"\u2705 \u7d76\u597d\u306e\u63a1\u53d6\u65e5", color:"#27ae60" };
+  return { score:2, label:"\ud83c\udd97 \u307e\u305a\u307e\u305a", color:"#2980b9" };
+}
+
+function useGPS() {
+  const [gps, setGps] = useState(null);         // {lat, lng, accuracy, timestamp}
+  const [gpsStatus, setGpsStatus] = useState("idle"); // idle | loading | ok | error
+  const [gpsError, setGpsError] = useState(null);
+
+  const getLocation = () => {
+    if (!navigator.geolocation) {
+      setGpsStatus("error");
+      setGpsError("\u3053\u306e\u30d6\u30e9\u30a6\u30b6\u306fGPS\u306b\u5bfe\u5fdc\u3057\u3066\u3044\u307e\u305b\u3093");
+      return;
+    }
+    setGpsStatus("loading");
+    setGpsError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGps({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: Math.round(pos.coords.accuracy),
+          timestamp: new Date().toLocaleString("ja-JP"),
+        });
+        setGpsStatus("ok");
+      },
+      (err) => {
+        setGpsStatus("error");
+        setGpsError(
+          err.code === 1 ? "\u4f4d\u7f6e\u60c5\u5831\u306e\u8a31\u53ef\u304c\u5fc5\u8981\u3067\u3059\uff08\u8a2d\u5b9a\u2192\u30b5\u30a4\u30c8\u306e\u8a2d\u5b9a\u2192\u4f4d\u7f6e\u60c5\u5831\uff09" :
+          err.code === 2 ? "\u4f4d\u7f6e\u60c5\u5831\u3092\u53d6\u5f97\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f" :
+          "\u30bf\u30a4\u30e0\u30a2\u30a6\u30c8\u3057\u307e\u3057\u305f\u3002\u518d\u8a66\u884c\u3057\u3066\u304f\u3060\u3055\u3044"
+        );
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  };
+
+  const clearGps = () => { setGps(null); setGpsStatus("idle"); setGpsError(null); };
+
+  const googleMapsUrl = gps
+    ? `https://maps.google.com/?q=${gps.lat},${gps.lng}`
+    : null;
+
+  return { gps, gpsStatus, gpsError, getLocation, clearGps, googleMapsUrl };
+}
+
+// GPS\u8868\u793aUI\u30b3\u30f3\u30dd\u30fc\u30cd\u30f3\u30c8\uff08\u30d5\u30a9\u30fc\u30e0\u5185\u5171\u901a\uff09
+
+function GPSCapture({ gps, gpsStatus, gpsError, onCapture, onClear, googleMapsUrl }) {
+  return (
+    React.createElement('div', { className: "form-group",}
+      , React.createElement('label', { className: "form-label",}, "\ud83d\udce1 GPS\u4f4d\u7f6e\u60c5\u5831" )
+      , gpsStatus === "idle" && (
+        React.createElement('button', { type: "button", onClick: onCapture,
+          style: {width:"100%", padding:"12px", background:"#e3f2fd", border:"2px dashed #1976d2",
+            borderRadius:12, cursor:"pointer", fontSize:13, fontWeight:600, color:"#1565c0",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:8},}
+          , React.createElement('span', { style: {fontSize:20},}, "\ud83d\udce1"), " \u73fe\u5728\u5730\u3092\u53d6\u5f97\u3059\u308b"
+        )
+      )
+      , gpsStatus === "loading" && (
+        React.createElement('div', { style: {padding:"12px", background:"#e3f2fd", borderRadius:12, textAlign:"center", color:"#1565c0", fontSize:13},}, "\ud83c\udf00 GPS\u53d6\u5f97\u4e2d... \u3057\u3070\u3089\u304f\u304a\u5f85\u3061\u304f\u3060\u3055\u3044"
+
+        )
+      )
+      , gpsStatus === "error" && (
+        React.createElement('div', null
+          , React.createElement('div', { style: {padding:"10px 14px", background:"#fdecea", borderRadius:10, color:"#c0392b", fontSize:12, marginBottom:8},}, "\u26a0\ufe0f "
+             , gpsError
+          )
+          , React.createElement('button', { type: "button", onClick: onCapture,
+            style: {background:"var(--mist)", border:"none", borderRadius:8, padding:"8px 16px", cursor:"pointer", fontSize:12, color:"var(--forest)", fontWeight:600},}, "\u518d\u8a66\u884c"
+
+          )
+        )
+      )
+      , gpsStatus === "ok" && gps && (
+        React.createElement('div', { style: {background:"#e8f5e9", borderRadius:12, padding:"12px 14px", border:"1px solid #a5d6a7"},}
+          , React.createElement('div', { style: {display:"flex", alignItems:"flex-start", gap:10},}
+            , React.createElement('span', { style: {fontSize:20, flexShrink:0},}, "\u2705")
+            , React.createElement('div', { style: {flex:1},}
+              , React.createElement('div', { style: {fontSize:12, fontWeight:700, color:"#2e7d32", marginBottom:4},}, "GPS\u53d6\u5f97\u5b8c\u4e86")
+              , React.createElement('div', { style: {fontSize:11, color:"#555", lineHeight:1.8},}, "\u7def\u5ea6\uff1a"
+                , gps.lat.toFixed(6), React.createElement('br', null), "\u7d4c\u5ea6\uff1a"
+                , gps.lng.toFixed(6), React.createElement('br', null), "\u7cbe\u5ea6\uff1a\u00b1"
+                , gps.accuracy, "m", React.createElement('br', null), "\u53d6\u5f97\u6642\u523b\uff1a"
+                , gps.timestamp
+              )
+              , React.createElement('div', { style: {display:"flex", gap:8, marginTop:8},}
+                , React.createElement('a', { href: googleMapsUrl, target: "_blank", rel: "noopener noreferrer" ,
+                  style: {fontSize:11, fontWeight:600, color:"#1565c0", background:"white",
+                    padding:"4px 12px", borderRadius:20, border:"1px solid #90caf9", textDecoration:"none"},}, "\ud83d\uddfa Google\u30de\u30c3\u30d7\u3067\u78ba\u8a8d"
+
+                )
+                , React.createElement('button', { type: "button", onClick: onClear,
+                  style: {fontSize:11, fontWeight:600, color:"#c0392b", background:"white",
+                    padding:"4px 12px", borderRadius:20, border:"1px solid #ef9a9a", cursor:"pointer"},}, "\u2715 \u30af\u30ea\u30a2"
+
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+// \u30ab\u30e1\u30e9\u81ea\u52d5\u8d77\u52d5\u30dc\u30bf\u30f3\u30b3\u30f3\u30dd\u30fc\u30cd\u30f3\u30c8
+
+function CameraCapture({ onCapture, label = "\u30ab\u30e1\u30e9\u3067\u64ae\u5f71", autoOpen = false }) {
+  const inputRef = React.useRef(null);
+
+  useEffect(() => {
+    if (autoOpen && inputRef.current) {
+      // \u30d5\u30a9\u30fc\u30e0\u304c\u958b\u3044\u305f\u76f4\u5f8c\u306b\u30ab\u30e1\u30e9\u3092\u81ea\u52d5\u8d77\u52d5
+      setTimeout(() => _optionalChain([inputRef, 'access', _2 => _2.current, 'optionalAccess', _3 => _3.click, 'call', _4 => _4()]), 300);
+    }
+  }, [autoOpen]);
+
+  return (
+    React.createElement('label', { style: {flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+      gap:6, padding:"14px 10px", borderRadius:12, cursor:"pointer",
+      background:"#e8f5e9", border:"2px dashed #43a047", textAlign:"center"},}
+      , React.createElement('input', { ref: inputRef, type: "file", accept: "image/*", capture: "environment",
+        style: {display:"none"}, onChange: e=>onCapture(e.target.files),} )
+      , React.createElement('span', { style: {fontSize:28},}, "\ud83d\udcf8")
+      , React.createElement('span', { style: {fontSize:12, fontWeight:600, color:"#2e7d32"},}, label)
+      , React.createElement('span', { style: {fontSize:10, color:"#aaa"},}, "\u30ab\u30e1\u30e9\u8d77\u52d5")
+    )
+  );
+}
+
+function WeatherWidget({ spots, weatherLocations, setWeatherLocations }) {
+  const [loc, setLoc] = useState(_nullishCoalesce(weatherLocations[0], () => ( INITIAL_WEATHER_LOCATIONS[0])));
+  const [weather, setWeather] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [mainTab, setMainTab] = useState("forecast"); // forecast | sites | planned
+  const [forecastTab, setForecastTab] = useState("today");
+  const [plannedDate, setPlannedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [plannedLoc, setPlannedLoc] = useState(_nullishCoalesce(weatherLocations[0], () => ( INITIAL_WEATHER_LOCATIONS[0])));
+  const [plannedWeather, setPlannedWeather] = useState(null);
+  const [plannedLoading, setPlannedLoading] = useState(false);
+
+  const allLocs = [...weatherLocations, ...spots.map(s => ({ id:`spot_${s.id}`, name: s.name, lat: s.lat, lng: s.lng }))];
+
+  const fetchWeather = async (l, setter, loadSetter, errorSetter) => {
+    loadSetter(true);
+    if (errorSetter) errorSetter(null);
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${l.lat}&longitude=${l.lng}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max&current_weather=true&timezone=Asia%2FTokyo&forecast_days=7`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("fetch failed");
+      setter(await res.json());
+    } catch(e) {
+      if (errorSetter) errorSetter("\u5929\u6c17\u60c5\u5831\u3092\u53d6\u5f97\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f");
+    } finally {
+      loadSetter(false);
+    }
+  };
+
+  useEffect(() => { fetchWeather(loc, setWeather, setLoading, setError); }, [loc]);
+
+  const fetchPlanned = () => {
+    fetchWeather(plannedLoc, setPlannedWeather, setPlannedLoading, null);
+  };
+
+  // \u6307\u5b9a\u65e5\u306e\u30a4\u30f3\u30c7\u30c3\u30af\u30b9\u3092\u53d6\u5f97
+  const getPlannedDayData = () => {
+    if (!_optionalChain([plannedWeather, 'optionalAccess', _5 => _5.daily])) return null;
+    const idx = plannedWeather.daily.time.indexOf(plannedDate);
+    if (idx === -1) return null;
+    const d = plannedWeather.daily;
+    return {
+      wmo: d.weathercode[idx],
+      max: d.temperature_2m_max[idx],
+      min: d.temperature_2m_min[idx],
+      precip: d.precipitation_sum[idx],
+      wind: d.windspeed_10m_max[idx],
+    };
+  };
+
+  const cur = _optionalChain([weather, 'optionalAccess', _6 => _6.current_weather]);
+  const daily = _optionalChain([weather, 'optionalAccess', _7 => _7.daily]);
+
+  return (
+    React.createElement('div', { className: "plan-section", style: {marginBottom:20},}
+      , React.createElement('div', { className: "plan-title",}, "\ud83c\udf24 \u5929\u6c17\u4e88\u5831" )
+
+      /* \u30e1\u30a4\u30f3\u30bf\u30d6 */
+      , React.createElement('div', { style: {display:"flex", gap:6, marginBottom:16, background:"var(--soil)", borderRadius:10, padding:4},}
+        , [
+          { id:"forecast", label:"\ud83d\udce1 \u5929\u6c17\u4e88\u5831" },
+          { id:"planned",  label:"\ud83d\udcc5 \u4e88\u5b9a\u65e5\u306e\u5929\u6c17" },
+          { id:"sites",    label:"\ud83c\udf10 \u5929\u6c17\u30b5\u30a4\u30c8" },
+        ].map(t => (
+          React.createElement('button', { key: t.id, onClick: ()=>setMainTab(t.id), style: {
+            flex:1, padding:"8px 4px", border:"none", borderRadius:8, cursor:"pointer",
+            fontFamily:"'Noto Serif JP',serif", fontSize:12, fontWeight:600,
+            background: mainTab===t.id ? "var(--forest)" : "transparent",
+            color: mainTab===t.id ? "white" : "#888",
+            transition:"all 0.2s",
+          },}, t.label)
+        ))
+      )
+
+      /* ===== \u5929\u6c17\u4e88\u5831\u30bf\u30d6 ===== */
+      , mainTab === "forecast" && (
+        React.createElement(React.Fragment, null
+          , React.createElement('div', { style: {marginBottom:14},}
+            , React.createElement('label', { className: "form-label",}, "\u30a8\u30ea\u30a2\u3092\u9078\u629e")
+            , React.createElement('select', { className: "form-select", value: loc.name, onChange: e=>{
+              const found = allLocs.find(l=>l.name===e.target.value);
+              if(found) setLoc(found);
+            },}
+              , allLocs.map(l => React.createElement('option', { key: l.name, value: l.name,}, l.name))
+            )
+          )
+          , loading && React.createElement('div', { style: {textAlign:"center", padding:24, color:"#888"},}, "\ud83c\udf00 \u53d6\u5f97\u4e2d..." )
+          , error   && React.createElement('div', { style: {textAlign:"center", padding:24, color:"#e74c3c"},}, error)
+          , weather && cur && (
+            React.createElement(React.Fragment, null
+              , React.createElement('div', { style: {background:"linear-gradient(135deg,var(--forest),var(--moss))", borderRadius:12, padding:"16px 20px", color:"white", marginBottom:16, display:"flex", alignItems:"center", gap:16},}
+                , React.createElement('div', { style: {fontSize:52},}, _nullishCoalesce(WMO_EMOJI[cur.weathercode], () => ( "\ud83c\udf21")))
+                , React.createElement('div', { style: {flex:1},}
+                  , React.createElement('div', { style: {fontSize:13, opacity:0.8, marginBottom:2},}, loc.name, "\u30fb\u73fe\u5728")
+                  , React.createElement('div', { style: {fontSize:32, fontWeight:700},}, cur.temperature, "\u2103")
+                  , React.createElement('div', { style: {fontSize:14, opacity:0.9},}, _nullishCoalesce(WMO_CODE[cur.weathercode], () => ( "")), " \ud83d\udca8 "  , cur.windspeed, " km/h" )
+                )
+              )
+              , React.createElement('div', { style: {display:"flex", gap:8, marginBottom:14},}
+                , ["today","week"].map(t => (
+                  React.createElement('button', { key: t, className: `month-btn${forecastTab===t?" active":""}`, onClick: ()=>setForecastTab(t),}
+                    , t==="today" ? "\u672c\u65e5\u8a73\u7d30" : "7\u65e5\u9593\u4e88\u5831"
+                  )
+                ))
+              )
+              , forecastTab==="today" && daily && (() => {
+                const wmo = daily.weathercode[0];
+                const score = getOutdoorScore(wmo, daily.windspeed_10m_max[0], daily.precipitation_sum[0]);
+                return (
+                  React.createElement('div', null
+                    , React.createElement('div', { style: {background:score.color+"18", border:`2px solid ${score.color}`, borderRadius:10, padding:"12px 16px", marginBottom:12, display:"flex", alignItems:"center", gap:12},}
+                      , React.createElement('div', { style: {fontSize:24},}, score.label.split(" ")[0])
+                      , React.createElement('div', null
+                        , React.createElement('div', { style: {fontSize:14, fontWeight:700, color:score.color},}, score.label.slice(score.label.indexOf(" ")+1))
+                        , React.createElement('div', { style: {fontSize:12, color:"#666"},}, "\u5c71\u83dc\u63a1\u308a\u306e\u9069\u6027\u5224\u5b9a")
+                      )
+                    )
+                    , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10},}
+                      , [
+                        { label:"\u6700\u9ad8\u6c17\u6e29", val:`${daily.temperature_2m_max[0]}\u2103`, icon:"\ud83c\udf21" },
+                        { label:"\u6700\u4f4e\u6c17\u6e29", val:`${daily.temperature_2m_min[0]}\u2103`, icon:"\u2744\ufe0f" },
+                        { label:"\u964d\u6c34\u91cf",   val:`${daily.precipitation_sum[0]} mm`, icon:"\ud83d\udca7" },
+                        { label:"\u6700\u5927\u98a8\u901f", val:`${daily.windspeed_10m_max[0]} km/h`, icon:"\ud83d\udca8" },
+                        { label:"\u5929\u6c17",     val:_nullishCoalesce(WMO_CODE[wmo], () => ( "-")), icon:_nullishCoalesce(WMO_EMOJI[wmo], () => ( "\ud83c\udf21")) },
+                      ].map(item => (
+                        React.createElement('div', { key: item.label, style: {background:"var(--soil)", borderRadius:8, padding:"10px 12px", textAlign:"center"},}
+                          , React.createElement('div', { style: {fontSize:20},}, item.icon)
+                          , React.createElement('div', { style: {fontSize:11, color:"#888", marginTop:2},}, item.label)
+                          , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)"},}, item.val)
+                        )
+                      ))
+                    )
+                  )
+                );
+              })()
+              , forecastTab==="week" && daily && (
+                React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8},}
+                  , daily.weathercode.map((wmo, i) => {
+                    const date = new Date(daily.time[i]);
+                    const dayNames = ["\u65e5","\u6708","\u706b","\u6c34","\u6728","\u91d1","\u571f"];
+                    const score = getOutdoorScore(wmo, daily.windspeed_10m_max[i], daily.precipitation_sum[i]);
+                    return (
+                      React.createElement('div', { key: i, style: {display:"flex", alignItems:"center", gap:12, padding:"10px 14px", background:"var(--soil)", borderRadius:10, borderLeft:`4px solid ${score.color}`},}
+                        , React.createElement('div', { style: {width:48, textAlign:"center"},}
+                          , React.createElement('div', { style: {fontSize:11, color:"#888"},}, `${date.getMonth()+1}/${date.getDate()}`)
+                          , React.createElement('div', { style: {fontSize:13, fontWeight:700},}, dayNames[date.getDay()], "\u66dc")
+                        )
+                        , React.createElement('div', { style: {fontSize:24},}, _nullishCoalesce(WMO_EMOJI[wmo], () => ( "\ud83c\udf21")))
+                        , React.createElement('div', { style: {flex:1},}
+                          , React.createElement('div', { style: {fontSize:12, fontWeight:600, color:"var(--forest)"},}, _nullishCoalesce(WMO_CODE[wmo], () => ( "-")))
+                          , React.createElement('div', { style: {fontSize:11, color:"#888"},}, daily.temperature_2m_min[i], "\u301c", daily.temperature_2m_max[i], "\u2103  \ud83d\udca7"  , daily.precipitation_sum[i], "mm")
+                        )
+                        , React.createElement('div', { style: {fontSize:11, fontWeight:700, color:score.color, textAlign:"right", whiteSpace:"nowrap"},}
+                          , score.label.split(" ").slice(1).join(" ")
+                        )
+                      )
+                    );
+                  })
+                )
+              )
+            )
+          )
+        )
+      )
+
+      /* ===== \u4e88\u5b9a\u65e5\u306e\u5929\u6c17\u30bf\u30d6 ===== */
+      , mainTab === "planned" && (
+        React.createElement('div', null
+          , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12},}
+            , React.createElement('div', { className: "form-group", style: {margin:0},}
+              , React.createElement('label', { className: "form-label",}, "\u4e88\u5b9a\u65e5")
+              , React.createElement('input', { type: "date", className: "form-input",
+                value: plannedDate,
+                min: new Date().toISOString().split("T")[0],
+                max: (() => { const d=new Date(); d.setDate(d.getDate()+6); return d.toISOString().split("T")[0]; })(),
+                onChange: e=>{ setPlannedDate(e.target.value); setPlannedWeather(null); },}
+              )
+            )
+            , React.createElement('div', { className: "form-group", style: {margin:0},}
+              , React.createElement('label', { className: "form-label",}, "\u30a8\u30ea\u30a2")
+              , React.createElement('select', { className: "form-select", value: plannedLoc.name, onChange: e=>{
+                const found = allLocs.find(l=>l.name===e.target.value);
+                if(found){ setPlannedLoc(found); setPlannedWeather(null); }
+              },}
+                , allLocs.map(l => React.createElement('option', { key: l.name, value: l.name,}, l.name))
+              )
+            )
+          )
+          , React.createElement('button', { className: "add-btn", style: {width:"100%", justifyContent:"center", marginBottom:16}, onClick: fetchPlanned,}, "\ud83d\udd0d \u4e88\u5b9a\u65e5\u306e\u5929\u6c17\u3092\u78ba\u8a8d"
+
+          )
+          , plannedLoading && React.createElement('div', { style: {textAlign:"center", padding:24, color:"#888"},}, "\ud83c\udf00 \u53d6\u5f97\u4e2d..." )
+          , plannedWeather && (() => {
+            const day = getPlannedDayData();
+            if (!day) return (
+              React.createElement('div', { style: {textAlign:"center", padding:20, color:"#aaa", fontSize:13},}, "\u4e88\u5831\u30c7\u30fc\u30bf\u304c\u3042\u308a\u307e\u305b\u3093\udbbc\udc87\u65e5\u5148\u307e\u3067\u5bfe\u5fdc\uff09"
+
+              )
+            );
+            const score = getOutdoorScore(day.wmo, day.wind, day.precip);
+            const dateObj = new Date(plannedDate);
+            const dayNames = ["\u65e5","\u6708","\u706b","\u6c34","\u6728","\u91d1","\u571f"];
+            return (
+              React.createElement('div', null
+                /* \u65e5\u4ed8\u30d8\u30c3\u30c0\u30fc */
+                , React.createElement('div', { style: {textAlign:"center", marginBottom:12},}
+                  , React.createElement('div', { style: {fontSize:13, color:"#888"},}, plannedLoc.name)
+                  , React.createElement('div', { style: {fontSize:18, fontWeight:700, color:"var(--forest)"},}
+                    , dateObj.getMonth()+1, "\u6708", dateObj.getDate(), "\u65e5\uff08", dayNames[dateObj.getDay()], "\uff09\u306e\u5929\u6c17"
+                  )
+                )
+                /* \u5929\u6c17\u30e1\u30a4\u30f3 */
+                , React.createElement('div', { style: {background:"linear-gradient(135deg,var(--forest),var(--moss))", borderRadius:12, padding:"20px", color:"white", textAlign:"center", marginBottom:12},}
+                  , React.createElement('div', { style: {fontSize:64},}, _nullishCoalesce(WMO_EMOJI[day.wmo], () => ( "\ud83c\udf21")))
+                  , React.createElement('div', { style: {fontSize:22, fontWeight:700, marginBottom:4},}, _nullishCoalesce(WMO_CODE[day.wmo], () => ( "-")))
+                  , React.createElement('div', { style: {fontSize:16, opacity:0.9},}, day.min, "\u2103 \u301c "  , day.max, "\u2103")
+                )
+                /* \u9069\u6027\u5224\u5b9a */
+                , React.createElement('div', { style: {background:score.color+"18", border:`2px solid ${score.color}`, borderRadius:10, padding:"14px 16px", marginBottom:12, display:"flex", alignItems:"center", gap:12},}
+                  , React.createElement('div', { style: {fontSize:28},}, score.label.split(" ")[0])
+                  , React.createElement('div', null
+                    , React.createElement('div', { style: {fontSize:16, fontWeight:700, color:score.color},}, score.label.slice(score.label.indexOf(" ")+1))
+                    , React.createElement('div', { style: {fontSize:12, color:"#666"},}, "\u5c71\u83dc\u63a1\u308a\u306e\u9069\u6027\u5224\u5b9a")
+                  )
+                )
+                /* \u8a73\u7d30 */
+                , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:10},}
+                  , [
+                    { label:"\u964d\u6c34\u91cf", val:`${day.precip} mm`, icon:"\ud83d\udca7" },
+                    { label:"\u6700\u5927\u98a8\u901f", val:`${day.wind} km/h`, icon:"\ud83d\udca8" },
+                  ].map(item => (
+                    React.createElement('div', { key: item.label, style: {background:"var(--soil)", borderRadius:8, padding:"10px 12px", textAlign:"center"},}
+                      , React.createElement('div', { style: {fontSize:20},}, item.icon)
+                      , React.createElement('div', { style: {fontSize:11, color:"#888", marginTop:2},}, item.label)
+                      , React.createElement('div', { style: {fontSize:14, fontWeight:700, color:"var(--forest)"},}, item.val)
+                    )
+                  ))
+                )
+              )
+            );
+          })()
+        )
+      )
+
+      /* ===== \u5929\u6c17\u30b5\u30a4\u30c8\u30bf\u30d6 ===== */
+      , mainTab === "sites" && (
+        React.createElement('div', null
+          , React.createElement('div', { style: {marginBottom:14},}
+            , React.createElement('label', { className: "form-label",}, "\u53c2\u7167\u30a8\u30ea\u30a2\uff08\u30b5\u30a4\u30c8\u3067\u4f7f\u7528\uff09")
+            , React.createElement('select', { className: "form-select", value: loc.name, onChange: e=>{
+              const found = allLocs.find(l=>l.name===e.target.value);
+              if(found) setLoc(found);
+            },}
+              , allLocs.map(l => React.createElement('option', { key: l.name, value: l.name,}, l.name))
+            )
+          )
+          , React.createElement('div', { style: {fontSize:12, color:"#888", marginBottom:14, padding:"8px 12px", background:"var(--soil)", borderRadius:8},}, "\ud83d\udca1 \u30dc\u30bf\u30f3\u3092\u30bf\u30c3\u30d7\u3059\u308b\u3068\u5916\u90e8\u5929\u6c17\u30b5\u30a4\u30c8\u304c\u958b\u304d\u307e\u3059"
+
+          )
+          , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:10},}
+            , WEATHER_SITES.map(site => (
+              React.createElement('a', { key: site.name,
+                href: site.buildUrl(loc.lat, loc.lng, loc.name),
+                target: "_blank",
+                rel: "noopener noreferrer" ,
+                style: {
+                  display:"flex", alignItems:"center", gap:14,
+                  padding:"14px 18px",
+                  background:"white", borderRadius:12,
+                  boxShadow:"0 2px 10px rgba(0,0,0,0.07)",
+                  border:"1px solid var(--mist)",
+                  textDecoration:"none", color:"var(--ink)",
+                  transition:"transform 0.15s, box-shadow 0.15s",
+                },}
+                , React.createElement('div', { style: {fontSize:28},}, site.icon)
+                , React.createElement('div', { style: {flex:1},}
+                  , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)"},}, site.name)
+                  , React.createElement('div', { style: {fontSize:11, color:"#aaa", marginTop:2},}, loc.name, " \u306e\u5929\u6c17\u3092\u8868\u793a" )
+                )
+                , React.createElement('div', { style: {fontSize:18, color:"#aaa"},}, "\u203a")
+              )
+            ))
+          )
+        )
+      )
+    )
+  );
+}
+
+function ScheduleForm({ spots, onClose, onSuccess, members }) {
+  const today = new Date().toISOString().split("T")[0];
+
+  // \u8907\u6570\u30b9\u30dd\u30c3\u30c8\u30a8\u30f3\u30c8\u30ea
+  const emptyStop = { spotId: "", customName: "", sansai: [] };
+  const [form, setForm] = useState({
+    date: today,
+    endDate: today,
+    calendarId: "3",
+    meetingPlace: "",   // \u96c6\u5408\u5834\u6240
+    stops: [{ ...emptyStop }], // \u8907\u6570\u7b87\u6240
+    members: [],        // \u53c2\u52a0\u30e1\u30f3\u30d0\u30fc
+    memo: "",
+  });
+  const [status, setStatus] = useState("idle");
+  const MEMBER_LIST = (members||[]).map(m=>m.name);
+
+  // --- \u30b9\u30dd\u30c3\u30c8\u64cd\u4f5c ---
+  const addStop = () => setForm(f => ({ ...f, stops: [...f.stops, { ...emptyStop }] }));
+  const removeStop = (i) => setForm(f => ({ ...f, stops: f.stops.filter((_,idx)=>idx!==i) }));
+  const updateStop = (i, key, val) => setForm(f => {
+    const arr = [...f.stops];
+    arr[i] = { ...arr[i], [key]: val };
+    return { ...f, stops: arr };
+  });
+  const toggleStopSansai = (stopIdx, sansaiId) => {
+    setForm(f => {
+      const arr = [...f.stops];
+      const cur = arr[stopIdx].sansai;
+      arr[stopIdx] = { ...arr[stopIdx], sansai: cur.includes(sansaiId) ? cur.filter(x=>x!==sansaiId) : [...cur, sansaiId] };
+      return { ...f, stops: arr };
+    });
+  };
+  const toggleMember = (name) => setForm(f => ({
+    ...f, members: f.members.includes(name) ? f.members.filter(x=>x!==name) : [...f.members, name]
+  }));
+
+  // --- \u30bf\u30a4\u30c8\u30eb\u30fb\u8aac\u660e\u6587\u751f\u6210 ---
+  const buildTitle = () => {
+    const allSansai = [...new Set(form.stops.flatMap(s=>s.sansai))];
+    const names = allSansai.map(id=>_optionalChain([SANSAI_DATA, 'access', _8 => _8.find, 'call', _9 => _9(s=>s.id===id), 'optionalAccess', _10 => _10.name])).filter(Boolean);
+    let t = "\ud83c\udf3f \u5c71\u83dc\u63a1\u308a";
+    if (names.length) t += `\uff08${names.join("\u30fb")}\uff09`;
+    return t;
+  };
+
+  const buildDescription = () => {
+    const lines = ["\u3010\u5c71\u83dc\u63a1\u308a\u8a08\u753b\u3011", ""];
+    if (form.meetingPlace) lines.push(`\ud83d\udccd \u96c6\u5408\u5834\u6240\uff1a${form.meetingPlace}`);
+    if (form.members.length) lines.push(`\ud83d\udc65 \u30e1\u30f3\u30d0\u30fc\uff1a${form.members.join("\u3001")}`);
+    lines.push("");
+    form.stops.forEach((stop, i) => {
+      const spotName = _optionalChain([spots, 'access', _11 => _11.find, 'call', _12 => _12(s=>String(s.id)===stop.spotId), 'optionalAccess', _13 => _13.name]) || stop.customName || "";
+      const sansaiNames = stop.sansai.map(id=>_optionalChain([SANSAI_DATA, 'access', _14 => _14.find, 'call', _15 => _15(s=>s.id===id), 'optionalAccess', _16 => _16.name])).filter(Boolean);
+      if (spotName || sansaiNames.length) {
+        lines.push(`\u3010\u7b2c${i+1}\u7b87\u6240\u76ee\u3011${spotName}`);
+        if (sansaiNames.length) lines.push(`  \u63a1\u53d6\u4e88\u5b9a\uff1a${sansaiNames.join("\u30fb")}`);
+      }
+    });
+    if (form.memo) { lines.push(""); lines.push(`\ud83d\udcdd \u30e1\u30e2\uff1a${form.memo}`); }
+    lines.push(""); lines.push("\uff08\u5c71\u83dc\u63a1\u308a\u624b\u5e33\u3088\u308a\u767b\u9332\uff09");
+    return lines.join("\n");
+  };
+
+  const handleSubmit = async () => {
+    setStatus("loading");
+    try {
+      const firstStop = form.stops.find(s => s.spotId || s.customName);
+      const location = firstStop
+        ? (_optionalChain([spots, 'access', _17 => _17.find, 'call', _18 => _18(s=>String(s.id)===firstStop.spotId), 'optionalAccess', _19 => _19.name]) || firstStop.customName)
+        : form.meetingPlace;
+      await onSuccess({
+        calendarId: form.calendarId,
+        title: buildTitle(),
+        date: form.date,
+        endDate: form.endDate,
+        description: buildDescription(),
+        location,
+      });
+      setStatus("done");
+    } catch(e) {
+      setStatus("error");
+    }
+  };
+
+  if (status === "done") return (
+    React.createElement('div', { className: "form-overlay", onClick: onClose,}
+      , React.createElement('div', { className: "form-box", onClick: e=>e.stopPropagation(), style: {textAlign:"center"},}
+        , React.createElement('div', { style: {fontSize:56, marginBottom:12},}, "\ud83d\udcc5")
+        , React.createElement('div', { style: {fontSize:20, fontWeight:700, color:"var(--forest)", marginBottom:8},}, "Google\u30ab\u30ec\u30f3\u30c0\u30fc\u3092\u958b\u304d\u307e\u3057\u305f\uff01")
+        , React.createElement('div', { style: {fontSize:13, color:"#666", marginBottom:8},}, "\u5185\u5bb9\u3092\u78ba\u8a8d\u3057\u3066\u300c\u4fdd\u5b58\u300d\u3092\u62bc\u3057\u3066\u304f\u3060\u3055\u3044\u3002")
+        , React.createElement('div', { style: {fontSize:12, color:"#aaa", marginBottom:20},}, "\u203b\u30dd\u30c3\u30d7\u30a2\u30c3\u30d7\u304c\u30d6\u30ed\u30c3\u30af\u3055\u308c\u305f\u5834\u5408\u306f\u30d6\u30e9\u30a6\u30b6\u306e\u8a2d\u5b9a\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044")
+        , React.createElement('button', { className: "btn-submit", onClick: onClose,}, "\u9589\u3058\u308b")
+      )
+    )
+  );
+
+  return (
+    React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&onClose(),}
+      , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},}
+        , React.createElement('div', { className: "form-title",}, "\ud83d\uddd3 \u63a1\u53d6\u30d7\u30e9\u30f3\u3092\u4f5c\u6210" )
+
+        /* \u30ab\u30ec\u30f3\u30c0\u30fc\u9078\u629e */
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, "\ud83d\udcc5 \u767b\u9332\u5148\u30ab\u30ec\u30f3\u30c0\u30fc" )
+          , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:6},}
+            , CALENDARS.map(cal => (
+              React.createElement('label', { key: cal.id, style: {display:"flex", alignItems:"center", gap:10, padding:"7px 12px",
+                border:`2px solid ${form.calendarId===cal.id ? cal.color : "#eee"}`,
+                borderRadius:8, cursor:"pointer",
+                background: form.calendarId===cal.id ? cal.color+"18" : "white"},}
+                , React.createElement('input', { type: "radio", name: "cal", value: cal.id, checked: form.calendarId===cal.id,
+                  onChange: ()=>setForm(f=>({...f,calendarId:cal.id})), style: {accentColor:cal.color},} )
+                , React.createElement('span', { style: {width:10, height:10, borderRadius:"50%", background:cal.color, flexShrink:0},})
+                , React.createElement('span', { style: {fontSize:13, fontWeight:600},}, cal.name)
+              )
+            ))
+          )
+        )
+
+        /* \u65e5\u7a0b */
+        , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:12},}
+          , React.createElement('div', { className: "form-group",}
+            , React.createElement('label', { className: "form-label",}, "\u958b\u59cb\u65e5")
+            , React.createElement('input', { type: "date", className: "form-input", value: form.date,
+              onChange: e=>setForm(f=>({...f, date:e.target.value, endDate:e.target.value})),} )
+          )
+          , React.createElement('div', { className: "form-group",}
+            , React.createElement('label', { className: "form-label",}, "\u7d42\u4e86\u65e5")
+            , React.createElement('input', { type: "date", className: "form-input", value: form.endDate, min: form.date,
+              onChange: e=>setForm(f=>({...f, endDate:e.target.value})),} )
+          )
+        )
+
+        /* \u96c6\u5408\u5834\u6240 */
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, "\ud83d\ude97 \u96c6\u5408\u5834\u6240" )
+          , React.createElement('input', { className: "form-input", value: form.meetingPlace,
+            onChange: e=>setForm(f=>({...f, meetingPlace:e.target.value})),
+            placeholder: "\u4f8b\uff1a\u9053\u306e\u99c5 \u702c\u5973 \u99d0\u8eca\u5834\u3001\u3007\u3007IC \u306a\u3069"   ,} )
+        )
+
+        /* \u53c2\u52a0\u30e1\u30f3\u30d0\u30fc */
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, "\ud83d\udc65 \u53c2\u52a0\u30e1\u30f3\u30d0\u30fc" )
+          , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:8},}
+            , MEMBER_LIST.map(m => (
+              React.createElement('div', { key: m, onClick: ()=>toggleMember(m),
+                style: {padding:"6px 14px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
+                  background: form.members.includes(m) ? "var(--forest)" : "var(--mist)",
+                  color: form.members.includes(m) ? "white" : "#555",
+                  border:`2px solid ${form.members.includes(m) ? "var(--forest)" : "transparent"}`,
+                  transition:"all 0.15s"},}, "\ud83d\udc64 "
+                 , m
+              )
+            ))
+          )
+        )
+
+        /* \u8907\u6570\u30b9\u30dd\u30c3\u30c8 */
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, "\ud83d\udccd \u63a1\u53d6\u7b87\u6240\uff08\u8907\u6570\u8ffd\u52a0\u53ef\uff09" )
+          , form.stops.map((stop, i) => (
+            React.createElement('div', { key: i, style: {background:"var(--soil)", borderRadius:12, padding:"14px", marginBottom:12, position:"relative"},}
+              /* \u7b87\u6240\u756a\u53f7\u30d8\u30c3\u30c0\u30fc */
+              , React.createElement('div', { style: {display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10},}
+                , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)"},}, "\ud83d\udccd \u7b2c"
+                   , i+1, "\u7b87\u6240\u76ee"
+                )
+                , form.stops.length > 1 && (
+                  React.createElement('button', { onClick: ()=>removeStop(i),
+                    style: {background:"#fee", border:"none", borderRadius:8, padding:"3px 10px", cursor:"pointer", fontSize:11, color:"#c0392b", fontWeight:600},}, "\u524a\u9664"
+
+                  )
+                )
+              )
+
+              /* \u5834\u6240\u540d\uff1a\u767b\u9332\u30b9\u30dd\u30c3\u30c8 or \u81ea\u7531\u5165\u529b */
+              , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:10},}
+                , React.createElement('div', null
+                  , React.createElement('label', { className: "form-label",}, "\u767b\u9332\u30b9\u30dd\u30c3\u30c8\u304b\u3089\u9078\u629e")
+                  , React.createElement('select', { className: "form-select", value: stop.spotId,
+                    onChange: e=>updateStop(i,"spotId",e.target.value),}
+                    , React.createElement('option', { value: "",}, "-- \u9078\u629e --"  )
+                    , spots.map(s=>React.createElement('option', { key: s.id, value: s.id,}, s.name))
+                  )
+                )
+                , React.createElement('div', null
+                  , React.createElement('label', { className: "form-label",}, "\u307e\u305f\u306f\u5730\u540d\u3092\u76f4\u63a5\u5165\u529b")
+                  , React.createElement('input', { className: "form-input", value: stop.customName,
+                    onChange: e=>updateStop(i,"customName",e.target.value),
+                    placeholder: "\u4f8b\uff1a\u767d\u5c71\u4e2d\u5c45\u795e\u793e\u5468\u8fba",} )
+                )
+              )
+
+              /* \u3053\u306e\u7b87\u6240\u3067\u63a1\u308b\u5c71\u83dc */
+              , React.createElement('div', null
+                , React.createElement('label', { className: "form-label", style: {marginBottom:6, display:"block"},}, "\ud83c\udf3f \u3053\u306e\u7b87\u6240\u3067\u63a1\u308b\u5c71\u83dc"
+
+                )
+                , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6},}
+                  , SANSAI_DATA.map(s => (
+                    React.createElement('div', { key: s.id,
+                      onClick: ()=>toggleStopSansai(i, s.id),
+                      style: {padding:"4px 10px", borderRadius:20, cursor:"pointer", fontSize:11, fontWeight:600,
+                        background: stop.sansai.includes(s.id) ? s.color : "white",
+                        color: stop.sansai.includes(s.id) ? "white" : "#666",
+                        border:`1.5px solid ${stop.sansai.includes(s.id) ? s.color : "#ddd"}`,
+                        transition:"all 0.15s"},}
+                      , s.emoji, " " , s.name
+                    )
+                  ))
+                )
+              )
+            )
+          ))
+          , React.createElement('button', { onClick: addStop,
+            style: {background:"white", border:"2px dashed var(--fern)", borderRadius:10, padding:"10px", cursor:"pointer",
+              fontSize:12, fontWeight:600, color:"var(--moss)", width:"100%", textAlign:"center"},}, "\uff0b \u7b87\u6240\u3092\u8ffd\u52a0"
+
+          )
+        )
+
+        /* \u30e1\u30e2 */
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, "\ud83d\udcdd \u30e1\u30e2\u30fb\u6301\u3061\u7269\u306a\u3069" )
+          , React.createElement('textarea', { className: "form-textarea", style: {minHeight:60}, value: form.memo,
+            onChange: e=>setForm(f=>({...f,memo:e.target.value})),
+            placeholder: "\u6301\u3061\u7269\u30fb\u6ce8\u610f\u4e8b\u9805\u30fb\u30eb\u30fc\u30c8\u306a\u3069...",} )
+        )
+
+        /* \u30d7\u30ec\u30d3\u30e5\u30fc */
+        , React.createElement('div', { style: {background:"var(--soil)", borderRadius:10, padding:"12px 14px", marginBottom:16},}
+          , React.createElement('div', { style: {fontSize:11, color:"#888", marginBottom:6, fontWeight:600},}, "\ud83d\udccc \u30ab\u30ec\u30f3\u30c0\u30fc\u767b\u9332\u30d7\u30ec\u30d3\u30e5\u30fc" )
+          , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)", marginBottom:6},}, buildTitle())
+          , React.createElement('div', { style: {fontSize:11, color:"#555", lineHeight:1.8, whiteSpace:"pre-line"},}
+            , [
+              form.meetingPlace ? `\ud83d\udccd \u96c6\u5408\uff1a${form.meetingPlace}` : "",
+              form.members.length ? `\ud83d\udc65 ${form.members.join("\u30fb")}` : "",
+              ...form.stops.map((s,i)=>{
+                const sn = _optionalChain([spots, 'access', _20 => _20.find, 'call', _21 => _21(x=>String(x.id)===s.spotId), 'optionalAccess', _22 => _22.name]) || s.customName;
+                const san = s.sansai.map(id=>_optionalChain([SANSAI_DATA, 'access', _23 => _23.find, 'call', _24 => _24(x=>x.id===id), 'optionalAccess', _25 => _25.name])).filter(Boolean);
+                return sn || san.length ? `\u7b2c${i+1}\u7b87\u6240\uff1a${sn}${san.length?` \uff0f ${san.join("\u30fb")}` : ""}` : "";
+              }),
+            ].filter(Boolean).join("\n")
+          )
+        )
+
+        , React.createElement('div', { className: "form-actions",}
+          , React.createElement('button', { className: "btn-cancel", onClick: onClose,}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
+          , React.createElement('button', { className: "btn-submit", onClick: handleSubmit, disabled: status==="loading",}
+            , status==="loading" ? "\u767b\u9332\u4e2d..." : "\ud83d\udcc5 \u30ab\u30ec\u30f3\u30c0\u30fc\u306b\u8ffd\u52a0"
+          )
+        )
+        , status==="error" && React.createElement('div', { style: {color:"red", fontSize:12, marginTop:8, textAlign:"center"},}, "\u767b\u9332\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002\u518d\u5ea6\u304a\u8a66\u3057\u304f\u3060\u3055\u3044\u3002")
+      )
+    )
+  );
+}
+
+function AreaManager({ weatherLocations, setWeatherLocations }) {
+  const [showForm, setShowForm] = useState(false);
+  const [mode, setMode] = useState("preset"); // preset | manual
+  const [form, setForm] = useState({ name:"", lat:"", lng:"" });
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [selectedPreset, setSelectedPreset] = useState(null);
+
+  const addArea = () => {
+    const area = mode === "preset" ? selectedPreset : form;
+    if (!area || !area.name.trim()) return;
+    const lat = parseFloat(area.lat);
+    const lng = parseFloat(area.lng);
+    if (isNaN(lat) || isNaN(lng)) return;
+    setWeatherLocations(prev => [...prev, { id:`wl_${Date.now()}`, name: area.name.trim(), lat, lng }]);
+    setForm({ name:"", lat:"", lng:"" });
+    setSelectedPreset(null);
+    setShowForm(false);
+  };
+
+  const deleteArea = (id) => {
+    setWeatherLocations(prev => prev.filter(l => l.id !== id));
+    setDeleteConfirm(null);
+  };
+
+  // \u30c7\u30d5\u30a9\u30eb\u30c8\u30a8\u30ea\u30a2\u304b\u3069\u3046\u304b\uff08wl1\u301cwl7\u306f\u521d\u671f\u5024\uff09
+  const isDefault = (id) => /^wl[1-7]$/.test(id);
+
+  return (
+    React.createElement('div', { style: {background:"white", borderRadius:14, padding:"16px", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", border:"1px solid var(--mist)", marginBottom:20},}
+      , React.createElement('div', { style: {display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12},}
+        , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)"},}, "\ud83d\udccd \u30a8\u30ea\u30a2\u7ba1\u7406" )
+        , React.createElement('button', { onClick: ()=>setShowForm(true), style: {
+          background:"var(--forest)", color:"white", border:"none",
+          borderRadius:8, padding:"6px 14px", cursor:"pointer",
+          fontSize:12, fontWeight:600,
+        },}, "\uff0b \u30a8\u30ea\u30a2\u3092\u8ffd\u52a0" )
+      )
+
+      /* \u30a8\u30ea\u30a2\u4e00\u89a7 */
+      , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:6},}
+        , weatherLocations.map(loc => (
+          React.createElement('div', { key: loc.id, style: {display:"flex", alignItems:"center", gap:10, padding:"8px 12px", background:"var(--soil)", borderRadius:10},}
+            , React.createElement('span', { style: {fontSize:16},}, "\ud83d\udccd")
+            , React.createElement('div', { style: {flex:1},}
+              , React.createElement('div', { style: {fontSize:13, fontWeight:600, color:"var(--forest)"},}, loc.name)
+              , React.createElement('div', { style: {fontSize:10, color:"#aaa"},}, "\u7def\u5ea6 " , loc.lat.toFixed(3), " / \u7d4c\u5ea6 "   , loc.lng.toFixed(3))
+            )
+            , isDefault(loc.id) ? (
+              React.createElement('span', { style: {fontSize:10, color:"#bbb", padding:"2px 8px", border:"1px solid #ddd", borderRadius:10},}, "\u6a19\u6e96")
+            ) : (
+              React.createElement('button', { onClick: ()=>setDeleteConfirm(loc), style: {
+                background:"#fee", border:"none", borderRadius:8,
+                padding:"4px 10px", cursor:"pointer", fontSize:11, fontWeight:600, color:"#c0392b"
+              },}, "\u524a\u9664")
+            )
+          )
+        ))
+      )
+
+      /* \u8ffd\u52a0\u30d5\u30a9\u30fc\u30e0 */
+      , showForm && (
+        React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setShowForm(false),}
+          , React.createElement('div', { className: "form-box",}
+            , React.createElement('div', { className: "form-title",}, "\ud83d\udccd \u30a8\u30ea\u30a2\u3092\u8ffd\u52a0" )
+
+            /* \u30e2\u30fc\u30c9\u5207\u66ff */
+            , React.createElement('div', { style: {display:"flex", gap:6, marginBottom:16, background:"var(--soil)", borderRadius:10, padding:4},}
+              , [{ id:"preset", label:"\ud83d\uddfa \u5019\u88dc\u304b\u3089\u9078\u3076" }, { id:"manual", label:"\u270f\ufe0f \u624b\u52d5\u3067\u5165\u529b" }].map(t=>(
+                React.createElement('button', { key: t.id, onClick: ()=>{ setMode(t.id); setSelectedPreset(null); }, style: {
+                  flex:1, padding:"8px 4px", border:"none", borderRadius:8, cursor:"pointer",
+                  fontFamily:"'Noto Serif JP',serif", fontSize:12, fontWeight:600,
+                  background: mode===t.id ? "var(--forest)" : "transparent",
+                  color: mode===t.id ? "white" : "#888", transition:"all 0.2s",
+                },}, t.label)
+              ))
+            )
+
+            /* \u5019\u88dc\u304b\u3089\u9078\u3076 */
+            , mode === "preset" && (
+              React.createElement('div', { className: "form-group",}
+                , React.createElement('label', { className: "form-label",}, "\u30a8\u30ea\u30a2\u3092\u9078\u629e")
+                , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:8, maxHeight:200, overflowY:"auto"},}
+                  , AREA_PRESETS.filter(p => !weatherLocations.some(l=>l.name===p.name)).map(p=>(
+                    React.createElement('div', { key: p.name, onClick: ()=>setSelectedPreset(p),
+                      style: {padding:"6px 14px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
+                        background: _optionalChain([selectedPreset, 'optionalAccess', _26 => _26.name])===p.name ? "var(--forest)" : "var(--mist)",
+                        color: _optionalChain([selectedPreset, 'optionalAccess', _27 => _27.name])===p.name ? "white" : "#555",
+                        border:`2px solid ${_optionalChain([selectedPreset, 'optionalAccess', _28 => _28.name])===p.name ? "var(--forest)" : "transparent"}`,
+                        transition:"all 0.15s"},}
+                      , p.name
+                    )
+                  ))
+                )
+                , selectedPreset && (
+                  React.createElement('div', { style: {marginTop:10, padding:"10px 14px", background:"var(--mist)", borderRadius:10, fontSize:12, color:"var(--forest)", fontWeight:600},}, "\u2705 "
+                     , selectedPreset.name, "\uff08\u7def\u5ea6 " , selectedPreset.lat, " / \u7d4c\u5ea6 "   , selectedPreset.lng, "\uff09"
+                  )
+                )
+              )
+            )
+
+            /* \u624b\u52d5\u5165\u529b */
+            , mode === "manual" && (
+              React.createElement(React.Fragment, null
+                , React.createElement('div', { className: "form-group",}
+                  , React.createElement('label', { className: "form-label",}, "\u30a8\u30ea\u30a2\u540d *" )
+                  , React.createElement('input', { className: "form-input", value: form.name, onChange: e=>setForm(f=>({...f,name:e.target.value})), placeholder: "\u4f8b\uff1a\u5999\u9ad8\u30fb\u8d64\u5009\u30a8\u30ea\u30a2",} )
+                )
+                , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:10},}
+                  , React.createElement('div', { className: "form-group",}
+                    , React.createElement('label', { className: "form-label",}, "\u7def\u5ea6\uff08\u5317\u7def\uff09")
+                    , React.createElement('input', { className: "form-input", type: "number", step: "0.0001", value: form.lat, onChange: e=>setForm(f=>({...f,lat:e.target.value})), placeholder: "\u4f8b\u11786\ude36.9072",} )
+                  )
+                  , React.createElement('div', { className: "form-group",}
+                    , React.createElement('label', { className: "form-label",}, "\u7d4c\u5ea6\uff08\u6771\u7d4c\uff09")
+                    , React.createElement('input', { className: "form-input", type: "number", step: "0.0001", value: form.lng, onChange: e=>setForm(f=>({...f,lng:e.target.value})), placeholder: "\u4f8b\u4d428\udd38.1203",} )
+                  )
+                )
+                , React.createElement('div', { style: {fontSize:11, color:"#aaa", padding:"8px 12px", background:"var(--soil)", borderRadius:8},}, "\ud83d\udca1 \u7def\u5ea6\u7d4c\u5ea6\u306fGoogle\u30de\u30c3\u30d7\u3067\u53f3\u30af\u30ea\u30c3\u30af\u2192\u300c\u3053\u306e\u5834\u6240\u306b\u3064\u3044\u3066\u300d\u3067\u78ba\u8a8d\u3067\u304d\u307e\u3059"
+
+                )
+              )
+            )
+
+            , React.createElement('div', { className: "form-actions",}
+              , React.createElement('button', { className: "btn-cancel", onClick: ()=>setShowForm(false),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
+              , React.createElement('button', { className: "btn-submit",
+                onClick: addArea,
+                disabled: mode==="preset" ? !selectedPreset : !form.name || !form.lat || !form.lng,}, "\u8ffd\u52a0\u3059\u308b"
+
+              )
+            )
+          )
+        )
+      )
+
+      /* \u524a\u9664\u78ba\u8a8d */
+      , deleteConfirm && (
+        React.createElement('div', { className: "form-overlay", onClick: ()=>setDeleteConfirm(null),}
+          , React.createElement('div', { className: "form-box", style: {textAlign:"center"}, onClick: e=>e.stopPropagation(),}
+            , React.createElement('div', { style: {fontSize:40, marginBottom:12},}, "\ud83d\uddd1\ufe0f")
+            , React.createElement('div', { style: {fontSize:17, fontWeight:700, color:"var(--forest)", marginBottom:8},}, "\u300c", deleteConfirm.name, "\u300d\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f")
+            , React.createElement('div', { style: {fontSize:13, color:"#888", marginBottom:24},}, "\u5929\u6c17\u4e88\u5831\u306e\u30a8\u30ea\u30a2\u4e00\u89a7\u304b\u3089\u524a\u9664\u3055\u308c\u307e\u3059")
+            , React.createElement('div', { style: {display:"flex", gap:10, justifyContent:"center"},}
+              , React.createElement('button', { className: "btn-cancel", onClick: ()=>setDeleteConfirm(null),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
+              , React.createElement('button', { style: {padding:"10px 24px", background:"#c0392b", color:"white", border:"none", borderRadius:8, cursor:"pointer", fontFamily:"'Noto Serif JP',serif", fontSize:14, fontWeight:600},
+                onClick: ()=>deleteArea(deleteConfirm.id),}, "\u524a\u9664\u3059\u308b")
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
 function CalendarView() {
   const currentMonth = new Date().getMonth() + 1;
   const [calSansai, setCalSansai] = React.useState(SANSAI_DATA);
@@ -1634,13 +2532,13 @@ function SpotsView({ spots, setSpots }) {
 
 function BlogView({ posts, setPosts, spots, members }) {
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title:"", content:"", sansai:[], spot:"", author: _nullishCoalesce(_optionalChain([members, 'access', _2 => _2[0], 'optionalAccess', _3 => _3.name]), () => ( "")), date: new Date().toISOString().split("T")[0], photos: [] });
+  const [form, setForm] = useState({ title:"", content:"", sansai:[], spot:"", author: _nullishCoalesce(_optionalChain([members, 'access', _29 => _29[0], 'optionalAccess', _30 => _30.name]), () => ( "")), date: new Date().toISOString().split("T")[0], photos: [] });
   const [lightbox, setLightbox] = useState(null); // {images, index}
 
   const handleAdd = () => {
     if (!form.title.trim() || !form.content.trim()) return;
     setPosts(prev => [{ id: Date.now(), ...form, spot: form.spot ? parseInt(form.spot) : null, likes: 0 }, ...prev]);
-    setForm({ title:"", content:"", sansai:[], spot:"", author: _nullishCoalesce(_optionalChain([members, 'access', _4 => _4[0], 'optionalAccess', _5 => _5.name]), () => ( "")), date: new Date().toISOString().split("T")[0], photos: [] });
+    setForm({ title:"", content:"", sansai:[], spot:"", author: _nullishCoalesce(_optionalChain([members, 'access', _31 => _31[0], 'optionalAccess', _32 => _32.name]), () => ( "")), date: new Date().toISOString().split("T")[0], photos: [] });
     setShowForm(false);
   };
 
@@ -1671,11 +2569,11 @@ function BlogView({ posts, setPosts, spots, members }) {
                 , React.createElement('span', { className: "blog-author",}, post.author)
                 , React.createElement('span', null, post.date)
                 , spot && React.createElement('span', null, "\ud83d\udccd " , spot.name)
-                , _optionalChain([post, 'access', _6 => _6.photos, 'optionalAccess', _7 => _7.length]) > 0 && React.createElement('span', { style: {color:"var(--moss)", fontSize:11},}, "\ud83d\udcf7 " , post.photos.length, "\u679a")
+                , _optionalChain([post, 'access', _33 => _33.photos, 'optionalAccess', _34 => _34.length]) > 0 && React.createElement('span', { style: {color:"var(--moss)", fontSize:11},}, "\ud83d\udcf7 " , post.photos.length, "\u679a")
               )
               , React.createElement('div', { className: "blog-title",}, post.title)
 
-              , _optionalChain([post, 'access', _8 => _8.photos, 'optionalAccess', _9 => _9.length]) > 0 && (
+              , _optionalChain([post, 'access', _35 => _35.photos, 'optionalAccess', _36 => _36.length]) > 0 && (
                 React.createElement('div', { className: "blog-photos",}
                   , post.photos.map((src, i) => (
                     React.createElement('div', { key: i, className: "blog-photo", onClick: ()=>setLightbox({images:post.photos, index:i}),}
@@ -1863,7 +2761,7 @@ function MembersView({ members, setMembers }) {
     resetForm();
     setEditTarget(null);
     setShowForm(true);
-    setTimeout(() => _optionalChain([camRef, 'access', _10 => _10.current, 'optionalAccess', _11 => _11.click, 'call', _12 => _12()]), 400);
+    setTimeout(() => _optionalChain([camRef, 'access', _37 => _37.current, 'optionalAccess', _38 => _38.click, 'call', _39 => _39()]), 400);
   };
 
   const openEdit = (m) => {
@@ -1906,7 +2804,7 @@ function MembersView({ members, setMembers }) {
         })
       });
       const data = await res.json();
-      const txt = _optionalChain([data, 'access', _13 => _13.content, 'optionalAccess', _14 => _14[0], 'optionalAccess', _15 => _15.text])||"";
+      const txt = _optionalChain([data, 'access', _40 => _40.content, 'optionalAccess', _41 => _41[0], 'optionalAccess', _42 => _42.text])||"";
       const m = txt.match(/<svg[\s\S]*?<\/svg>/i);
       if (m) setAiSvg("data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(m[0]))));
       else setAiSvg("error");
@@ -2272,7 +3170,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members }) {
   const [lightbox, setLightbox] = useState(null);
 
   const emptyRecord = {
-    date: today, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _16 => _16[0], 'optionalAccess', _17 => _17.id]), () => ( "")), patrolledBy: "",
+    date: today, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _43 => _43[0], 'optionalAccess', _44 => _44.id]), () => ( "")), patrolledBy: "",
     sansaiStatus: [], overallCondition: "\u826f\u597d",
     illegalActivity: false, photos: [], notes: "", gps: null,
   };
@@ -2280,7 +3178,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members }) {
   const [autoCam, setAutoCam] = useState(false);
   const patrolGPS = useGPS();
 
-  const emptySchedule = { date: today, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _18 => _18[0], 'optionalAccess', _19 => _19.id]), () => ( "")), assignee: "", memo: "", calendarId: "3" };
+  const emptySchedule = { date: today, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _45 => _45[0], 'optionalAccess', _46 => _46.id]), () => ( "")), assignee: "", memo: "", calendarId: "3" };
   const [schForm, setSchForm] = useState(emptySchedule);
 
   // ===== \u72b6\u614b\u5b9a\u7fa9 =====
@@ -2295,9 +3193,9 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members }) {
   const MEMBERS_LIST = (members||[]).map(m=>m.name);
 
   // ===== \u30d8\u30eb\u30d1\u30fc =====
-  const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _20 => _20.find, 'call', _21 => _21(s => s.id === Number(id)), 'optionalAccess', _22 => _22.name]), () => ( "\u4e0d\u660e"));
-  const sansaiName = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _23 => _23.find, 'call', _24 => _24(s => s.id === id), 'optionalAccess', _25 => _25.name]), () => ( "\u4e0d\u660e"));
-  const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _26 => _26.find, 'call', _27 => _27(s => s.id === id), 'optionalAccess', _28 => _28.emoji]), () => ( "\ud83c\udf3f"));
+  const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _47 => _47.find, 'call', _48 => _48(s => s.id === Number(id)), 'optionalAccess', _49 => _49.name]), () => ( "\u4e0d\u660e"));
+  const sansaiName = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _50 => _50.find, 'call', _51 => _51(s => s.id === id), 'optionalAccess', _52 => _52.name]), () => ( "\u4e0d\u660e"));
+  const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _53 => _53.find, 'call', _54 => _54(s => s.id === id), 'optionalAccess', _55 => _55.emoji]), () => ( "\ud83c\udf3f"));
 
   const addSansaiStatus = () => {
     setRecForm(f => ({ ...f, sansaiStatus: [...f.sansaiStatus, { sansaiId: 1, status: "\u65ec", quantity: "\u666e\u901a", memo: "" }] }));
@@ -2353,7 +3251,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members }) {
     // Google\u30ab\u30ec\u30f3\u30c0\u30fc\u306b\u81ea\u52d5\u767b\u9332
     if (onScheduleSuccess) {
       setCalLoading(true);
-      const sName = _nullishCoalesce(_optionalChain([spots, 'access', _29 => _29.find, 'call', _30 => _30(s => s.id === newSch.spotId), 'optionalAccess', _31 => _31.name]), () => ( ""));
+      const sName = _nullishCoalesce(_optionalChain([spots, 'access', _56 => _56.find, 'call', _57 => _57(s => s.id === newSch.spotId), 'optionalAccess', _58 => _58.name]), () => ( ""));
       const title = `\ud83d\udd0d \u5c71\u83dc\u30d1\u30c8\u30ed\u30fc\u30eb\uff1a${sName}`;
       const desc = [
         `\u62c5\u5f53\uff1a${newSch.assignee || "\u672a\u5b9a"}`,
@@ -2456,7 +3354,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members }) {
                 )
               )
               /* \u5c71\u83dc\u72b6\u6cc1\u30b5\u30de\u30ea\u30fc */
-              , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6, marginBottom: _optionalChain([rec, 'access', _32 => _32.photos, 'optionalAccess', _33 => _33.length]) ? 8 : 0},}
+              , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6, marginBottom: _optionalChain([rec, 'access', _59 => _59.photos, 'optionalAccess', _60 => _60.length]) ? 8 : 0},}
                 , rec.sansaiStatus.map((ss, i) => (
                   React.createElement('span', { key: i, style: {fontSize:11, fontWeight:600, padding:"3px 8px", borderRadius:20,
                     background: STATUS_COLOR[ss.status]+"22", color: STATUS_COLOR[ss.status],
@@ -2465,7 +3363,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members }) {
                   )
                 ))
               )
-              , _optionalChain([rec, 'access', _34 => _34.photos, 'optionalAccess', _35 => _35.length]) > 0 && (
+              , _optionalChain([rec, 'access', _61 => _61.photos, 'optionalAccess', _62 => _62.length]) > 0 && (
                 React.createElement('div', { style: {display:"flex", gap:6, marginTop:8},}
                   , rec.photos.slice(0,3).map((p,i) => (
                     React.createElement('div', { key: i, style: {width:52, height:52, borderRadius:8, overflow:"hidden", flexShrink:0},}
@@ -2990,7 +3888,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members }) {
               ))
             )
 
-            , _optionalChain([selectedRecord, 'access', _36 => _36.photos, 'optionalAccess', _37 => _37.length]) > 0 && (
+            , _optionalChain([selectedRecord, 'access', _63 => _63.photos, 'optionalAccess', _64 => _64.length]) > 0 && (
               React.createElement('div', { style: {marginBottom:12},}
                 , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)", marginBottom:8},}, "\ud83d\udcf7 \u5199\u771f" )
                 , React.createElement('div', { className: "blog-photos",}
@@ -3217,7 +4115,7 @@ function SansaiInfoView({ spots }) {
   const handleEdit = () => {
     setEntries(prev => prev.map(e => e.id === form.id ? { ...e, ...form } : e));
     // \u8a73\u7d30\u8868\u793a\u4e2d\u3060\u3063\u305f\u3089\u66f4\u65b0
-    if (_optionalChain([selected, 'optionalAccess', _38 => _38.id]) === form.id) setSelected({ ...selected, ...form });
+    if (_optionalChain([selected, 'optionalAccess', _65 => _65.id]) === form.id) setSelected({ ...selected, ...form });
     setShowEditForm(false);
   };
 
@@ -3377,7 +4275,7 @@ function SansaiInfoView({ spots }) {
         , [
           { label:"\u767b\u9332\u5c71\u83dc", val:`${entries.length}\u7a2e`, icon:"\ud83c\udf3f" },
           { label:"\u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0", val:`${entries.filter(e=>e.isCustom).length}\u7a2e`, icon:"\u270f\ufe0f" },
-          { label:"\u30b9\u30dd\u30c3\u30c8\u767b\u9332", val:`${entries.reduce((acc,e)=>acc+(_optionalChain([e, 'access', _39 => _39.customSpots, 'optionalAccess', _40 => _40.length])||0),0)}\u7b87\u6240`, icon:"\ud83d\udccd" },
+          { label:"\u30b9\u30dd\u30c3\u30c8\u767b\u9332", val:`${entries.reduce((acc,e)=>acc+(_optionalChain([e, 'access', _66 => _66.customSpots, 'optionalAccess', _67 => _67.length])||0),0)}\u7b87\u6240`, icon:"\ud83d\udccd" },
         ].map(item=>(
           React.createElement('div', { key: item.label, style: {flex:1, minWidth:90, background:"white", borderRadius:12, padding:"10px 14px", boxShadow:"0 2px 8px rgba(0,0,0,0.07)", textAlign:"center", border:"1px solid var(--mist)"},}
             , React.createElement('div', { style: {fontSize:20},}, item.icon)
@@ -3396,7 +4294,7 @@ function SansaiInfoView({ spots }) {
             , React.createElement('div', { className: "sansai-months",}, "\ud83d\uddd3 " , s.months.map(m=>MONTHS[m-1]).join("\u30fb"))
             , React.createElement('div', { className: "sansai-region",}, "\ud83d\udccd " , s.region)
             , React.createElement('div', { className: "sansai-desc",}, s.desc)
-            , _optionalChain([s, 'access', _41 => _41.customSpots, 'optionalAccess', _42 => _42.length]) > 0 && (
+            , _optionalChain([s, 'access', _68 => _68.customSpots, 'optionalAccess', _69 => _69.length]) > 0 && (
               React.createElement('div', { style: {marginTop:8, fontSize:11, color:"var(--moss)", fontWeight:600},}, "\ud83d\udccd \u30b9\u30dd\u30c3\u30c8 "  , s.customSpots.length, "\u4ef6")
             )
           )
@@ -3445,7 +4343,7 @@ function SansaiInfoView({ spots }) {
               /* \u304a\u3059\u3059\u3081\u30b9\u30dd\u30c3\u30c8 */
               , React.createElement('div', null
                 , React.createElement('div', { style: {fontWeight:700, color:"var(--forest)", marginBottom:8},}, "\ud83c\udfd4 \u304a\u3059\u3059\u3081\u30b9\u30dd\u30c3\u30c8" )
-                , _optionalChain([selected, 'access', _43 => _43.customSpots, 'optionalAccess', _44 => _44.length]) > 0 ? (
+                , _optionalChain([selected, 'access', _70 => _70.customSpots, 'optionalAccess', _71 => _71.length]) > 0 ? (
                   React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:6, marginBottom:10},}
                     , selected.customSpots.map((sp,i)=>(
                       React.createElement('div', { key: i, style: {display:"flex", alignItems:"center", gap:8, background:"var(--soil)", borderRadius:8, padding:"8px 12px"},}
@@ -3576,7 +4474,7 @@ function HarvestView({ spots, members }) {
   const CONDITIONS = ["\u826f\u597d", "\u666e\u901a", "\u3084\u3084\u4e0d\u826f", "\u4e0d\u826f"];
 
   const emptyForm = {
-    date: today, sansaiId: 1, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _45 => _45[0], 'optionalAccess', _46 => _46.id]), () => ( "")),
+    date: today, sansaiId: 1, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _72 => _72[0], 'optionalAccess', _73 => _73.id]), () => ( "")),
     collectors: [], amount: "", unit: "g", condition: "\u826f\u597d", memo: "", photos: [], gps: null,
   };
   const [form, setForm] = useState(emptyForm);
@@ -3614,9 +4512,9 @@ function HarvestView({ spots, members }) {
     setSelectedHarvest(null);
   };
 
-  const sansaiName = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _47 => _47.find, 'call', _48 => _48(s => s.id === id), 'optionalAccess', _49 => _49.name]), () => ( "\u4e0d\u660e"));
-  const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _50 => _50.find, 'call', _51 => _51(s => s.id === id), 'optionalAccess', _52 => _52.emoji]), () => ( "\ud83c\udf3f"));
-  const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _53 => _53.find, 'call', _54 => _54(s => s.id === Number(id)), 'optionalAccess', _55 => _55.name]), () => ( "\u4e0d\u660e"));
+  const sansaiName = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _74 => _74.find, 'call', _75 => _75(s => s.id === id), 'optionalAccess', _76 => _76.name]), () => ( "\u4e0d\u660e"));
+  const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _77 => _77.find, 'call', _78 => _78(s => s.id === id), 'optionalAccess', _79 => _79.emoji]), () => ( "\ud83c\udf3f"));
+  const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _80 => _80.find, 'call', _81 => _81(s => s.id === Number(id)), 'optionalAccess', _82 => _82.name]), () => ( "\u4e0d\u660e"));
 
   // \u30d5\u30a3\u30eb\u30bf\u30fc\u9069\u7528
   const filtered = harvests.filter(h => {
@@ -3700,7 +4598,7 @@ function HarvestView({ spots, members }) {
           )
 
           , filtered.map(h => (
-            React.createElement('div', { key: h.id, style: {...cardStyle, cursor:"pointer", borderLeft:`4px solid ${_nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _56 => _56.find, 'call', _57 => _57(s=>s.id===h.sansaiId), 'optionalAccess', _58 => _58.color]), () => ( "var(--fern)"))}`},
+            React.createElement('div', { key: h.id, style: {...cardStyle, cursor:"pointer", borderLeft:`4px solid ${_nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _83 => _83.find, 'call', _84 => _84(s=>s.id===h.sansaiId), 'optionalAccess', _85 => _85.color]), () => ( "var(--fern)"))}`},
               onClick: ()=>setSelectedHarvest(h),}
               , React.createElement('div', { style: {display:"flex", alignItems:"flex-start", gap:12},}
                 , React.createElement('div', { style: {fontSize:36, flexShrink:0},}, sansaiEmoji(h.sansaiId))
@@ -3724,7 +4622,7 @@ function HarvestView({ spots, members }) {
                   )
                   , h.memo && React.createElement('div', { style: {fontSize:12, color:"#666"},}, h.memo)
                 )
-                , _optionalChain([h, 'access', _59 => _59.photos, 'optionalAccess', _60 => _60.length]) > 0 && (
+                , _optionalChain([h, 'access', _86 => _86.photos, 'optionalAccess', _87 => _87.length]) > 0 && (
                   React.createElement('div', { style: {width:52, height:52, borderRadius:8, overflow:"hidden", flexShrink:0},}
                     , React.createElement('img', { src: h.photos[0], style: {width:"100%", height:"100%", objectFit:"cover"},} )
                   )
@@ -3966,7 +4864,7 @@ function HarvestView({ spots, members }) {
                   )
                 )
               )
-              , _optionalChain([selectedHarvest, 'access', _61 => _61.photos, 'optionalAccess', _62 => _62.length]) > 0 && (
+              , _optionalChain([selectedHarvest, 'access', _88 => _88.photos, 'optionalAccess', _89 => _89.length]) > 0 && (
                 React.createElement('div', { className: "blog-photos",}
                   , selectedHarvest.photos.map((src,i)=>(
                     React.createElement('div', { key: i, className: "blog-photo", onClick: ()=>setLightbox({images:selectedHarvest.photos, index:i}),}
@@ -4049,7 +4947,7 @@ function MemoView({ spots }) {
   const [form, setForm] = useState(blankForm());
 
   useEffect(() => {
-    if (autoCam && camRef.current) setTimeout(() => _optionalChain([camRef, 'access', _63 => _63.current, 'optionalAccess', _64 => _64.click, 'call', _65 => _65()]), 300);
+    if (autoCam && camRef.current) setTimeout(() => _optionalChain([camRef, 'access', _90 => _90.current, 'optionalAccess', _91 => _91.click, 'call', _92 => _92()]), 300);
   }, [autoCam, mode]);
 
   const updateForm = (key, val) => setForm(f => ({...f, [key]: val}));
@@ -4116,9 +5014,9 @@ function MemoView({ spots }) {
     return matchText && matchTag;
   });
 
-  const sansaiName = id => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _66 => _66.find, 'call', _67 => _67(s=>s.id===id), 'optionalAccess', _68 => _68.name]), () => (""));
-  const sansaiEmoji = id => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _69 => _69.find, 'call', _70 => _70(s=>s.id===id), 'optionalAccess', _71 => _71.emoji]), () => ("\ud83c\udf3f"));
-  const spotName = id => _nullishCoalesce(_optionalChain([spots, 'access', _72 => _72.find, 'call', _73 => _73(s=>s.id===Number(id)), 'optionalAccess', _74 => _74.name]), () => (""));
+  const sansaiName = id => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _93 => _93.find, 'call', _94 => _94(s=>s.id===id), 'optionalAccess', _95 => _95.name]), () => (""));
+  const sansaiEmoji = id => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _96 => _96.find, 'call', _97 => _97(s=>s.id===id), 'optionalAccess', _98 => _98.emoji]), () => ("\ud83c\udf3f"));
+  const spotName = id => _nullishCoalesce(_optionalChain([spots, 'access', _99 => _99.find, 'call', _100 => _100(s=>s.id===Number(id)), 'optionalAccess', _101 => _101.name]), () => (""));
 
   const cardStyle = {background:"white", borderRadius:14, padding:16,
     boxShadow:"0 2px 12px rgba(0,0,0,0.08)", border:"1px solid var(--mist)", marginBottom:12};
@@ -4318,7 +5216,7 @@ function MemoView({ spots }) {
         )
 
         /* \u30bf\u30b0 */
-        , _optionalChain([memo, 'access', _75 => _75.tags, 'optionalAccess', _76 => _76.length]) > 0 && (
+        , _optionalChain([memo, 'access', _102 => _102.tags, 'optionalAccess', _103 => _103.length]) > 0 && (
           React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6, marginBottom:14},}
             , memo.tags.map(t=>(
               React.createElement('span', { key: t, style: {background:"var(--forest)", color:"white", fontSize:11,
@@ -4328,10 +5226,10 @@ function MemoView({ spots }) {
         )
 
         /* \u63a1\u308c\u308b\u5c71\u83dc */
-        , _optionalChain([memo, 'access', _77 => _77.sansai, 'optionalAccess', _78 => _78.length]) > 0 && (
+        , _optionalChain([memo, 'access', _104 => _104.sansai, 'optionalAccess', _105 => _105.length]) > 0 && (
           React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6, marginBottom:14},}
             , memo.sansai.map(id=>(
-              React.createElement('span', { key: id, style: {background:_optionalChain([SANSAI_DATA, 'access', _79 => _79.find, 'call', _80 => _80(s=>s.id===id), 'optionalAccess', _81 => _81.color])||"var(--fern)",
+              React.createElement('span', { key: id, style: {background:_optionalChain([SANSAI_DATA, 'access', _106 => _106.find, 'call', _107 => _107(s=>s.id===id), 'optionalAccess', _108 => _108.color])||"var(--fern)",
                 color:"white", fontSize:12, fontWeight:600, padding:"4px 12px", borderRadius:20},}
                 , sansaiEmoji(id), " " , sansaiName(id)
               )
@@ -4340,7 +5238,7 @@ function MemoView({ spots }) {
         )
 
         /* \u5199\u771f */
-        , _optionalChain([memo, 'access', _82 => _82.photos, 'optionalAccess', _83 => _83.length]) > 0 && (
+        , _optionalChain([memo, 'access', _109 => _109.photos, 'optionalAccess', _110 => _110.length]) > 0 && (
           React.createElement('div', { className: "blog-photos", style: {marginBottom:14},}
             , memo.photos.map((src,i)=>(
               React.createElement('div', { key: i, className: "blog-photo", onClick: ()=>setLightbox({images:memo.photos,index:i}),}
@@ -4443,20 +5341,20 @@ function MemoView({ spots }) {
                 , memo.spotId && React.createElement('span', null, " \u30fb \ud83d\udccd"  , spotName(memo.spotId))
               )
             )
-            , _optionalChain([memo, 'access', _84 => _84.photos, 'optionalAccess', _85 => _85.length]) > 0 && (
+            , _optionalChain([memo, 'access', _111 => _111.photos, 'optionalAccess', _112 => _112.length]) > 0 && (
               React.createElement('div', { style: {width:44, height:44, borderRadius:8, overflow:"hidden", flexShrink:0, marginLeft:10},}
                 , React.createElement('img', { src: memo.photos[0], style: {width:"100%", height:"100%", objectFit:"cover"},} )
               )
             )
           )
           /* \u63a1\u308c\u308b\u5c71\u83dc */
-          , _optionalChain([memo, 'access', _86 => _86.sansai, 'optionalAccess', _87 => _87.length]) > 0 && (
+          , _optionalChain([memo, 'access', _113 => _113.sansai, 'optionalAccess', _114 => _114.length]) > 0 && (
             React.createElement('div', { style: {display:"flex", gap:5, flexWrap:"wrap", marginBottom:6},}
               , memo.sansai.map(id=>(
                 React.createElement('span', { key: id, style: {fontSize:10, fontWeight:600,
-                  background:_optionalChain([SANSAI_DATA, 'access', _88 => _88.find, 'call', _89 => _89(s=>s.id===id), 'optionalAccess', _90 => _90.color])+"22"||"#eee",
-                  color:_optionalChain([SANSAI_DATA, 'access', _91 => _91.find, 'call', _92 => _92(s=>s.id===id), 'optionalAccess', _93 => _93.color])||"#666",
-                  border:`1px solid ${_optionalChain([SANSAI_DATA, 'access', _94 => _94.find, 'call', _95 => _95(s=>s.id===id), 'optionalAccess', _96 => _96.color])||"#ccc"}`,
+                  background:_optionalChain([SANSAI_DATA, 'access', _115 => _115.find, 'call', _116 => _116(s=>s.id===id), 'optionalAccess', _117 => _117.color])+"22"||"#eee",
+                  color:_optionalChain([SANSAI_DATA, 'access', _118 => _118.find, 'call', _119 => _119(s=>s.id===id), 'optionalAccess', _120 => _120.color])||"#666",
+                  border:`1px solid ${_optionalChain([SANSAI_DATA, 'access', _121 => _121.find, 'call', _122 => _122(s=>s.id===id), 'optionalAccess', _123 => _123.color])||"#ccc"}`,
                   padding:"2px 8px", borderRadius:20},}
                   , sansaiEmoji(id), " " , sansaiName(id)
                 )
@@ -4464,7 +5362,7 @@ function MemoView({ spots }) {
             )
           )
           /* \u30bf\u30b0 */
-          , _optionalChain([memo, 'access', _97 => _97.tags, 'optionalAccess', _98 => _98.length]) > 0 && (
+          , _optionalChain([memo, 'access', _124 => _124.tags, 'optionalAccess', _125 => _125.length]) > 0 && (
             React.createElement('div', { style: {display:"flex", gap:4, flexWrap:"wrap", marginBottom:6},}
               , memo.tags.map(t=>(
                 React.createElement('span', { key: t, style: {fontSize:10, background:"var(--forest)", color:"white",
@@ -4487,7 +5385,7 @@ function MemoView({ spots }) {
           /* GPS\u30fb\u5199\u771f\u30d0\u30c3\u30b8 */
           , React.createElement('div', { style: {display:"flex", gap:8, marginTop:6},}
             , memo.gps && React.createElement('span', { style: {fontSize:10, color:"#2e7d32", fontWeight:600},}, "\ud83d\udce1 GPS\u767b\u9332\u6e08\u307f" )
-            , _optionalChain([memo, 'access', _99 => _99.photos, 'optionalAccess', _100 => _100.length]) > 0 && React.createElement('span', { style: {fontSize:10, color:"#888"},}, "\ud83d\udcf7 " , memo.photos.length, "\u679a")
+            , _optionalChain([memo, 'access', _126 => _126.photos, 'optionalAccess', _127 => _127.length]) > 0 && React.createElement('span', { style: {fontSize:10, color:"#888"},}, "\ud83d\udcf7 " , memo.photos.length, "\u679a")
           )
         )
       ))
@@ -4644,27 +5542,10 @@ function App() {
 
 window.App = App;
 
-    try {
-      var container = document.getElementById('root');
-      var root = ReactDOM.createRoot(container);
-      root.render(React.createElement(window.App));
-    } catch(e) {
-      document.getElementById('root').innerHTML =
-        '<div style="padding:20px;font-family:sans-serif;color:#c0392b;background:#fdecea;border-radius:12px;margin:20px;">' +
-        '<b>Start Error</b><p>' + (e.stack||e.message) + '</p>' +
-        '<button onclick="location.reload(true)" style="background:#2d4a2d;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">Reload</button></div>';
-    }
+    try{var c=document.getElementById('root');var rt=ReactDOM.createRoot(c);rt.render(React.createElement(window.App));}catch(e){document.getElementById('root').innerHTML='<div style="padding:20px;font-family:sans-serif;color:#c0392b;background:#fdecea;border-radius:12px;margin:20px;"><b>Start Error</b><p>'+(e.stack||e.message)+'</p><button onclick="location.reload(true)" style="background:#2d4a2d;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">Reload</button></div>';}
   </script>
   <script>
-    if('serviceWorker' in navigator){
-      navigator.serviceWorker.getRegistrations().then(function(regs){
-        regs.forEach(function(r){ r.unregister(); });
-      });
-      window.addEventListener('load',function(){
-        navigator.serviceWorker.register('./sw.js',{scope:'./'})
-          .catch(function(e){ console.log('SW skip'); });
-      });
-    }
+    if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(s){s.unregister();});});window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(function(){});});}
   </script>
 </body>
 </html>
