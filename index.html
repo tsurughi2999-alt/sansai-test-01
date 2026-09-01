@@ -2190,7 +2190,9 @@ function CalendarView() {
     setCalSansai(updated);
     try { localStorage.setItem("sansai_custom", JSON.stringify(updated)); } catch(e) {}
     setForm(emptyForm);
+    setForm({ name:"", sansai:[], notes:"", photos:[] });
     setShowForm(false);
+    setEditTarget(null);
   };
 
   const handleDelete = (id) => {
@@ -6284,7 +6286,13 @@ function MemoView({ spots }) {
 // ===== APP =====
 function App() {
   const [tab, setTab] = useState("calendar");
-  const [spots, setSpots] = useState(INITIAL_SPOTS);
+  const [spots, setSpots] = useState(() => {
+    try {
+      const saved = localStorage.getItem("sansai_spots");
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return INITIAL_SPOTS;
+  });
   const [members, setMembers] = useState(() =>
     loadMembersFromStorage(
       INITIAL_MEMBERS.map((name, i) => ({ id: i+1, name, nickname:"", role: i===0?"\u63a1\u53d6\u30ea\u30fc\u30c0\u30fc":"\u4e00\u822c", rank:"\u521d\u7d1a\uff08\u521d\u5fc3\u8005\uff09", memo:"", joined:"2024-01-01", photo:null, avatar:null }))
@@ -6292,6 +6300,10 @@ function App() {
   );
   const [posts, setPosts] = useState(INITIAL_BLOG);
   const [calEvents, setCalEvents] = useState([]);
+
+  useEffect(() => {
+    try { localStorage.setItem("sansai_spots", JSON.stringify(spots)); } catch(e) {}
+  }, [spots]);
 
   const [weatherLocations, setWeatherLocations] = useState(INITIAL_WEATHER_LOCATIONS);
   const [toast, setToast] = useState(null);
