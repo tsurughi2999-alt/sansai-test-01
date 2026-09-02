@@ -1465,7 +1465,7 @@ function CameraCapture({ onCapture, label = "\u30ab\u30e1\u30e9\u3067\u64ae\u5f7
 function WeatherWidget({ spots, weatherLocations, setWeatherLocations }) {
   const [loc, setLoc] = useState(_nullishCoalesce(weatherLocations[0], () => ( INITIAL_WEATHER_LOCATIONS[0])));
   const [weather, setWeather] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);  // \u521d\u56de\u304b\u3089\u8aad\u307f\u8fbc\u307f\u4e2d
   const [error, setError] = useState(null);
   const [mainTab, setMainTab] = useState("forecast"); // forecast | sites | planned
   const [forecastTab, setForecastTab] = useState("today");
