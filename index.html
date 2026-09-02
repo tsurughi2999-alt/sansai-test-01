@@ -2166,9 +2166,9 @@ function AreaManager({ weatherLocations, setWeatherLocations }) {
   );
 }
 
-function CalendarView() {
+function CalendarView({ sansaiList, setSansaiList }) {
   const currentMonth = new Date().getMonth() + 1;
-  const [calSansai, setCalSansai] = useState(SANSAI_DATA);
+
   const [showForm, setShowForm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -2186,8 +2186,8 @@ function CalendarView() {
   const handleAdd = () => {
     if (!form.name.trim() || form.months.length === 0) return;
     const newEntry = { ...form, id: Date.now() };
-    const updated = [...calSansai, newEntry];
-    setCalSansai(updated);
+    const updated = [...sansaiList, newEntry];
+    setSansaiList(updated);
     try { localStorage.setItem("sansai_custom", JSON.stringify(updated)); } catch(e) {}
     setForm(emptyForm);
     setForm({ name:"", sansai:[], notes:"", photos:[] });
@@ -2195,8 +2195,8 @@ function CalendarView() {
   };
 
   const handleDelete = (id) => {
-    const updated = calSansai.filter(s => s.id !== id);
-    setCalSansai(updated);
+    const updated = sansaiList.filter(s => s.id !== id);
+    setSansaiList(updated);
     try { localStorage.setItem("sansai_custom", JSON.stringify(updated)); } catch(e) {}
     setDeleteTarget(null);
   };
@@ -2217,7 +2217,7 @@ function CalendarView() {
         , MONTHS.map((m, i) => (
           React.createElement('div', { key: i, className: "cal-header", style: i+1===currentMonth?{background:"#4a7a3d"}:{},}, m)
         ))
-        , calSansai.map(s => {
+        , sansaiList.map(s => {
           const peak = s.months[Math.floor(s.months.length / 2)];
           return [
             React.createElement('div', { key: "l"+s.id, className: "cal-label", style: {display:"flex", alignItems:"center", justifyContent:"space-between", paddingRight:4},}
@@ -3190,12 +3190,12 @@ function AreaManager({ weatherLocations, setWeatherLocations }) {
   );
 }
 
-function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocations, members }) {
+function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocations, members, sansaiList }) {
   const currentMonth = new Date().getMonth() + 1;
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [showSchedule, setShowSchedule] = useState(false);
 
-  const available = SANSAI_DATA.filter(s => s.months.includes(selectedMonth));
+  const available = (sansaiList||SANSAI_DATA).filter(s => s.months.includes(selectedMonth));
   const peak = available.filter(s => s.months[Math.floor(s.months.length/2)] === selectedMonth);
 
   return (
@@ -3985,7 +3985,7 @@ function MembersView({ members, setMembers }) {
 }
 
 
-function PatrolView({ spots, onScheduleSuccess, showToast, members }) {
+function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList }) {
   const today = new Date().toISOString().split("T")[0];
   const currentMonth = new Date().getMonth() + 1;
 
@@ -4932,8 +4932,8 @@ function DangerPlantsView() {
   );
 }
 
-function SansaiInfoView({ spots }) {
-  const [entries, setEntries] = useState(SANSAI_DATA.map(s => ({
+function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
+  const [entries, setEntries] = useState((sansaiList||SANSAI_DATA).map(s => ({
     ...s,
     customSpots: [], // \u304a\u3059\u3059\u3081\u30b9\u30dd\u30c3\u30c8\uff08\u8ffd\u52a0\u53ef\u80fd\uff09
     notes: "",       // \u8ffd\u52a0\u30e1\u30e2
@@ -4959,6 +4959,7 @@ function SansaiInfoView({ spots }) {
     if (!form.name.trim() || form.months.length === 0) return;
     const newEntry = { ...form, id: Date.now(), isCustom: true };
     setEntries(prev => [...prev, newEntry]);
+    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc}]);
     setForm(emptyForm);
     setShowAddForm(false);
   };
@@ -4978,6 +4979,7 @@ function SansaiInfoView({ spots }) {
 
   const handleDelete = (id) => {
     setEntries(prev => prev.filter(e => e.id !== id));
+    setSansaiList(prev => prev.filter(e => e.id !== id));
     setSelected(null);
     setDeleteConfirm(null);
   };
@@ -6300,6 +6302,18 @@ function App() {
   const [posts, setPosts] = useState(INITIAL_BLOG);
   const [calEvents, setCalEvents] = useState([]);
 
+  // \u5168\u30bf\u30d6\u5171\u6709\u306esansaiList
+  const [sansaiList, setSansaiList] = useState(() => {
+    try {
+      const saved = localStorage.getItem("sansai_list_v2");
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return SANSAI_DATA;
+  });
+  useEffect(() => {
+    try { localStorage.setItem("sansai_list_v2", JSON.stringify(sansaiList)); } catch(e) {}
+  }, [sansaiList]);
+
   useEffect(() => {
     try { localStorage.setItem("sansai_spots", JSON.stringify(spots)); } catch(e) {}
   }, [spots]);
@@ -6391,13 +6405,13 @@ function App() {
         )
 
         , React.createElement('main', { className: "main",}
-          , tab === "calendar" && React.createElement(CalendarView, null )
-          , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members,} )
+          , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList,} )
+          , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList,} )
           , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots,} )
           , tab === "blog"     && React.createElement(BlogView, { posts: posts, setPosts: setPosts, spots: spots, members: members,} )
           , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots,} )
           , tab === "members"  && React.createElement(MembersView, { members: members, setMembers: setMembers,} )
-          , tab === "patrol"   && React.createElement(PatrolView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members,} )
+          , tab === "patrol"   && React.createElement(PatrolView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList,} )
           , tab === "harvest"  && React.createElement(HarvestView, { spots: spots, members: members,} )
           , tab === "memo"     && React.createElement(MemoView, { spots: spots,} )
         )
