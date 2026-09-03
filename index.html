@@ -3307,7 +3307,7 @@ function SpotsView({ spots, setSpots }) {
             , React.createElement('div', { className: "spot-card-body",}
               , React.createElement('div', { className: "spot-tags",}
                 , spot.sansai.map(sid => {
-                  const s = SANSAI_DATA.find(x=>x.id===sid);
+                  const s = (sansaiList||SANSAI_DATA).find(x=>x.id===sid);
                   return s ? React.createElement('span', { key: sid, className: "spot-tag",}, s.emoji, " " , s.name) : null;
                 })
               )
@@ -3347,7 +3347,7 @@ function SpotsView({ spots, setSpots }) {
             , React.createElement('div', { className: "form-group",}
               , React.createElement('label', { className: "form-label",}, "\u63a1\u308c\u308b\u5c71\u83dc")
               , React.createElement('div', { className: "sansai-check-grid",}
-                , SANSAI_DATA.map(s => (
+                , (sansaiList||SANSAI_DATA).map(s => (
                   React.createElement('div', { key: s.id, className: `sansai-check${form.sansai.includes(s.id)?" selected":""}`, onClick: ()=>toggleSansai(s.id),}
                     , s.emoji, " " , s.name
                   )
@@ -3443,7 +3443,7 @@ function BlogView({ posts, setPosts, spots, members }) {
               , React.createElement('div', { className: "blog-content",}, post.content)
               , React.createElement('div', { className: "blog-footer",}
                 , post.sansai.map(sid => {
-                  const s = SANSAI_DATA.find(x=>x.id===sid);
+                  const s = (sansaiList||SANSAI_DATA).find(x=>x.id===sid);
                   return s ? React.createElement('span', { key: sid, className: "blog-sansai-tag",}, s.emoji, " " , s.name) : null;
                 })
                 , React.createElement('button', { className: "like-btn", onClick: ()=>handleLike(post.id),}, "\u2764 " , post.likes)
@@ -3480,7 +3480,7 @@ function BlogView({ posts, setPosts, spots, members }) {
             , React.createElement('div', { className: "form-group",}
               , React.createElement('label', { className: "form-label",}, "\u63a1\u53d6\u3057\u305f\u5c71\u83dc")
               , React.createElement('div', { className: "sansai-check-grid",}
-                , SANSAI_DATA.map(s => (
+                , (sansaiList||SANSAI_DATA).map(s => (
                   React.createElement('div', { key: s.id, className: `sansai-check${form.sansai.includes(s.id)?" selected":""}`, onClick: ()=>toggleSansai(s.id),}
                     , s.emoji, " " , s.name
                   )
@@ -4051,8 +4051,8 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList }
 
   // ===== \u30d8\u30eb\u30d1\u30fc =====
   const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _74 => _74.find, 'call', _75 => _75(s => s.id === Number(id)), 'optionalAccess', _76 => _76.name]), () => ( "\u4e0d\u660e"));
-  const sansaiName = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _77 => _77.find, 'call', _78 => _78(s => s.id === id), 'optionalAccess', _79 => _79.name]), () => ( "\u4e0d\u660e"));
-  const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _80 => _80.find, 'call', _81 => _81(s => s.id === id), 'optionalAccess', _82 => _82.emoji]), () => ( "\ud83c\udf3f"));
+  const sansaiName = (id) => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _77 => _77.find, 'call', _78 => _78(s => s.id === id), 'optionalAccess', _79 => _79.name]), () => ( "\u4e0d\u660e"));
+  const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _80 => _80.find, 'call', _81 => _81(s => s.id === id), 'optionalAccess', _82 => _82.emoji]), () => ( "\ud83c\udf3f"));
 
   const addSansaiStatus = () => {
     setRecForm(f => ({ ...f, sansaiStatus: [...f.sansaiStatus, { sansaiId: 1, status: "\u65ec", quantity: "\u666e\u901a", memo: "" }] }));
@@ -4427,7 +4427,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList }
                     , React.createElement('div', null
                       , React.createElement('label', { className: "form-label",}, "\u5c71\u83dc")
                       , React.createElement('select', { className: "form-select", value: ss.sansaiId, onChange: e=>updateSansaiStatus(i,"sansaiId",e.target.value),}
-                        , SANSAI_DATA.map(s=>React.createElement('option', { key: s.id, value: s.id,}, s.emoji, " " , s.name))
+                        , (sansaiList||SANSAI_DATA).map(s=>React.createElement('option', { key: s.id, value: s.id,}, s.emoji, " " , s.name))
                       )
                     )
                     , React.createElement('div', null
@@ -4933,7 +4933,7 @@ function DangerPlantsView() {
 }
 
 function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
-  const [entries, setEntries] = useState((sansaiList||SANSAI_DATA).map(s => ({
+  const [entries, setEntries] = useState((sansaiList||(sansaiList||SANSAI_DATA)).map(s => ({
     ...s,
     customSpots: [], // \u304a\u3059\u3059\u3081\u30b9\u30dd\u30c3\u30c8\uff08\u8ffd\u52a0\u53ef\u80fd\uff09
     notes: "",       // \u8ffd\u52a0\u30e1\u30e2
@@ -5310,7 +5310,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
 
 
 // ===== HARVEST VIEW =====
-function HarvestView({ spots, members }) {
+function HarvestView({ spots, members, sansaiList }) {
   const today = new Date().toISOString().split("T")[0];
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
@@ -5767,7 +5767,7 @@ function HarvestView({ spots, members }) {
 
 
 // ===== \u5fd8\u5099\u9332\u30d3\u30e5\u30fc =====
-function MemoView({ spots }) {
+function MemoView({ spots, sansaiList }) {
   const today = new Date().toISOString().split("T")[0];
 
   const INITIAL_MEMOS = [
@@ -5873,8 +5873,8 @@ function MemoView({ spots }) {
     return matchText && matchTag;
   });
 
-  const sansaiName = id => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _120 => _120.find, 'call', _121 => _121(s=>s.id===id), 'optionalAccess', _122 => _122.name]), () => (""));
-  const sansaiEmoji = id => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _123 => _123.find, 'call', _124 => _124(s=>s.id===id), 'optionalAccess', _125 => _125.emoji]), () => ("\ud83c\udf3f"));
+  const sansaiName = id => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _120 => _120.find, 'call', _121 => _121(s=>s.id===id), 'optionalAccess', _122 => _122.name]), () => (""));
+  const sansaiEmoji = id => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _123 => _123.find, 'call', _124 => _124(s=>s.id===id), 'optionalAccess', _125 => _125.emoji]), () => ("\ud83c\udf3f"));
   const spotName = id => _nullishCoalesce(_optionalChain([spots, 'access', _126 => _126.find, 'call', _127 => _127(s=>s.id===Number(id)), 'optionalAccess', _128 => _128.name]), () => (""));
 
   const cardStyle = {background:"white", borderRadius:14, padding:16,
@@ -5974,7 +5974,7 @@ function MemoView({ spots }) {
       , React.createElement('div', { style: {...cardStyle},}
         , React.createElement('div', { style: {fontSize:14, fontWeight:700, color:"var(--forest)", marginBottom:10},}, "\ud83c\udf3f \u63a1\u308c\u308b\u5c71\u83dc" )
         , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6},}
-          , SANSAI_DATA.map(s=>(
+          , (sansaiList||SANSAI_DATA).map(s=>(
             React.createElement('div', { key: s.id, onClick: ()=>toggleSansai(s.id),
               style: {padding:"5px 12px", borderRadius:20, cursor:"pointer", fontSize:11, fontWeight:600,
                 background: form.sansai.includes(s.id) ? s.color : "var(--mist)",
@@ -6088,7 +6088,7 @@ function MemoView({ spots }) {
         , _optionalChain([memo, 'access', _131 => _131.sansai, 'optionalAccess', _132 => _132.length]) > 0 && (
           React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6, marginBottom:14},}
             , memo.sansai.map(id=>(
-              React.createElement('span', { key: id, style: {background:_optionalChain([SANSAI_DATA, 'access', _133 => _133.find, 'call', _134 => _134(s=>s.id===id), 'optionalAccess', _135 => _135.color])||"var(--fern)",
+              React.createElement('span', { key: id, style: {background:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _133 => _133.find, 'call', _134 => _134(s=>s.id===id), 'optionalAccess', _135 => _135.color])||"var(--fern)",
                 color:"white", fontSize:12, fontWeight:600, padding:"4px 12px", borderRadius:20},}
                 , sansaiEmoji(id), " " , sansaiName(id)
               )
@@ -6211,9 +6211,9 @@ function MemoView({ spots }) {
             React.createElement('div', { style: {display:"flex", gap:5, flexWrap:"wrap", marginBottom:6},}
               , memo.sansai.map(id=>(
                 React.createElement('span', { key: id, style: {fontSize:10, fontWeight:600,
-                  background:_optionalChain([SANSAI_DATA, 'access', _142 => _142.find, 'call', _143 => _143(s=>s.id===id), 'optionalAccess', _144 => _144.color])+"22"||"#eee",
-                  color:_optionalChain([SANSAI_DATA, 'access', _145 => _145.find, 'call', _146 => _146(s=>s.id===id), 'optionalAccess', _147 => _147.color])||"#666",
-                  border:`1px solid ${_optionalChain([SANSAI_DATA, 'access', _148 => _148.find, 'call', _149 => _149(s=>s.id===id), 'optionalAccess', _150 => _150.color])||"#ccc"}`,
+                  background:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _142 => _142.find, 'call', _143 => _143(s=>s.id===id), 'optionalAccess', _144 => _144.color])+"22"||"#eee",
+                  color:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _145 => _145.find, 'call', _146 => _146(s=>s.id===id), 'optionalAccess', _147 => _147.color])||"#666",
+                  border:`1px solid ${_optionalChain([(sansaiList||SANSAI_DATA), 'access', _148 => _148.find, 'call', _149 => _149(s=>s.id===id), 'optionalAccess', _150 => _150.color])||"#ccc"}`,
                   padding:"2px 8px", borderRadius:20},}
                   , sansaiEmoji(id), " " , sansaiName(id)
                 )
@@ -6412,8 +6412,8 @@ function App() {
           , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots,} )
           , tab === "members"  && React.createElement(MembersView, { members: members, setMembers: setMembers,} )
           , tab === "patrol"   && React.createElement(PatrolView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList,} )
-          , tab === "harvest"  && React.createElement(HarvestView, { spots: spots, members: members,} )
-          , tab === "memo"     && React.createElement(MemoView, { spots: spots,} )
+          , tab === "harvest"  && React.createElement(HarvestView, { spots: spots, members: members, sansaiList: sansaiList,} )
+          , tab === "memo"     && React.createElement(MemoView, { spots: spots, sansaiList: sansaiList,} )
         )
       )
     )
