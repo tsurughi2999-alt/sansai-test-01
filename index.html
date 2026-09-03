@@ -3255,7 +3255,7 @@ function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocati
   );
 }
 
-function SpotsView({ spots, setSpots }) {
+function SpotsView({ spots, setSpots, sansaiList }) {
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -3387,7 +3387,7 @@ function SpotsView({ spots, setSpots }) {
   );
 }
 
-function BlogView({ posts, setPosts, spots, members }) {
+function BlogView({ posts, setPosts, spots, members, sansaiList }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title:"", content:"", sansai:[], spot:"", author: _nullishCoalesce(_optionalChain([members, 'access', _56 => _56[0], 'optionalAccess', _57 => _57.name]), () => ( "")), date: new Date().toISOString().split("T")[0], photos: [] });
   const [lightbox, setLightbox] = useState(null); // {images, index}
@@ -6407,9 +6407,9 @@ function App() {
         , React.createElement('main', { className: "main",}
           , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList,} )
           , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList,} )
-          , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots,} )
-          , tab === "blog"     && React.createElement(BlogView, { posts: posts, setPosts: setPosts, spots: spots, members: members,} )
-          , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots,} )
+          , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots, sansaiList: sansaiList,} )
+          , tab === "blog"     && React.createElement(BlogView, { posts: posts, setPosts: setPosts, spots: spots, members: members, sansaiList: sansaiList,} )
+          , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots, sansaiList: sansaiList, setSansaiList: setSansaiList,} )
           , tab === "members"  && React.createElement(MembersView, { members: members, setMembers: setMembers,} )
           , tab === "patrol"   && React.createElement(PatrolView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList,} )
           , tab === "harvest"  && React.createElement(HarvestView, { spots: spots, members: members, sansaiList: sansaiList,} )
