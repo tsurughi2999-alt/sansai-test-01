@@ -2166,6 +2166,70 @@ function AreaManager({ weatherLocations, setWeatherLocations }) {
   );
 }
 
+
+function HomeView({ onTabChange }) {
+  const menuItems = [
+    { id:"calendar", icon:"\ud83c\udf43", label:"\u5c71\u83dc\u30ab\u30ec\u30f3\u30c0\u30fc", desc:"\u63a1\u53d6\u9069\u671f\u4e00\u89a7", color:"#2d4a2d" },
+    { id:"plan",     icon:"\ud83d\udcc5", label:"\u63a1\u53d6\u30d7\u30e9\u30f3",   desc:"\u5929\u6c17\u30fb\u30ab\u30ec\u30f3\u30c0\u30fc\u9023\u643a", color:"#27ae60" },
+    { id:"spots",    icon:"\ud83d\udccd", label:"\u30b9\u30dd\u30c3\u30c8",       desc:"\u63a1\u53d6\u5834\u6240\u7ba1\u7406", color:"#e74c3c" },
+    { id:"blog",     icon:"\ud83d\udcdd", label:"\u30d6\u30ed\u30b0",         desc:"\u63a1\u53d6\u8a18\u9332\u30fb\u5199\u771f", color:"#e67e22" },
+    { id:"sansai",   icon:"\ud83c\udf3f", label:"\u5c71\u83dc\u56f3\u9451",     desc:"\u5c71\u83dc\u306e\u77e5\u8b58\u30fb\u5371\u967a\u690d\u7269", color:"#16a085" },
+    { id:"members",  icon:"\ud83d\udc65", label:"\u30e1\u30f3\u30d0\u30fc",     desc:"\u30b0\u30eb\u30fc\u30d7\u7ba1\u7406", color:"#8e44ad" },
+    { id:"patrol",   icon:"\ud83d\udd0d", label:"\u30d1\u30c8\u30ed\u30fc\u30eb",   desc:"\u5de1\u56de\u8a18\u9332\u30fb\u751f\u80b2\u72b6\u6cc1", color:"#2980b9" },
+    { id:"harvest",  icon:"\ud83e\uddfa", label:"\u53ce\u7a6b\u8a18\u9332",   desc:"\u53ce\u7a6b\u91cf\u30fb\u7d71\u8a08", color:"#d35400" },
+    { id:"memo",     icon:"\ud83d\udcd2", label:"\u5fd8\u5099\u9332",       desc:"\u30a2\u30af\u30bb\u30b9\u30fb\u9053\u9806\u30e1\u30e2", color:"#7f8c8d" },
+  ];
+
+  return (
+    React.createElement('div', { style: {minHeight:"100vh", background:"linear-gradient(160deg,#1a3a1a 0%,#2d5a2d 40%,#1a3a1a 100%)", padding:"0 0 40px"},}
+      /* \u30d8\u30c3\u30c0\u30fc\u30fb\u30ed\u30b4\u30a8\u30ea\u30a2 */
+      , React.createElement('div', { style: {textAlign:"center", padding:"48px 20px 32px"},}
+        , React.createElement('div', { style: {fontSize:72, marginBottom:12, filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.3))"},}, "\ud83c\udf3f")
+        , React.createElement('div', { style: {fontSize:32, fontWeight:700, color:"white", fontFamily:"'Noto Serif JP',serif",
+          letterSpacing:2, textShadow:"0 2px 8px rgba(0,0,0,0.4)", marginBottom:8},}, "\u5c71\u83dc\u63a1\u308a\u624b\u5e33"
+
+        )
+        , React.createElement('div', { style: {fontSize:14, color:"rgba(255,255,255,0.7)", letterSpacing:1},}, "\u4e2d\u90e8\u30fb\u5317\u9678\u30a8\u30ea\u30a2 | \u30b0\u30eb\u30fc\u30d7\u7ba1\u7406"
+
+        )
+        /* \u88c5\u98fe\u30e9\u30a4\u30f3 */
+        , React.createElement('div', { style: {display:"flex", alignItems:"center", justifyContent:"center", gap:12, margin:"20px 0 0"},}
+          , React.createElement('div', { style: {height:1, width:60, background:"rgba(255,255,255,0.3)"},})
+          , React.createElement('div', { style: {fontSize:16},}, "\ud83c\udf43")
+          , React.createElement('div', { style: {height:1, width:60, background:"rgba(255,255,255,0.3)"},})
+        )
+      )
+
+      /* \u30e1\u30cb\u30e5\u30fc\u30b0\u30ea\u30c3\u30c9 */
+      , React.createElement('div', { style: {padding:"0 16px"},}
+        , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:12},}
+          , menuItems.map(item => (
+            React.createElement('button', { key: item.id, onClick: () => onTabChange(item.id),
+              style: {background:"rgba(255,255,255,0.1)", backdropFilter:"blur(10px)",
+                border:"1px solid rgba(255,255,255,0.2)", borderRadius:16, padding:"20px 14px",
+                cursor:"pointer", textAlign:"left", transition:"all 0.2s",
+                boxShadow:"0 4px 16px rgba(0,0,0,0.2)"},}
+              , React.createElement('div', { style: {fontSize:32, marginBottom:8},}, item.icon)
+              , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"white",
+                fontFamily:"'Noto Serif JP',serif", marginBottom:4},}
+                , item.label
+              )
+              , React.createElement('div', { style: {fontSize:11, color:"rgba(255,255,255,0.6)"},}
+                , item.desc
+              )
+            )
+          ))
+        )
+      )
+
+      /* \u30d5\u30c3\u30bf\u30fc */
+      , React.createElement('div', { style: {textAlign:"center", marginTop:32, color:"rgba(255,255,255,0.4)", fontSize:11},}, "\u5c71\u83dc\u63a1\u308a\u624b\u5e33 v2.0 | \u4e2d\u90e8\u30fb\u5317\u9678\u30a8\u30ea\u30a2"
+
+      )
+    )
+  );
+}
+
 function CalendarView({ sansaiList, setSansaiList }) {
   const currentMonth = new Date().getMonth() + 1;
 
@@ -6324,7 +6388,7 @@ function MemoView({ spots, sansaiList }) {
 
 // ===== APP =====
 function App() {
-  const [tab, setTab] = useState("calendar");
+  const [tab, setTab] = useState("home");
   const [spots, setSpots] = useState(() => {
     try {
       const saved = localStorage.getItem("sansai_spots");
@@ -6443,6 +6507,7 @@ function App() {
         )
 
         , React.createElement('main', { className: "main",}
+          , tab === "home"     && React.createElement(HomeView, { onTabChange: setTab,} )
           , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList,} )
           , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList,} )
           , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots, sansaiList: sansaiList,} )
