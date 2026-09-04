@@ -2167,6 +2167,343 @@ function AreaManager({ weatherLocations, setWeatherLocations }) {
 }
 
 
+
+// ===== \u670d\u88c5\u30fb\u9053\u5177 \u521d\u671f\u30c7\u30fc\u30bf =====
+const INITIAL_CLOTHING = [
+  { id:1, name:"\u9577\u8896\u30b7\u30e3\u30c4",      category:"\u4e0a\u7740",   sansai:[], desc:"\u866b\u523a\u3055\u308c\u30fb\u64e6\u308a\u50b7\u9632\u6b62" },
+  { id:2, name:"\u9577\u30ba\u30dc\u30f3",        category:"\u30ba\u30dc\u30f3", sansai:[], desc:"\u64e6\u308a\u50b7\u30fb\u866b\u523a\u3055\u308c\u30fb\u30d2\u30eb\u9632\u6b62" },
+  { id:3, name:"\u9577\u9774",            category:"\u9774",     sansai:[], desc:"\u6ca2\u6cbf\u3044\u30fb\u6e7f\u5730\u3067\u306e\u63a1\u53d6\u306b\u5fc5\u9808" },
+  { id:4, name:"\u767b\u5c71\u9774",          category:"\u9774",     sansai:[], desc:"\u6025\u659c\u9762\u30fb\u5c71\u5cb3\u5730\u5e2f\u306b" },
+  { id:5, name:"\u8ecd\u624b\u30fb\u624b\u888b",      category:"\u624b\u888b",   sansai:[], desc:"\u30c8\u30b2\u30fb\u5207\u308a\u50b7\u9632\u6b62" },
+  { id:6, name:"\u5e3d\u5b50",            category:"\u5e3d\u5b50",   sansai:[], desc:"\u65e5\u5dee\u3057\u30fb\u866b\u30fb\u6728\u306e\u679d\u304b\u3089\u982d\u3092\u5b88\u308b" },
+  { id:7, name:"\u30ec\u30a4\u30f3\u30a6\u30a7\u30a2",    category:"\u96e8\u5177",   sansai:[], desc:"\u6025\u306a\u96e8\u30fb\u671d\u9732\u5bfe\u7b56" },
+  { id:8, name:"\u30e4\u30c3\u30b1\u30fb\u9632\u98a8\u30a6\u30a7\u30a2", category:"\u4e0a\u7740", sansai:[], desc:"\u9ad8\u5c71\u30fb\u7a1c\u7dda\u3067\u306e\u9632\u98a8\u306b" },
+  { id:9, name:"\u30b9\u30d1\u30c3\u30c4\u30fb\u30b2\u30a4\u30bf\u30fc", category:"\u811a", sansai:[], desc:"\u30d2\u30eb\u30fb\u86c7\u30fb\u96e8\u9732\u304b\u3089\u8db3\u9996\u3092\u5b88\u308b" },
+  { id:10, name:"\u30d8\u30eb\u30e1\u30c3\u30c8",     category:"\u982d",     sansai:[], desc:"\u843d\u77f3\u30fb\u6025\u659c\u9762\u3067\u306e\u5b89\u5168\u78ba\u4fdd" },
+];
+
+const INITIAL_TOOLS = [
+  { id:1, name:"\u30ca\u30a4\u30d5\u30fb\u938c",      category:"\u63a1\u53d6\u9053\u5177", sansai:[], desc:"\u830e\u30fb\u6839\u3092\u5207\u308b\u306e\u306b\u4f7f\u7528" },
+  { id:2, name:"\u30cf\u30b5\u30df",          category:"\u63a1\u53d6\u9053\u5177", sansai:[], desc:"\u7e4a\u7d30\u306a\u5c71\u83dc\u306e\u63a1\u53d6\u306b" },
+  { id:3, name:"\u30b9\u30b3\u30c3\u30d7\u30fb\u79fb\u690d\u30b4\u30c6", category:"\u63a1\u53d6\u9053\u5177", sansai:[], desc:"\u6839\u3054\u3068\u63a1\u53d6\u3059\u308b\u969b\u306b" },
+  { id:4, name:"\u30b6\u30eb\u30fb\u30ab\u30b4",      category:"\u53ce\u7d0d",   sansai:[], desc:"\u63a1\u53d6\u3057\u305f\u5c71\u83dc\u3092\u5165\u308c\u308b" },
+  { id:5, name:"\u30d3\u30cb\u30fc\u30eb\u888b",      category:"\u53ce\u7d0d",   sansai:[], desc:"\u9bae\u5ea6\u4fdd\u6301\u30fb\u6ce5\u6c5a\u308c\u9632\u6b62" },
+  { id:6, name:"\u65b0\u805e\u7d19",          category:"\u53ce\u7d0d",   sansai:[], desc:"\u5c71\u83dc\u3092\u5305\u3093\u3067\u9bae\u5ea6\u3092\u4fdd\u3064" },
+  { id:7, name:"\u718a\u9234",            category:"\u5b89\u5168",   sansai:[], desc:"\u718a\u3068\u306e\u906d\u9047\u3092\u9632\u3050\u5fc5\u9700\u54c1" },
+  { id:8, name:"\u718a\u6483\u9000\u30b9\u30d7\u30ec\u30fc",  category:"\u5b89\u5168",   sansai:[], desc:"\u4e07\u4e00\u306e\u718a\u906d\u9047\u306b\u5099\u3048\u3066" },
+  { id:9, name:"\u30d8\u30c3\u30c9\u30e9\u30f3\u30d7",    category:"\u7167\u660e",   sansai:[], desc:"\u65e9\u671d\u30fb\u8584\u6697\u3044\u6797\u5185\u3067\u306e\u63a1\u53d6\u306b" },
+  { id:10, name:"\u30d5\u30a1\u30fc\u30b9\u30c8\u30a8\u30a4\u30c9\u30ad\u30c3\u30c8", category:"\u6551\u6025", sansai:[], desc:"\u5207\u308a\u50b7\u30fb\u866b\u523a\u3055\u308c\u30fb\u306d\u3093\u3056\u5bfe\u5fdc" },
+  { id:11, name:"GPS\u30fb\u30b9\u30de\u30fc\u30c8\u30d5\u30a9\u30f3", category:"\u30ca\u30d3", sansai:[], desc:"\u73fe\u5728\u5730\u78ba\u8a8d\u30fb\u9053\u8ff7\u3044\u9632\u6b62" },
+  { id:12, name:"\u30b3\u30f3\u30d1\u30b9\u30fb\u5730\u56f3", category:"\u30ca\u30d3",   sansai:[], desc:"\u96fb\u6ce2\u306e\u306a\u3044\u5c71\u5965\u3067\u306e\u5fc5\u9700\u54c1" },
+  { id:13, name:"\u6c34\u7b52\u30fb\u98f2\u307f\u6c34",   category:"\u643a\u884c\u98df", sansai:[], desc:"\u8131\u6c34\u9632\u6b62\u30fb\u9577\u6642\u9593\u63a1\u53d6\u306b" },
+  { id:14, name:"\u30bf\u30aa\u30eb",         category:"\u305d\u306e\u4ed6", sansai:[], desc:"\u6c57\u30fb\u6c5a\u308c\u30fb\u6c34\u6fe1\u308c\u5bfe\u7b56" },
+  { id:15, name:"\u866b\u9664\u3051\u30b9\u30d7\u30ec\u30fc", category:"\u305d\u306e\u4ed6", sansai:[], desc:"\u30d6\u30e6\u30fb\u30c0\u30cb\u30fb\u868a\u5bfe\u7b56" },
+];
+
+
+function GearView({ sansaiList }) {
+  const [clothing, setClothing] = useState(() => {
+    try { const s = localStorage.getItem("sansai_clothing"); if(s) return JSON.parse(s); } catch(e) {}
+    return INITIAL_CLOTHING;
+  });
+  const [tools, setTools] = useState(() => {
+    try { const s = localStorage.getItem("sansai_tools"); if(s) return JSON.parse(s); } catch(e) {}
+    return INITIAL_TOOLS;
+  });
+
+  useEffect(() => { try { localStorage.setItem("sansai_clothing", JSON.stringify(clothing)); } catch(e) {} }, [clothing]);
+  useEffect(() => { try { localStorage.setItem("sansai_tools",    JSON.stringify(tools));    } catch(e) {} }, [tools]);
+
+  const [mode, setMode] = useState("view"); // view | manage
+  const [mainTab, setMainTab] = useState("clothing"); // clothing | tools
+  const [selectedSansai, setSelectedSansai] = useState("all");
+  const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [form, setForm] = useState({ name:"", category:"", desc:"", sansai:[] });
+
+  const CATEGORIES_CLOTHING = ["\u4e0a\u7740","\u30ba\u30dc\u30f3","\u9774","\u624b\u888b","\u5e3d\u5b50","\u96e8\u5177","\u811a","\u982d","\u305d\u306e\u4ed6"];
+  const CATEGORIES_TOOLS    = ["\u63a1\u53d6\u9053\u5177","\u53ce\u7d0d","\u5b89\u5168","\u7167\u660e","\u6551\u6025","\u30ca\u30d3","\u643a\u884c\u98df","\u305d\u306e\u4ed6"];
+
+  const currentList = mainTab === "clothing" ? clothing : tools;
+  const setCurrentList = mainTab === "clothing" ? setClothing : setTools;
+  const currentCategories = mainTab === "clothing" ? CATEGORIES_CLOTHING : CATEGORIES_TOOLS;
+
+  const filteredList = selectedSansai === "all"
+    ? currentList
+    : currentList.filter(item => item.sansai.length === 0 || item.sansai.includes(Number(selectedSansai)));
+
+  const grouped = filteredList.reduce((acc, item) => {
+    if (!acc[item.category]) acc[item.category] = [];
+    acc[item.category].push(item);
+    return acc;
+  }, {});
+
+  const toggleSansaiForItem = (itemId, sansaiId) => {
+    setCurrentList(prev => prev.map(item => {
+      if (item.id !== itemId) return item;
+      const has = item.sansai.includes(sansaiId);
+      return { ...item, sansai: has ? item.sansai.filter(s => s !== sansaiId) : [...item.sansai, sansaiId] };
+    }));
+  };
+
+  const openAdd = () => {
+    setForm({ name:"", category: currentCategories[0], desc:"", sansai:[] });
+    setEditTarget(null);
+    setShowForm(true);
+  };
+
+  const openEdit = (item) => {
+    setForm({ name:item.name, category:item.category, desc:item.desc||"", sansai:item.sansai||[] });
+    setEditTarget(item);
+    setShowForm(true);
+  };
+
+  const handleSave = () => {
+    if (!form.name.trim()) return;
+    if (editTarget) {
+      setCurrentList(prev => prev.map(i => i.id === editTarget.id ? {...i, ...form} : i));
+    } else {
+      setCurrentList(prev => [...prev, { id: Date.now(), ...form }]);
+    }
+    setShowForm(false);
+  };
+
+  const handleDelete = () => {
+    setCurrentList(prev => prev.filter(i => i.id !== deleteTarget.id));
+    setDeleteTarget(null);
+  };
+
+  // \u30bf\u30d6\u5207\u66ff\u30dc\u30bf\u30f3
+  const TabBtn = ({id, label, icon}) => (
+    React.createElement('button', { onClick: () => setMainTab(id),
+      style: {flex:1, padding:"10px 8px", border:"none", cursor:"pointer",
+        fontFamily:"'Noto Serif JP',serif", fontSize:13, fontWeight:700,
+        background: mainTab===id ? "var(--forest)" : "var(--mist)",
+        color: mainTab===id ? "white" : "#555",
+        borderRadius:8, transition:"all 0.15s"},}
+      , icon, " " , label
+    )
+  );
+
+  // ===== \u30ea\u30b9\u30c8\u7ba1\u7406\u753b\u9762 =====
+  if (mode === "manage") return (
+    React.createElement('div', null
+      , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:12, marginBottom:16},}
+        , React.createElement('button', { onClick: () => setMode("view"),
+          style: {background:"var(--mist)", border:"none", borderRadius:8,
+            padding:"8px 14px", cursor:"pointer", fontSize:13, fontWeight:600, color:"var(--forest)"},}, "\u2190 \u623b\u308b"
+
+        )
+        , React.createElement('div', { className: "section-title", style: {margin:0, fontSize:20},}
+          , mainTab === "clothing" ? "\ud83d\udc55 \u670d\u88c5\u30ea\u30b9\u30c8\u7ba1\u7406" : "\ud83c\udf92 \u9053\u5177\u30ea\u30b9\u30c8\u7ba1\u7406"
+        )
+      )
+
+      /* \u30bf\u30d6\u5207\u66ff */
+      , React.createElement('div', { style: {display:"flex", gap:8, marginBottom:16},}
+        , React.createElement(TabBtn, { id: "clothing", label: "\u670d\u88c5", icon: "\ud83d\udc55",} )
+        , React.createElement(TabBtn, { id: "tools",    label: "\u9053\u5177", icon: "\ud83c\udf92",} )
+      )
+
+      /* \u30ea\u30b9\u30c8\u4e00\u89a7 */
+      , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8, marginBottom:20},}
+        , currentList.map(item => (
+          React.createElement('div', { key: item.id, style: {background:"white", borderRadius:12, padding:"12px 14px",
+            boxShadow:"0 2px 8px rgba(0,0,0,0.07)", border:"1px solid var(--mist)",
+            display:"flex", alignItems:"center", gap:10},}
+            , React.createElement('div', { style: {flex:1},}
+              , React.createElement('div', { style: {fontSize:14, fontWeight:700, color:"var(--forest)"},}, item.name)
+              , React.createElement('div', { style: {fontSize:11, color:"#888"},}, "\u3010"
+                , item.category, "\u3011", item.desc && ` ${item.desc}`
+              )
+              , item.sansai && item.sansai.length > 0 && (
+                React.createElement('div', { style: {fontSize:11, color:"#27ae60", marginTop:2},}, "\u5bfe\u8c61\u5c71\u83dc: "
+                   , item.sansai.map(id => {
+                    const s = (sansaiList||SANSAI_DATA).find(s => s.id === id);
+                    return s ? `${s.emoji}${s.name}` : "";
+                  }).filter(Boolean).join("\u30fb")
+                )
+              )
+            )
+            , React.createElement('div', { style: {display:"flex", gap:6},}
+              , React.createElement('button', { onClick: () => openEdit(item),
+                style: {background:"var(--mist)", border:"none", borderRadius:8,
+                  padding:"6px 10px", cursor:"pointer", fontSize:12, color:"var(--forest)", fontWeight:600},}, "\u7de8\u96c6"
+
+              )
+              , React.createElement('button', { onClick: () => setDeleteTarget(item),
+                style: {background:"#fee", border:"none", borderRadius:8,
+                  padding:"6px 10px", cursor:"pointer", fontSize:12, color:"#c0392b", fontWeight:600},}, "\u524a\u9664"
+
+              )
+            )
+          )
+        ))
+        , currentList.length === 0 && (
+          React.createElement('div', { style: {textAlign:"center", padding:40, color:"#ccc"},}, "\u30ea\u30b9\u30c8\u304c\u3042\u308a\u307e\u305b\u3093")
+        )
+      )
+
+      , React.createElement('button', { className: "add-btn", style: {justifyContent:"center"}, onClick: openAdd,}, "\uff0b "
+         , mainTab === "clothing" ? "\u670d\u88c5" : "\u9053\u5177", "\u3092\u8ffd\u52a0"
+      )
+
+      /* \u8ffd\u52a0\u30fb\u7de8\u96c6\u30d5\u30a9\u30fc\u30e0 */
+      , showForm && (
+        React.createElement('div', { className: "form-overlay", onClick: e => e.target===e.currentTarget && setShowForm(false),}
+          , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},}
+            , React.createElement('div', { className: "form-title",}
+              , editTarget ? "\u270f\ufe0f \u7de8\u96c6" : `\uff0b ${mainTab==="clothing"?"\u670d\u88c5":"\u9053\u5177"}\u3092\u8ffd\u52a0`
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "\u540d\u524d *" )
+              , React.createElement('input', { className: "form-input", value: form.name,
+                onChange: e => setForm(f => ({...f, name:e.target.value})),
+                placeholder: mainTab==="clothing" ? "\u4f8b\uff1a\u9577\u9774" : "\u4f8b\uff1a\u718a\u9234",} )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "\u30ab\u30c6\u30b4\u30ea")
+              , React.createElement('select', { className: "form-select", value: form.category,
+                onChange: e => setForm(f => ({...f, category:e.target.value})),}
+                , currentCategories.map(c => React.createElement('option', { key: c,}, c))
+              )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "\u8aac\u660e\u30fb\u5099\u8003")
+              , React.createElement('input', { className: "form-input", value: form.desc,
+                onChange: e => setForm(f => ({...f, desc:e.target.value})),
+                placeholder: "\u4f8b\uff1a\u6ca2\u6cbf\u3044\u306e\u63a1\u53d6\u306b\u5fc5\u9808",} )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "\u5bfe\u8c61\u5c71\u83dc\uff08\u7a7a\u767d=\u5168\u5c71\u83dc\u5171\u901a\uff09")
+              , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6},}
+                , (sansaiList||SANSAI_DATA).map(s => (
+                  React.createElement('div', { key: s.id, onClick: () => setForm(f => ({
+                      ...f, sansai: f.sansai.includes(s.id)
+                        ? f.sansai.filter(x => x!==s.id)
+                        : [...f.sansai, s.id]
+                    })),
+                    style: {padding:"4px 10px", borderRadius:20, cursor:"pointer", fontSize:11, fontWeight:600,
+                      background: form.sansai.includes(s.id) ? (s.color||"var(--forest)") : "var(--mist)",
+                      color: form.sansai.includes(s.id) ? "white" : "#555",
+                      border:`1.5px solid ${form.sansai.includes(s.id) ? (s.color||"var(--forest)") : "transparent"}`,
+                      transition:"all 0.15s"},}
+                    , s.emoji, " " , s.name
+                  )
+                ))
+              )
+            )
+            , React.createElement('div', { className: "form-actions",}
+              , React.createElement('button', { className: "btn-cancel", onClick: () => setShowForm(false),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
+              , React.createElement('button', { className: "btn-submit", onClick: handleSave,}, "\u4fdd\u5b58\u3059\u308b")
+            )
+          )
+        )
+      )
+
+      /* \u524a\u9664\u78ba\u8a8d */
+      , deleteTarget && (
+        React.createElement('div', { className: "form-overlay", onClick: () => setDeleteTarget(null),}
+          , React.createElement('div', { className: "form-box", style: {textAlign:"center"}, onClick: e => e.stopPropagation(),}
+            , React.createElement('div', { style: {fontSize:40, marginBottom:12},}, "\ud83d\uddd1\ufe0f")
+            , React.createElement('div', { style: {fontSize:17, fontWeight:700, color:"var(--forest)", marginBottom:8},}, "\u300c"
+              , deleteTarget.name, "\u300d\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f"
+            )
+            , React.createElement('div', { className: "form-actions",}
+              , React.createElement('button', { className: "btn-cancel", onClick: () => setDeleteTarget(null),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
+              , React.createElement('button', { style: {padding:"10px 24px", background:"#c0392b", color:"white",
+                border:"none", borderRadius:8, cursor:"pointer", fontSize:14, fontWeight:700},
+                onClick: handleDelete,}, "\u524a\u9664\u3059\u308b")
+            )
+          )
+        )
+      )
+    )
+  );
+
+  // ===== \u30e1\u30a4\u30f3\u8868\u793a\u753b\u9762 =====
+  return (
+    React.createElement('div', null
+      , React.createElement('div', { style: {display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12},}
+        , React.createElement('div', { className: "section-title", style: {margin:0},}, "\ud83d\udc55\ud83c\udf92 \u670d\u88c5\u30fb\u9053\u5177" )
+        , React.createElement('button', { onClick: () => setMode("manage"),
+          style: {background:"var(--forest)", color:"white", border:"none", borderRadius:8,
+            padding:"8px 14px", cursor:"pointer", fontSize:12, fontWeight:600},}, "\u2699\ufe0f \u30ea\u30b9\u30c8\u7ba1\u7406"
+
+        )
+      )
+      , React.createElement('div', { className: "section-desc",}, "\u5c71\u83dc\u3054\u3068\u306b\u5fc5\u8981\u306a\u670d\u88c5\u30fb\u9053\u5177\u3092\u78ba\u8a8d\u3067\u304d\u307e\u3059")
+
+      /* \u670d\u88c5/\u9053\u5177\u30bf\u30d6 */
+      , React.createElement('div', { style: {display:"flex", gap:8, marginBottom:16},}
+        , React.createElement(TabBtn, { id: "clothing", label: "\u670d\u88c5", icon: "\ud83d\udc55",} )
+        , React.createElement(TabBtn, { id: "tools",    label: "\u9053\u5177", icon: "\ud83c\udf92",} )
+      )
+
+      /* \u5c71\u83dc\u30d5\u30a3\u30eb\u30bf\u30fc */
+      , React.createElement('div', { className: "form-group",}
+        , React.createElement('label', { className: "form-label",}, "\ud83c\udf3f \u5c71\u83dc\u3067\u7d5e\u308a\u8fbc\u307f" )
+        , React.createElement('select', { className: "form-select", value: selectedSansai,
+          onChange: e => setSelectedSansai(e.target.value),}
+          , React.createElement('option', { value: "all",}, "\u5168\u5c71\u83dc\u5171\u901a")
+          , (sansaiList||SANSAI_DATA).map(s => (
+            React.createElement('option', { key: s.id, value: s.id,}, s.emoji, " " , s.name)
+          ))
+        )
+      )
+
+      /* \u30ab\u30c6\u30b4\u30ea\u5225\u30ea\u30b9\u30c8 */
+      , Object.keys(grouped).length === 0 ? (
+        React.createElement('div', { style: {textAlign:"center", padding:40, color:"#ccc"},}
+          , React.createElement('div', { style: {fontSize:32, marginBottom:12},}, mainTab==="clothing"?"\ud83d\udc55":"\ud83c\udf92")
+          , React.createElement('div', null, "\u3053\u306e\u5c71\u83dc\u306e", mainTab==="clothing"?"\u670d\u88c5":"\u9053\u5177", "\u30ea\u30b9\u30c8\u304c\u3042\u308a\u307e\u305b\u3093")
+          , React.createElement('div', { style: {fontSize:12, marginTop:8, color:"#aaa"},}, "\u300c\u30ea\u30b9\u30c8\u7ba1\u7406\u300d\u304b\u3089\u8ffd\u52a0\u3057\u3066\u304f\u3060\u3055\u3044")
+        )
+      ) : (
+        Object.entries(grouped).map(([cat, items]) => (
+          React.createElement('div', { key: cat, style: {marginBottom:20},}
+            , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)",
+              background:"var(--soil)", padding:"6px 14px", borderRadius:8, marginBottom:8},}
+              , mainTab==="clothing" ? "\ud83d\udc54" : "\ud83d\udd27", " " , cat
+            )
+            , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8},}
+              , items.map(item => (
+                React.createElement('div', { key: item.id, style: {background:"white", borderRadius:12, padding:"12px 16px",
+                  boxShadow:"0 2px 8px rgba(0,0,0,0.06)", border:"1px solid var(--mist)",
+                  display:"flex", alignItems:"flex-start", gap:12},}
+                  , React.createElement('div', { style: {fontSize:24, flexShrink:0},}
+                    , mainTab==="clothing" ? "\ud83d\udc55" : "\ud83c\udf92"
+                  )
+                  , React.createElement('div', { style: {flex:1},}
+                    , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)", marginBottom:2},}
+                      , item.name
+                    )
+                    , item.desc && (
+                      React.createElement('div', { style: {fontSize:12, color:"#777"},}, item.desc)
+                    )
+                    , item.sansai && item.sansai.length > 0 && (
+                      React.createElement('div', { style: {fontSize:11, color:"#27ae60", marginTop:4},}
+                        , item.sansai.map(id => {
+                          const s = (sansaiList||SANSAI_DATA).find(s => s.id===id);
+                          return s ? `${s.emoji}${s.name}` : "";
+                        }).filter(Boolean).join("\u30fb")
+                      )
+                    )
+                    , (!item.sansai || item.sansai.length===0) && (
+                      React.createElement('div', { style: {fontSize:11, color:"#aaa", marginTop:4},}, "\u5168\u5c71\u83dc\u5171\u901a")
+                    )
+                  )
+                )
+              ))
+            )
+          )
+        ))
+      )
+    )
+  );
+}
+
 function HomeView({ onTabChange }) {
   const menuItems = [
     { id:"calendar", icon:"\ud83c\udf43", label:"\u5c71\u83dc\u30ab\u30ec\u30f3\u30c0\u30fc", desc:"\u63a1\u53d6\u9069\u671f\u4e00\u89a7", color:"#2d4a2d" },
@@ -2178,6 +2515,7 @@ function HomeView({ onTabChange }) {
     { id:"patrol",   icon:"\ud83d\udd0d", label:"\u30d1\u30c8\u30ed\u30fc\u30eb",   desc:"\u5de1\u56de\u8a18\u9332\u30fb\u751f\u80b2\u72b6\u6cc1", color:"#2980b9" },
     { id:"harvest",  icon:"\ud83e\uddfa", label:"\u53ce\u7a6b\u8a18\u9332",   desc:"\u53ce\u7a6b\u91cf\u30fb\u7d71\u8a08", color:"#d35400" },
     { id:"memo",     icon:"\ud83d\udcd2", label:"\u5fd8\u5099\u9332",       desc:"\u30a2\u30af\u30bb\u30b9\u30fb\u9053\u9806\u30e1\u30e2", color:"#7f8c8d" },
+    { id:"gear",     icon:"\ud83d\udc55", label:"\u670d\u88c5\u30fb\u9053\u5177",   desc:"\u5c71\u83dc\u5225\u306e\u670d\u88c5\u30fb\u9053\u5177\u30ea\u30b9\u30c8", color:"#34495e" },
   ];
 
   return (
@@ -6403,6 +6741,14 @@ function App() {
   );
   const [posts, setPosts] = useState(INITIAL_BLOG);
   const [calEvents, setCalEvents] = useState([]);
+  const [clothing, setClothing] = useState(() => {
+    try { const s = localStorage.getItem("sansai_clothing"); if(s) return JSON.parse(s); } catch(e) {}
+    return INITIAL_CLOTHING;
+  });
+  const [tools, setTools] = useState(() => {
+    try { const s = localStorage.getItem("sansai_tools"); if(s) return JSON.parse(s); } catch(e) {}
+    return INITIAL_TOOLS;
+  });
 
   // \u5168\u30bf\u30d6\u5171\u6709\u306esansaiList
   const [sansaiList, setSansaiList] = useState(() => {
@@ -6469,6 +6815,7 @@ function App() {
     { id: "patrol",   label: "\u30d1\u30c8\u30ed\u30fc\u30eb", icon: "\ud83d\udd0d" },
     { id: "harvest",  label: "\u53ce\u7a6b\u8a18\u9332",   icon: "\ud83e\uddfa" },
     { id: "memo",     label: "\u5fd8\u5099\u9332",     icon: "\ud83d\udcd2" },
+    { id: "gear",     label: "\u670d\u88c5\u30fb\u9053\u5177", icon: "\ud83d\udc55" },
   ];
 
   return (
@@ -6517,6 +6864,7 @@ function App() {
           , tab === "patrol"   && React.createElement(PatrolView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList,} )
           , tab === "harvest"  && React.createElement(HarvestView, { spots: spots, members: members, sansaiList: sansaiList,} )
           , tab === "memo"     && React.createElement(MemoView, { spots: spots, sansaiList: sansaiList,} )
+          , tab === "gear"     && React.createElement(GearView, { sansaiList: sansaiList,} )
         )
       )
     )
