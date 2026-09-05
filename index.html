@@ -1751,7 +1751,7 @@ function WeatherWidget({ spots, weatherLocations, setWeatherLocations }) {
   );
 }
 
-function ScheduleForm({ spots, onClose, onSuccess, members }) {
+function ScheduleForm({ spots, onClose, onSuccess, members, clothing, tools, sansaiList }) {
   const today = new Date().toISOString().split("T")[0];
 
   // \u8907\u6570\u30b9\u30dd\u30c3\u30c8\u30a8\u30f3\u30c8\u30ea
@@ -1996,6 +1996,73 @@ function ScheduleForm({ spots, onClose, onSuccess, members }) {
                 return sn || san.length ? `\u7b2c${i+1}\u7b87\u6240\uff1a${sn}${san.length?` \uff0f ${san.join("\u30fb")}` : ""}` : "";
               }),
             ].filter(Boolean).join("\n")
+          )
+        )
+
+
+        /* \u670d\u88c5\u30c1\u30a7\u30c3\u30af\u30ea\u30b9\u30c8 */
+        , clothing && clothing.length > 0 && (
+          React.createElement('div', { style: {background:"var(--soil)", borderRadius:12, padding:"14px", marginBottom:12},}
+            , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)", marginBottom:10},}, "\ud83d\udc55 \u670d\u88c5\u30c1\u30a7\u30c3\u30af\u30ea\u30b9\u30c8"
+
+            )
+            , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8},}
+              , clothing.filter(c =>
+                !schForm.sansaiIds || schForm.sansaiIds.length === 0 ||
+                c.sansai.length === 0 ||
+                c.sansai.some(sid => schForm.sansaiIds && schForm.sansaiIds.includes(sid))
+              ).map(item => (
+                React.createElement('label', { key: item.id, style: {display:"flex", alignItems:"center", gap:10,
+                  padding:"8px 12px", background:"white", borderRadius:8, cursor:"pointer"},}
+                  , React.createElement('input', { type: "checkbox",
+                    checked: schForm.clothingChecks && schForm.clothingChecks.includes(item.id),
+                    onChange: e => setSchForm(f => ({
+                      ...f,
+                      clothingChecks: e.target.checked
+                        ? [...(f.clothingChecks||[]), item.id]
+                        : (f.clothingChecks||[]).filter(id => id !== item.id)
+                    })),
+                    style: {width:18, height:18, cursor:"pointer"},} )
+                  , React.createElement('div', null
+                    , React.createElement('div', { style: {fontSize:13, fontWeight:600, color:"var(--forest)"},}, item.name)
+                    , item.desc && React.createElement('div', { style: {fontSize:11, color:"#888"},}, item.desc)
+                  )
+                )
+              ))
+            )
+          )
+        )
+
+        /* \u9053\u5177\u30c1\u30a7\u30c3\u30af\u30ea\u30b9\u30c8 */
+        , tools && tools.length > 0 && (
+          React.createElement('div', { style: {background:"var(--soil)", borderRadius:12, padding:"14px", marginBottom:12},}
+            , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)", marginBottom:10},}, "\ud83c\udf92 \u9053\u5177\u30c1\u30a7\u30c3\u30af\u30ea\u30b9\u30c8"
+
+            )
+            , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8},}
+              , tools.filter(t =>
+                !schForm.sansaiIds || schForm.sansaiIds.length === 0 ||
+                t.sansai.length === 0 ||
+                t.sansai.some(sid => schForm.sansaiIds && schForm.sansaiIds.includes(sid))
+              ).map(item => (
+                React.createElement('label', { key: item.id, style: {display:"flex", alignItems:"center", gap:10,
+                  padding:"8px 12px", background:"white", borderRadius:8, cursor:"pointer"},}
+                  , React.createElement('input', { type: "checkbox",
+                    checked: schForm.toolsChecks && schForm.toolsChecks.includes(item.id),
+                    onChange: e => setSchForm(f => ({
+                      ...f,
+                      toolsChecks: e.target.checked
+                        ? [...(f.toolsChecks||[]), item.id]
+                        : (f.toolsChecks||[]).filter(id => id !== item.id)
+                    })),
+                    style: {width:18, height:18, cursor:"pointer"},} )
+                  , React.createElement('div', null
+                    , React.createElement('div', { style: {fontSize:13, fontWeight:600, color:"var(--forest)"},}, item.name)
+                    , item.desc && React.createElement('div', { style: {fontSize:11, color:"#888"},}, item.desc)
+                  )
+                )
+              ))
+            )
           )
         )
 
@@ -3592,7 +3659,7 @@ function AreaManager({ weatherLocations, setWeatherLocations }) {
   );
 }
 
-function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocations, members, sansaiList }) {
+function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocations, members, sansaiList, clothing, tools }) {
   const currentMonth = new Date().getMonth() + 1;
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [showSchedule, setShowSchedule] = useState(false);
@@ -4425,7 +4492,7 @@ function MembersView({ members, setMembers }) {
 }
 
 
-function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList }) {
+function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, clothing, tools }) {
   const today = new Date().toISOString().split("T")[0];
   const currentMonth = new Date().getMonth() + 1;
 
@@ -4470,6 +4537,8 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList }
     date: today, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _70 => _70[0], 'optionalAccess', _71 => _71.id]), () => ( "")), patrolledBy: "",
     sansaiStatus: [], overallCondition: "\u826f\u597d",
     illegalActivity: false, photos: [], notes: "", gps: null,
+    clothingChecks: [],
+    toolsChecks: [],
   };
   const [recForm, setRecForm] = useState(emptyRecord);
   const [autoCam, setAutoCam] = useState(false);
@@ -6856,12 +6925,12 @@ function App() {
         , React.createElement('main', { className: "main",}
           , tab === "home"     && React.createElement(HomeView, { onTabChange: setTab,} )
           , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList,} )
-          , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList,} )
+          , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
           , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots, sansaiList: sansaiList,} )
           , tab === "blog"     && React.createElement(BlogView, { posts: posts, setPosts: setPosts, spots: spots, members: members, sansaiList: sansaiList,} )
           , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots, sansaiList: sansaiList, setSansaiList: setSansaiList,} )
           , tab === "members"  && React.createElement(MembersView, { members: members, setMembers: setMembers,} )
-          , tab === "patrol"   && React.createElement(PatrolView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList,} )
+          , tab === "patrol"   && React.createElement(PatrolView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
           , tab === "harvest"  && React.createElement(HarvestView, { spots: spots, members: members, sansaiList: sansaiList,} )
           , tab === "memo"     && React.createElement(MemoView, { spots: spots, sansaiList: sansaiList,} )
           , tab === "gear"     && React.createElement(GearView, { sansaiList: sansaiList,} )
