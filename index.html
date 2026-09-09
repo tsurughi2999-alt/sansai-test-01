@@ -4185,28 +4185,63 @@ function MembersView({ members, setMembers }) {
   };
 
   // \u2500\u2500 AI \u30a2\u30d0\u30bf\u30fc\u751f\u6210 \u2500\u2500
-  const generateAvatar = async () => {
-    if (!formPhoto) return;
-    setAiLoading(true); setAiSvg(null);
-    try {
-      const b64 = formPhoto.split(",")[1];
-      const mime = formPhoto.split(";")[0].split(":")[1];
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1500,
-          messages:[{role:"user", content:[
-            {type:"image", source:{type:"base64", media_type:mime, data:b64}},
-            {type:"text", text:`\u3053\u306e\u4eba\u7269\u3092\u30a2\u30cb\u30e1\u98a8SVG\u30a2\u30d0\u30bf\u30fc\u306b\u5909\u63db\u3002viewBox="0 0 200 200"\u306e\u5186\u5f62\u3001\u5927\u304d\u306a\u76ee\u3001\u30b7\u30f3\u30d7\u30eb\u8f2a\u90ed\u3001\u7dd1\u7cfb\u80cc\u666f\u3002SVG\u30bf\u30b0\u306e\u307f\u51fa\u529b\u3002`}
-          ]}]
-        })
-      });
-      const data = await res.json();
-      const txt = _optionalChain([data, 'access', _67 => _67.content, 'optionalAccess', _68 => _68[0], 'optionalAccess', _69 => _69.text])||"";
-      const m = txt.match(/<svg[\s\S]*?<\/svg>/i);
-      if (m) setAiSvg("data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(m[0]))));
-      else setAiSvg("error");
-    } catch (e2) { setAiSvg("error"); }
-    finally { setAiLoading(false); }
+  const generateAvatar = () => {
+    // Canvas\u3092\u4f7f\u3063\u3066\u30ed\u30fc\u30ab\u30eb\u3067\u30a2\u30d0\u30bf\u30fc\u751f\u6210\udbbc\udc8aPI\u4e0d\u8981\uff09
+    const canvas = document.createElement("canvas");
+    canvas.width = 200;
+    canvas.height = 200;
+    const ctx = canvas.getContext("2d");
+
+    const roleColors = {
+      "\u63a1\u53d6\u30ea\u30fc\u30c0\u30fc":"#c0392b","\u6599\u7406\u62c5\u5f53":"#e67e22","\u30ca\u30d3\u62c5\u5f53":"#2980b9",
+      "\u8a18\u9332\u4fc2":"#8e44ad","\u65b0\u5165\u308a":"#27ae60","\u30d9\u30c6\u30e9\u30f3":"#2d4a2d","\u4e00\u822c":"#7f8c8d",
+    };
+    const bgColor = roleColors[formRole] || "#2d4a2d";
+
+    // \u80cc\u666f\u30b0\u30e9\u30c7\u30fc\u30b7\u30e7\u30f3
+    const grad = ctx.createLinearGradient(0, 0, 200, 200);
+    grad.addColorStop(0, bgColor);
+    grad.addColorStop(1, "#1a2a1a");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(100, 100, 100, 0, Math.PI * 2);
+    ctx.fill();
+
+    // \u5916\u67a0\u30ea\u30f3\u30b0
+    ctx.strokeStyle = "rgba(255,255,255,0.3)";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(100, 100, 94, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // \u5c71\u83dc\u30a2\u30a4\u30b3\u30f3\uff08\u80cc\u666f\u88c5\u98fe\uff09
+    ctx.font = "60px serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.globalAlpha = 0.15;
+    ctx.fillStyle = "white";
+    ctx.fillText("\ud83c\udf3f", 100, 100);
+    ctx.globalAlpha = 1.0;
+
+    // \u30a4\u30cb\u30b7\u30e3\u30eb\u6587\u5b57
+    const initial = (formName || "?").charAt(0);
+    ctx.font = "bold 80px 'Noto Serif JP', serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "white";
+    ctx.shadowColor = "rgba(0,0,0,0.3)";
+    ctx.shadowBlur = 8;
+    ctx.fillText(initial, 100, 95);
+
+    // \u30ed\u30fc\u30eb\u540d
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.8)";
+    ctx.shadowBlur = 0;
+    ctx.fillText(formRole || "", 100, 160);
+
+    const dataUrl = canvas.toDataURL("image/png");
+    setFormAvatar(dataUrl);
+    setAiSvg(dataUrl);
   };
 
   // \u2500\u2500 \u8ffd\u52a0 \u2500\u2500
@@ -4402,21 +4437,20 @@ function MembersView({ members, setMembers }) {
               /* AI \u30a2\u30d0\u30bf\u30fc */
               , formPhoto && (
                 React.createElement('div', { style: {marginTop:12, background:"#1a1a2e", borderRadius:12, padding:14},}
-                  , React.createElement('div', { style: {fontSize:12, fontWeight:700, color:"#e2e2e2", marginBottom:8},}, "\ud83e\udd16 AI\u30a2\u30cb\u30e1\u30a2\u30d0\u30bf\u30fc\u5909\u63db"
+                  , React.createElement('div', { style: {fontSize:12, fontWeight:700, color:"#e2e2e2", marginBottom:8},}, "\ud83c\udfa8 \u30a4\u30cb\u30b7\u30e3\u30eb\u30a2\u30d0\u30bf\u30fc\u81ea\u52d5\u751f\u6210"
 
                   )
-                  , aiLoading && React.createElement('div', { style: {color:"#90caf9", fontSize:12, textAlign:"center", padding:8},}, "\ud83c\udf00 \u751f\u6210\u4e2d..." )
                   , aiSvg && aiSvg!=="error" && (
                     React.createElement('div', { style: {textAlign:"center", marginBottom:10},}
                       , React.createElement('img', { src: aiSvg, style: {width:64, height:64, borderRadius:"50%", border:"3px solid #90caf9"},} )
+                      , React.createElement('div', { style: {fontSize:11, color:"#90caf9", marginTop:4},}, "\u2705 \u30a2\u30d0\u30bf\u30fc\u751f\u6210\u5b8c\u4e86\uff01" )
                     )
                   )
-                  , aiSvg==="error" && React.createElement('div', { style: {color:"#ef5350", fontSize:11, marginBottom:8},}, "\u26a0\ufe0f \u751f\u6210\u5931\u6557\u3002\u518d\u8a66\u884c\u3057\u3066\u304f\u3060\u3055\u3044\u3002" )
                   , React.createElement('div', { style: {display:"flex", gap:8},}
-                    , React.createElement('button', { onClick: generateAvatar, disabled: aiLoading,
+                    , React.createElement('button', { onClick: generateAvatar,
                       style: {flex:1, padding:"8px", background:"#3949ab", color:"white", border:"none",
-                        borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600},}
-                      , aiLoading ? "\u751f\u6210\u4e2d..." : "\u2728 AI\u30a2\u30d0\u30bf\u30fc\u751f\u6210"
+                        borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600},}, "\u2728 \u30a4\u30cb\u30b7\u30e3\u30eb\u30a2\u30d0\u30bf\u30fc\u751f\u6210"
+
                     )
                     , aiSvg && aiSvg!=="error" && (
                       React.createElement('button', { onClick: ()=>{setFormAvatar(aiSvg); setAiSvg(null);},
@@ -4569,7 +4603,7 @@ function MembersView({ members, setMembers }) {
               )
               , React.createElement('div', { style: {display:"flex", gap:8},}
                 , React.createElement('button', { onClick: ()=>{
-                    const email = _optionalChain([document, 'access', _70 => _70.getElementById, 'call', _71 => _71("notify-email"), 'optionalAccess', _72 => _72.value])||"";
+                    const email = _optionalChain([document, 'access', _67 => _67.getElementById, 'call', _68 => _68("notify-email"), 'optionalAccess', _69 => _69.value])||"";
                     sendGmail(email);
                   },
                   style: {flex:1, padding:"10px", background:"#d32f2f", color:"white",
@@ -4577,7 +4611,7 @@ function MembersView({ members, setMembers }) {
 
                 )
                 , React.createElement('button', { onClick: ()=>{
-                    const email = _optionalChain([document, 'access', _73 => _73.getElementById, 'call', _74 => _74("notify-email"), 'optionalAccess', _75 => _75.value])||"";
+                    const email = _optionalChain([document, 'access', _70 => _70.getElementById, 'call', _71 => _71("notify-email"), 'optionalAccess', _72 => _72.value])||"";
                     sendMailto(email);
                   },
                   style: {flex:1, padding:"10px", background:"#e53935", color:"white",
@@ -4688,7 +4722,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
   const [lightbox, setLightbox] = useState(null);
 
   const emptyRecord = {
-    date: today, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _76 => _76[0], 'optionalAccess', _77 => _77.id]), () => ( "")), patrolledBy: "",
+    date: today, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _73 => _73[0], 'optionalAccess', _74 => _74.id]), () => ( "")), patrolledBy: "",
     sansaiStatus: [], overallCondition: "\u826f\u597d",
     illegalActivity: false, photos: [], notes: "", gps: null,
     clothingChecks: [],
@@ -4698,7 +4732,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
   const [autoCam, setAutoCam] = useState(false);
   const patrolGPS = useGPS();
 
-  const emptySchedule = { date: today, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _78 => _78[0], 'optionalAccess', _79 => _79.id]), () => ( "")), assignee: "", memo: "", calendarId: "3" };
+  const emptySchedule = { date: today, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _75 => _75[0], 'optionalAccess', _76 => _76.id]), () => ( "")), assignee: "", memo: "", calendarId: "3" };
   const [schForm, setSchForm] = useState(emptySchedule);
 
   // ===== \u72b6\u614b\u5b9a\u7fa9 =====
@@ -4713,9 +4747,9 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
   const MEMBERS_LIST = (members||[]).map(m=>m.name);
 
   // ===== \u30d8\u30eb\u30d1\u30fc =====
-  const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _80 => _80.find, 'call', _81 => _81(s => s.id === Number(id)), 'optionalAccess', _82 => _82.name]), () => ( "\u4e0d\u660e"));
-  const sansaiName = (id) => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _83 => _83.find, 'call', _84 => _84(s => s.id === id), 'optionalAccess', _85 => _85.name]), () => ( "\u4e0d\u660e"));
-  const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _86 => _86.find, 'call', _87 => _87(s => s.id === id), 'optionalAccess', _88 => _88.emoji]), () => ( "\ud83c\udf3f"));
+  const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _77 => _77.find, 'call', _78 => _78(s => s.id === Number(id)), 'optionalAccess', _79 => _79.name]), () => ( "\u4e0d\u660e"));
+  const sansaiName = (id) => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _80 => _80.find, 'call', _81 => _81(s => s.id === id), 'optionalAccess', _82 => _82.name]), () => ( "\u4e0d\u660e"));
+  const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _83 => _83.find, 'call', _84 => _84(s => s.id === id), 'optionalAccess', _85 => _85.emoji]), () => ( "\ud83c\udf3f"));
 
   const addSansaiStatus = () => {
     setRecForm(f => ({ ...f, sansaiStatus: [...f.sansaiStatus, { sansaiId: 1, status: "\u65ec", quantity: "\u666e\u901a", memo: "" }] }));
@@ -4771,7 +4805,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
     // Google\u30ab\u30ec\u30f3\u30c0\u30fc\u306b\u81ea\u52d5\u767b\u9332
     if (onScheduleSuccess) {
       setCalLoading(true);
-      const sName = _nullishCoalesce(_optionalChain([spots, 'access', _89 => _89.find, 'call', _90 => _90(s => s.id === newSch.spotId), 'optionalAccess', _91 => _91.name]), () => ( ""));
+      const sName = _nullishCoalesce(_optionalChain([spots, 'access', _86 => _86.find, 'call', _87 => _87(s => s.id === newSch.spotId), 'optionalAccess', _88 => _88.name]), () => ( ""));
       const title = `\ud83d\udd0d \u5c71\u83dc\u30d1\u30c8\u30ed\u30fc\u30eb\uff1a${sName}`;
       const desc = [
         `\u62c5\u5f53\uff1a${newSch.assignee || "\u672a\u5b9a"}`,
@@ -4874,7 +4908,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
                 )
               )
               /* \u5c71\u83dc\u72b6\u6cc1\u30b5\u30de\u30ea\u30fc */
-              , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6, marginBottom: _optionalChain([rec, 'access', _92 => _92.photos, 'optionalAccess', _93 => _93.length]) ? 8 : 0},}
+              , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6, marginBottom: _optionalChain([rec, 'access', _89 => _89.photos, 'optionalAccess', _90 => _90.length]) ? 8 : 0},}
                 , rec.sansaiStatus.map((ss, i) => (
                   React.createElement('span', { key: i, style: {fontSize:11, fontWeight:600, padding:"3px 8px", borderRadius:20,
                     background: STATUS_COLOR[ss.status]+"22", color: STATUS_COLOR[ss.status],
@@ -4883,7 +4917,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
                   )
                 ))
               )
-              , _optionalChain([rec, 'access', _94 => _94.photos, 'optionalAccess', _95 => _95.length]) > 0 && (
+              , _optionalChain([rec, 'access', _91 => _91.photos, 'optionalAccess', _92 => _92.length]) > 0 && (
                 React.createElement('div', { style: {display:"flex", gap:6, marginTop:8},}
                   , rec.photos.slice(0,3).map((p,i) => (
                     React.createElement('div', { key: i, style: {width:52, height:52, borderRadius:8, overflow:"hidden", flexShrink:0},}
@@ -5408,7 +5442,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
               ))
             )
 
-            , _optionalChain([selectedRecord, 'access', _96 => _96.photos, 'optionalAccess', _97 => _97.length]) > 0 && (
+            , _optionalChain([selectedRecord, 'access', _93 => _93.photos, 'optionalAccess', _94 => _94.length]) > 0 && (
               React.createElement('div', { style: {marginBottom:12},}
                 , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)", marginBottom:8},}, "\ud83d\udcf7 \u5199\u771f" )
                 , React.createElement('div', { className: "blog-photos",}
@@ -5636,7 +5670,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
   const handleEdit = () => {
     setEntries(prev => prev.map(e => e.id === form.id ? { ...e, ...form } : e));
     // \u8a73\u7d30\u8868\u793a\u4e2d\u3060\u3063\u305f\u3089\u66f4\u65b0
-    if (_optionalChain([selected, 'optionalAccess', _98 => _98.id]) === form.id) setSelected({ ...selected, ...form });
+    if (_optionalChain([selected, 'optionalAccess', _95 => _95.id]) === form.id) setSelected({ ...selected, ...form });
     setShowEditForm(false);
   };
 
@@ -5797,7 +5831,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
         , [
           { label:"\u767b\u9332\u5c71\u83dc", val:`${entries.length}\u7a2e`, icon:"\ud83c\udf3f" },
           { label:"\u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0", val:`${entries.filter(e=>e.isCustom).length}\u7a2e`, icon:"\u270f\ufe0f" },
-          { label:"\u30b9\u30dd\u30c3\u30c8\u767b\u9332", val:`${entries.reduce((acc,e)=>acc+(_optionalChain([e, 'access', _99 => _99.customSpots, 'optionalAccess', _100 => _100.length])||0),0)}\u7b87\u6240`, icon:"\ud83d\udccd" },
+          { label:"\u30b9\u30dd\u30c3\u30c8\u767b\u9332", val:`${entries.reduce((acc,e)=>acc+(_optionalChain([e, 'access', _96 => _96.customSpots, 'optionalAccess', _97 => _97.length])||0),0)}\u7b87\u6240`, icon:"\ud83d\udccd" },
         ].map(item=>(
           React.createElement('div', { key: item.label, style: {flex:1, minWidth:90, background:"white", borderRadius:12, padding:"10px 14px", boxShadow:"0 2px 8px rgba(0,0,0,0.07)", textAlign:"center", border:"1px solid var(--mist)"},}
             , React.createElement('div', { style: {fontSize:20},}, item.icon)
@@ -5816,7 +5850,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
             , React.createElement('div', { className: "sansai-months",}, "\ud83d\uddd3 " , s.months.map(m=>MONTHS[m-1]).join("\u30fb"))
             , React.createElement('div', { className: "sansai-region",}, "\ud83d\udccd " , s.region)
             , React.createElement('div', { className: "sansai-desc",}, s.desc)
-            , _optionalChain([s, 'access', _101 => _101.customSpots, 'optionalAccess', _102 => _102.length]) > 0 && (
+            , _optionalChain([s, 'access', _98 => _98.customSpots, 'optionalAccess', _99 => _99.length]) > 0 && (
               React.createElement('div', { style: {marginTop:8, fontSize:11, color:"var(--moss)", fontWeight:600},}, "\ud83d\udccd \u30b9\u30dd\u30c3\u30c8 "  , s.customSpots.length, "\u4ef6")
             )
           )
@@ -5865,7 +5899,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
               /* \u304a\u3059\u3059\u3081\u30b9\u30dd\u30c3\u30c8 */
               , React.createElement('div', null
                 , React.createElement('div', { style: {fontWeight:700, color:"var(--forest)", marginBottom:8},}, "\ud83c\udfd4 \u304a\u3059\u3059\u3081\u30b9\u30dd\u30c3\u30c8" )
-                , _optionalChain([selected, 'access', _103 => _103.customSpots, 'optionalAccess', _104 => _104.length]) > 0 ? (
+                , _optionalChain([selected, 'access', _100 => _100.customSpots, 'optionalAccess', _101 => _101.length]) > 0 ? (
                   React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:6, marginBottom:10},}
                     , selected.customSpots.map((sp,i)=>(
                       React.createElement('div', { key: i, style: {display:"flex", alignItems:"center", gap:8, background:"var(--soil)", borderRadius:8, padding:"8px 12px"},}
@@ -5996,7 +6030,7 @@ function HarvestView({ spots, members, sansaiList }) {
   const CONDITIONS = ["\u826f\u597d", "\u666e\u901a", "\u3084\u3084\u4e0d\u826f", "\u4e0d\u826f"];
 
   const emptyForm = {
-    date: today, sansaiId: 1, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _105 => _105[0], 'optionalAccess', _106 => _106.id]), () => ( "")),
+    date: today, sansaiId: 1, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _102 => _102[0], 'optionalAccess', _103 => _103.id]), () => ( "")),
     collectors: [], amount: "", unit: "g", condition: "\u826f\u597d", memo: "", photos: [], gps: null,
   };
   const [form, setForm] = useState(emptyForm);
@@ -6034,9 +6068,9 @@ function HarvestView({ spots, members, sansaiList }) {
     setSelectedHarvest(null);
   };
 
-  const sansaiName = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _107 => _107.find, 'call', _108 => _108(s => s.id === id), 'optionalAccess', _109 => _109.name]), () => ( "\u4e0d\u660e"));
-  const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _110 => _110.find, 'call', _111 => _111(s => s.id === id), 'optionalAccess', _112 => _112.emoji]), () => ( "\ud83c\udf3f"));
-  const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _113 => _113.find, 'call', _114 => _114(s => s.id === Number(id)), 'optionalAccess', _115 => _115.name]), () => ( "\u4e0d\u660e"));
+  const sansaiName = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _104 => _104.find, 'call', _105 => _105(s => s.id === id), 'optionalAccess', _106 => _106.name]), () => ( "\u4e0d\u660e"));
+  const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _107 => _107.find, 'call', _108 => _108(s => s.id === id), 'optionalAccess', _109 => _109.emoji]), () => ( "\ud83c\udf3f"));
+  const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _110 => _110.find, 'call', _111 => _111(s => s.id === Number(id)), 'optionalAccess', _112 => _112.name]), () => ( "\u4e0d\u660e"));
 
   // \u30d5\u30a3\u30eb\u30bf\u30fc\u9069\u7528
   const filtered = harvests.filter(h => {
@@ -6120,7 +6154,7 @@ function HarvestView({ spots, members, sansaiList }) {
           )
 
           , filtered.map(h => (
-            React.createElement('div', { key: h.id, style: {...cardStyle, cursor:"pointer", borderLeft:`4px solid ${_nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _116 => _116.find, 'call', _117 => _117(s=>s.id===h.sansaiId), 'optionalAccess', _118 => _118.color]), () => ( "var(--fern)"))}`},
+            React.createElement('div', { key: h.id, style: {...cardStyle, cursor:"pointer", borderLeft:`4px solid ${_nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _113 => _113.find, 'call', _114 => _114(s=>s.id===h.sansaiId), 'optionalAccess', _115 => _115.color]), () => ( "var(--fern)"))}`},
               onClick: ()=>setSelectedHarvest(h),}
               , React.createElement('div', { style: {display:"flex", alignItems:"flex-start", gap:12},}
                 , React.createElement('div', { style: {fontSize:36, flexShrink:0},}, sansaiEmoji(h.sansaiId))
@@ -6144,7 +6178,7 @@ function HarvestView({ spots, members, sansaiList }) {
                   )
                   , h.memo && React.createElement('div', { style: {fontSize:12, color:"#666"},}, h.memo)
                 )
-                , _optionalChain([h, 'access', _119 => _119.photos, 'optionalAccess', _120 => _120.length]) > 0 && (
+                , _optionalChain([h, 'access', _116 => _116.photos, 'optionalAccess', _117 => _117.length]) > 0 && (
                   React.createElement('div', { style: {width:52, height:52, borderRadius:8, overflow:"hidden", flexShrink:0},}
                     , React.createElement('img', { src: h.photos[0], style: {width:"100%", height:"100%", objectFit:"cover"},} )
                   )
@@ -6386,7 +6420,7 @@ function HarvestView({ spots, members, sansaiList }) {
                   )
                 )
               )
-              , _optionalChain([selectedHarvest, 'access', _121 => _121.photos, 'optionalAccess', _122 => _122.length]) > 0 && (
+              , _optionalChain([selectedHarvest, 'access', _118 => _118.photos, 'optionalAccess', _119 => _119.length]) > 0 && (
                 React.createElement('div', { className: "blog-photos",}
                   , selectedHarvest.photos.map((src,i)=>(
                     React.createElement('div', { key: i, className: "blog-photo", onClick: ()=>setLightbox({images:selectedHarvest.photos, index:i}),}
@@ -6475,7 +6509,7 @@ function MemoView({ spots, sansaiList }) {
   const [form, setForm] = useState(blankForm());
 
   useEffect(() => {
-    if (autoCam && camRef.current) setTimeout(() => _optionalChain([camRef, 'access', _123 => _123.current, 'optionalAccess', _124 => _124.click, 'call', _125 => _125()]), 300);
+    if (autoCam && camRef.current) setTimeout(() => _optionalChain([camRef, 'access', _120 => _120.current, 'optionalAccess', _121 => _121.click, 'call', _122 => _122()]), 300);
   }, [autoCam, mode]);
 
   const updateForm = (key, val) => setForm(f => ({...f, [key]: val}));
@@ -6542,9 +6576,9 @@ function MemoView({ spots, sansaiList }) {
     return matchText && matchTag;
   });
 
-  const sansaiName = id => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _126 => _126.find, 'call', _127 => _127(s=>s.id===id), 'optionalAccess', _128 => _128.name]), () => (""));
-  const sansaiEmoji = id => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _129 => _129.find, 'call', _130 => _130(s=>s.id===id), 'optionalAccess', _131 => _131.emoji]), () => ("\ud83c\udf3f"));
-  const spotName = id => _nullishCoalesce(_optionalChain([spots, 'access', _132 => _132.find, 'call', _133 => _133(s=>s.id===Number(id)), 'optionalAccess', _134 => _134.name]), () => (""));
+  const sansaiName = id => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _123 => _123.find, 'call', _124 => _124(s=>s.id===id), 'optionalAccess', _125 => _125.name]), () => (""));
+  const sansaiEmoji = id => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _126 => _126.find, 'call', _127 => _127(s=>s.id===id), 'optionalAccess', _128 => _128.emoji]), () => ("\ud83c\udf3f"));
+  const spotName = id => _nullishCoalesce(_optionalChain([spots, 'access', _129 => _129.find, 'call', _130 => _130(s=>s.id===Number(id)), 'optionalAccess', _131 => _131.name]), () => (""));
 
   const cardStyle = {background:"white", borderRadius:14, padding:16,
     boxShadow:"0 2px 12px rgba(0,0,0,0.08)", border:"1px solid var(--mist)", marginBottom:12};
@@ -6744,7 +6778,7 @@ function MemoView({ spots, sansaiList }) {
         )
 
         /* \u30bf\u30b0 */
-        , _optionalChain([memo, 'access', _135 => _135.tags, 'optionalAccess', _136 => _136.length]) > 0 && (
+        , _optionalChain([memo, 'access', _132 => _132.tags, 'optionalAccess', _133 => _133.length]) > 0 && (
           React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6, marginBottom:14},}
             , memo.tags.map(t=>(
               React.createElement('span', { key: t, style: {background:"var(--forest)", color:"white", fontSize:11,
@@ -6754,10 +6788,10 @@ function MemoView({ spots, sansaiList }) {
         )
 
         /* \u63a1\u308c\u308b\u5c71\u83dc */
-        , _optionalChain([memo, 'access', _137 => _137.sansai, 'optionalAccess', _138 => _138.length]) > 0 && (
+        , _optionalChain([memo, 'access', _134 => _134.sansai, 'optionalAccess', _135 => _135.length]) > 0 && (
           React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6, marginBottom:14},}
             , memo.sansai.map(id=>(
-              React.createElement('span', { key: id, style: {background:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _139 => _139.find, 'call', _140 => _140(s=>s.id===id), 'optionalAccess', _141 => _141.color])||"var(--fern)",
+              React.createElement('span', { key: id, style: {background:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _136 => _136.find, 'call', _137 => _137(s=>s.id===id), 'optionalAccess', _138 => _138.color])||"var(--fern)",
                 color:"white", fontSize:12, fontWeight:600, padding:"4px 12px", borderRadius:20},}
                 , sansaiEmoji(id), " " , sansaiName(id)
               )
@@ -6766,7 +6800,7 @@ function MemoView({ spots, sansaiList }) {
         )
 
         /* \u5199\u771f */
-        , _optionalChain([memo, 'access', _142 => _142.photos, 'optionalAccess', _143 => _143.length]) > 0 && (
+        , _optionalChain([memo, 'access', _139 => _139.photos, 'optionalAccess', _140 => _140.length]) > 0 && (
           React.createElement('div', { className: "blog-photos", style: {marginBottom:14},}
             , memo.photos.map((src,i)=>(
               React.createElement('div', { key: i, className: "blog-photo", onClick: ()=>setLightbox({images:memo.photos,index:i}),}
@@ -6869,20 +6903,20 @@ function MemoView({ spots, sansaiList }) {
                 , memo.spotId && React.createElement('span', null, " \u30fb \ud83d\udccd"  , spotName(memo.spotId))
               )
             )
-            , _optionalChain([memo, 'access', _144 => _144.photos, 'optionalAccess', _145 => _145.length]) > 0 && (
+            , _optionalChain([memo, 'access', _141 => _141.photos, 'optionalAccess', _142 => _142.length]) > 0 && (
               React.createElement('div', { style: {width:44, height:44, borderRadius:8, overflow:"hidden", flexShrink:0, marginLeft:10},}
                 , React.createElement('img', { src: memo.photos[0], style: {width:"100%", height:"100%", objectFit:"cover"},} )
               )
             )
           )
           /* \u63a1\u308c\u308b\u5c71\u83dc */
-          , _optionalChain([memo, 'access', _146 => _146.sansai, 'optionalAccess', _147 => _147.length]) > 0 && (
+          , _optionalChain([memo, 'access', _143 => _143.sansai, 'optionalAccess', _144 => _144.length]) > 0 && (
             React.createElement('div', { style: {display:"flex", gap:5, flexWrap:"wrap", marginBottom:6},}
               , memo.sansai.map(id=>(
                 React.createElement('span', { key: id, style: {fontSize:10, fontWeight:600,
-                  background:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _148 => _148.find, 'call', _149 => _149(s=>s.id===id), 'optionalAccess', _150 => _150.color])+"22"||"#eee",
-                  color:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _151 => _151.find, 'call', _152 => _152(s=>s.id===id), 'optionalAccess', _153 => _153.color])||"#666",
-                  border:`1px solid ${_optionalChain([(sansaiList||SANSAI_DATA), 'access', _154 => _154.find, 'call', _155 => _155(s=>s.id===id), 'optionalAccess', _156 => _156.color])||"#ccc"}`,
+                  background:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _145 => _145.find, 'call', _146 => _146(s=>s.id===id), 'optionalAccess', _147 => _147.color])+"22"||"#eee",
+                  color:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _148 => _148.find, 'call', _149 => _149(s=>s.id===id), 'optionalAccess', _150 => _150.color])||"#666",
+                  border:`1px solid ${_optionalChain([(sansaiList||SANSAI_DATA), 'access', _151 => _151.find, 'call', _152 => _152(s=>s.id===id), 'optionalAccess', _153 => _153.color])||"#ccc"}`,
                   padding:"2px 8px", borderRadius:20},}
                   , sansaiEmoji(id), " " , sansaiName(id)
                 )
@@ -6890,7 +6924,7 @@ function MemoView({ spots, sansaiList }) {
             )
           )
           /* \u30bf\u30b0 */
-          , _optionalChain([memo, 'access', _157 => _157.tags, 'optionalAccess', _158 => _158.length]) > 0 && (
+          , _optionalChain([memo, 'access', _154 => _154.tags, 'optionalAccess', _155 => _155.length]) > 0 && (
             React.createElement('div', { style: {display:"flex", gap:4, flexWrap:"wrap", marginBottom:6},}
               , memo.tags.map(t=>(
                 React.createElement('span', { key: t, style: {fontSize:10, background:"var(--forest)", color:"white",
@@ -6913,7 +6947,7 @@ function MemoView({ spots, sansaiList }) {
           /* GPS\u30fb\u5199\u771f\u30d0\u30c3\u30b8 */
           , React.createElement('div', { style: {display:"flex", gap:8, marginTop:6},}
             , memo.gps && React.createElement('span', { style: {fontSize:10, color:"#2e7d32", fontWeight:600},}, "\ud83d\udce1 GPS\u767b\u9332\u6e08\u307f" )
-            , _optionalChain([memo, 'access', _159 => _159.photos, 'optionalAccess', _160 => _160.length]) > 0 && React.createElement('span', { style: {fontSize:10, color:"#888"},}, "\ud83d\udcf7 " , memo.photos.length, "\u679a")
+            , _optionalChain([memo, 'access', _156 => _156.photos, 'optionalAccess', _157 => _157.length]) > 0 && React.createElement('span', { style: {fontSize:10, color:"#888"},}, "\ud83d\udcf7 " , memo.photos.length, "\u679a")
           )
         )
       ))
@@ -6982,7 +7016,7 @@ function HarvestView({ spots, members, sansaiList }) {
   const CONDITIONS = ["\u826f\u597d", "\u666e\u901a", "\u3084\u3084\u4e0d\u826f", "\u4e0d\u826f"];
 
   const emptyForm = {
-    date: today, sansaiId: 1, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _161 => _161[0], 'optionalAccess', _162 => _162.id]), () => ( "")),
+    date: today, sansaiId: 1, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _158 => _158[0], 'optionalAccess', _159 => _159.id]), () => ( "")),
     collectors: [], amount: "", unit: "g", condition: "\u826f\u597d", memo: "", photos: [], gps: null,
   };
   const [form, setForm] = useState(emptyForm);
@@ -7020,9 +7054,9 @@ function HarvestView({ spots, members, sansaiList }) {
     setSelectedHarvest(null);
   };
 
-  const sansaiName = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _163 => _163.find, 'call', _164 => _164(s => s.id === id), 'optionalAccess', _165 => _165.name]), () => ( "\u4e0d\u660e"));
-  const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _166 => _166.find, 'call', _167 => _167(s => s.id === id), 'optionalAccess', _168 => _168.emoji]), () => ( "\ud83c\udf3f"));
-  const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _169 => _169.find, 'call', _170 => _170(s => s.id === Number(id)), 'optionalAccess', _171 => _171.name]), () => ( "\u4e0d\u660e"));
+  const sansaiName = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _160 => _160.find, 'call', _161 => _161(s => s.id === id), 'optionalAccess', _162 => _162.name]), () => ( "\u4e0d\u660e"));
+  const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _163 => _163.find, 'call', _164 => _164(s => s.id === id), 'optionalAccess', _165 => _165.emoji]), () => ( "\ud83c\udf3f"));
+  const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _166 => _166.find, 'call', _167 => _167(s => s.id === Number(id)), 'optionalAccess', _168 => _168.name]), () => ( "\u4e0d\u660e"));
 
   // \u30d5\u30a3\u30eb\u30bf\u30fc\u9069\u7528
   const filtered = harvests.filter(h => {
@@ -7106,7 +7140,7 @@ function HarvestView({ spots, members, sansaiList }) {
           )
 
           , filtered.map(h => (
-            React.createElement('div', { key: h.id, style: {...cardStyle, cursor:"pointer", borderLeft:`4px solid ${_nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _172 => _172.find, 'call', _173 => _173(s=>s.id===h.sansaiId), 'optionalAccess', _174 => _174.color]), () => ( "var(--fern)"))}`},
+            React.createElement('div', { key: h.id, style: {...cardStyle, cursor:"pointer", borderLeft:`4px solid ${_nullishCoalesce(_optionalChain([SANSAI_DATA, 'access', _169 => _169.find, 'call', _170 => _170(s=>s.id===h.sansaiId), 'optionalAccess', _171 => _171.color]), () => ( "var(--fern)"))}`},
               onClick: ()=>setSelectedHarvest(h),}
               , React.createElement('div', { style: {display:"flex", alignItems:"flex-start", gap:12},}
                 , React.createElement('div', { style: {fontSize:36, flexShrink:0},}, sansaiEmoji(h.sansaiId))
@@ -7130,7 +7164,7 @@ function HarvestView({ spots, members, sansaiList }) {
                   )
                   , h.memo && React.createElement('div', { style: {fontSize:12, color:"#666"},}, h.memo)
                 )
-                , _optionalChain([h, 'access', _175 => _175.photos, 'optionalAccess', _176 => _176.length]) > 0 && (
+                , _optionalChain([h, 'access', _172 => _172.photos, 'optionalAccess', _173 => _173.length]) > 0 && (
                   React.createElement('div', { style: {width:52, height:52, borderRadius:8, overflow:"hidden", flexShrink:0},}
                     , React.createElement('img', { src: h.photos[0], style: {width:"100%", height:"100%", objectFit:"cover"},} )
                   )
@@ -7372,7 +7406,7 @@ function HarvestView({ spots, members, sansaiList }) {
                   )
                 )
               )
-              , _optionalChain([selectedHarvest, 'access', _177 => _177.photos, 'optionalAccess', _178 => _178.length]) > 0 && (
+              , _optionalChain([selectedHarvest, 'access', _174 => _174.photos, 'optionalAccess', _175 => _175.length]) > 0 && (
                 React.createElement('div', { className: "blog-photos",}
                   , selectedHarvest.photos.map((src,i)=>(
                     React.createElement('div', { key: i, className: "blog-photo", onClick: ()=>setLightbox({images:selectedHarvest.photos, index:i}),}
@@ -7461,7 +7495,7 @@ function MemoView({ spots, sansaiList }) {
   const [form, setForm] = useState(blankForm());
 
   useEffect(() => {
-    if (autoCam && camRef.current) setTimeout(() => _optionalChain([camRef, 'access', _179 => _179.current, 'optionalAccess', _180 => _180.click, 'call', _181 => _181()]), 300);
+    if (autoCam && camRef.current) setTimeout(() => _optionalChain([camRef, 'access', _176 => _176.current, 'optionalAccess', _177 => _177.click, 'call', _178 => _178()]), 300);
   }, [autoCam, mode]);
 
   const updateForm = (key, val) => setForm(f => ({...f, [key]: val}));
@@ -7528,9 +7562,9 @@ function MemoView({ spots, sansaiList }) {
     return matchText && matchTag;
   });
 
-  const sansaiName = id => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _182 => _182.find, 'call', _183 => _183(s=>s.id===id), 'optionalAccess', _184 => _184.name]), () => (""));
-  const sansaiEmoji = id => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _185 => _185.find, 'call', _186 => _186(s=>s.id===id), 'optionalAccess', _187 => _187.emoji]), () => ("\ud83c\udf3f"));
-  const spotName = id => _nullishCoalesce(_optionalChain([spots, 'access', _188 => _188.find, 'call', _189 => _189(s=>s.id===Number(id)), 'optionalAccess', _190 => _190.name]), () => (""));
+  const sansaiName = id => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _179 => _179.find, 'call', _180 => _180(s=>s.id===id), 'optionalAccess', _181 => _181.name]), () => (""));
+  const sansaiEmoji = id => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _182 => _182.find, 'call', _183 => _183(s=>s.id===id), 'optionalAccess', _184 => _184.emoji]), () => ("\ud83c\udf3f"));
+  const spotName = id => _nullishCoalesce(_optionalChain([spots, 'access', _185 => _185.find, 'call', _186 => _186(s=>s.id===Number(id)), 'optionalAccess', _187 => _187.name]), () => (""));
 
   const cardStyle = {background:"white", borderRadius:14, padding:16,
     boxShadow:"0 2px 12px rgba(0,0,0,0.08)", border:"1px solid var(--mist)", marginBottom:12};
@@ -7730,7 +7764,7 @@ function MemoView({ spots, sansaiList }) {
         )
 
         /* \u30bf\u30b0 */
-        , _optionalChain([memo, 'access', _191 => _191.tags, 'optionalAccess', _192 => _192.length]) > 0 && (
+        , _optionalChain([memo, 'access', _188 => _188.tags, 'optionalAccess', _189 => _189.length]) > 0 && (
           React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6, marginBottom:14},}
             , memo.tags.map(t=>(
               React.createElement('span', { key: t, style: {background:"var(--forest)", color:"white", fontSize:11,
@@ -7740,10 +7774,10 @@ function MemoView({ spots, sansaiList }) {
         )
 
         /* \u63a1\u308c\u308b\u5c71\u83dc */
-        , _optionalChain([memo, 'access', _193 => _193.sansai, 'optionalAccess', _194 => _194.length]) > 0 && (
+        , _optionalChain([memo, 'access', _190 => _190.sansai, 'optionalAccess', _191 => _191.length]) > 0 && (
           React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6, marginBottom:14},}
             , memo.sansai.map(id=>(
-              React.createElement('span', { key: id, style: {background:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _195 => _195.find, 'call', _196 => _196(s=>s.id===id), 'optionalAccess', _197 => _197.color])||"var(--fern)",
+              React.createElement('span', { key: id, style: {background:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _192 => _192.find, 'call', _193 => _193(s=>s.id===id), 'optionalAccess', _194 => _194.color])||"var(--fern)",
                 color:"white", fontSize:12, fontWeight:600, padding:"4px 12px", borderRadius:20},}
                 , sansaiEmoji(id), " " , sansaiName(id)
               )
@@ -7752,7 +7786,7 @@ function MemoView({ spots, sansaiList }) {
         )
 
         /* \u5199\u771f */
-        , _optionalChain([memo, 'access', _198 => _198.photos, 'optionalAccess', _199 => _199.length]) > 0 && (
+        , _optionalChain([memo, 'access', _195 => _195.photos, 'optionalAccess', _196 => _196.length]) > 0 && (
           React.createElement('div', { className: "blog-photos", style: {marginBottom:14},}
             , memo.photos.map((src,i)=>(
               React.createElement('div', { key: i, className: "blog-photo", onClick: ()=>setLightbox({images:memo.photos,index:i}),}
@@ -7855,20 +7889,20 @@ function MemoView({ spots, sansaiList }) {
                 , memo.spotId && React.createElement('span', null, " \u30fb \ud83d\udccd"  , spotName(memo.spotId))
               )
             )
-            , _optionalChain([memo, 'access', _200 => _200.photos, 'optionalAccess', _201 => _201.length]) > 0 && (
+            , _optionalChain([memo, 'access', _197 => _197.photos, 'optionalAccess', _198 => _198.length]) > 0 && (
               React.createElement('div', { style: {width:44, height:44, borderRadius:8, overflow:"hidden", flexShrink:0, marginLeft:10},}
                 , React.createElement('img', { src: memo.photos[0], style: {width:"100%", height:"100%", objectFit:"cover"},} )
               )
             )
           )
           /* \u63a1\u308c\u308b\u5c71\u83dc */
-          , _optionalChain([memo, 'access', _202 => _202.sansai, 'optionalAccess', _203 => _203.length]) > 0 && (
+          , _optionalChain([memo, 'access', _199 => _199.sansai, 'optionalAccess', _200 => _200.length]) > 0 && (
             React.createElement('div', { style: {display:"flex", gap:5, flexWrap:"wrap", marginBottom:6},}
               , memo.sansai.map(id=>(
                 React.createElement('span', { key: id, style: {fontSize:10, fontWeight:600,
-                  background:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _204 => _204.find, 'call', _205 => _205(s=>s.id===id), 'optionalAccess', _206 => _206.color])+"22"||"#eee",
-                  color:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _207 => _207.find, 'call', _208 => _208(s=>s.id===id), 'optionalAccess', _209 => _209.color])||"#666",
-                  border:`1px solid ${_optionalChain([(sansaiList||SANSAI_DATA), 'access', _210 => _210.find, 'call', _211 => _211(s=>s.id===id), 'optionalAccess', _212 => _212.color])||"#ccc"}`,
+                  background:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _201 => _201.find, 'call', _202 => _202(s=>s.id===id), 'optionalAccess', _203 => _203.color])+"22"||"#eee",
+                  color:_optionalChain([(sansaiList||SANSAI_DATA), 'access', _204 => _204.find, 'call', _205 => _205(s=>s.id===id), 'optionalAccess', _206 => _206.color])||"#666",
+                  border:`1px solid ${_optionalChain([(sansaiList||SANSAI_DATA), 'access', _207 => _207.find, 'call', _208 => _208(s=>s.id===id), 'optionalAccess', _209 => _209.color])||"#ccc"}`,
                   padding:"2px 8px", borderRadius:20},}
                   , sansaiEmoji(id), " " , sansaiName(id)
                 )
@@ -7876,7 +7910,7 @@ function MemoView({ spots, sansaiList }) {
             )
           )
           /* \u30bf\u30b0 */
-          , _optionalChain([memo, 'access', _213 => _213.tags, 'optionalAccess', _214 => _214.length]) > 0 && (
+          , _optionalChain([memo, 'access', _210 => _210.tags, 'optionalAccess', _211 => _211.length]) > 0 && (
             React.createElement('div', { style: {display:"flex", gap:4, flexWrap:"wrap", marginBottom:6},}
               , memo.tags.map(t=>(
                 React.createElement('span', { key: t, style: {fontSize:10, background:"var(--forest)", color:"white",
@@ -7899,7 +7933,7 @@ function MemoView({ spots, sansaiList }) {
           /* GPS\u30fb\u5199\u771f\u30d0\u30c3\u30b8 */
           , React.createElement('div', { style: {display:"flex", gap:8, marginTop:6},}
             , memo.gps && React.createElement('span', { style: {fontSize:10, color:"#2e7d32", fontWeight:600},}, "\ud83d\udce1 GPS\u767b\u9332\u6e08\u307f" )
-            , _optionalChain([memo, 'access', _215 => _215.photos, 'optionalAccess', _216 => _216.length]) > 0 && React.createElement('span', { style: {fontSize:10, color:"#888"},}, "\ud83d\udcf7 " , memo.photos.length, "\u679a")
+            , _optionalChain([memo, 'access', _212 => _212.photos, 'optionalAccess', _213 => _213.length]) > 0 && React.createElement('span', { style: {fontSize:10, color:"#888"},}, "\ud83d\udcf7 " , memo.photos.length, "\u679a")
           )
         )
       ))
