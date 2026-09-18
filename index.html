@@ -4690,7 +4690,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
     try { const s = localStorage.getItem("sansai_patrol"); if(s) return JSON.parse(s); } catch(e) {}
     return ([
     {
-      id: 1, date: "2026-05-08", spotId: 1, patrolledBy: "\u7530\u4e2d",
+      id: 1, date: "2026-05-08", spotId: 1, patrolledBy: ["\u7530\u4e2d"],
       sansaiStatus: [
         { sansaiId: 3, status: "\u65ec", quantity: "\u591a\u3044", memo: "\u6797\u9053\u6cbf\u3044\u4e00\u9762\u306b\u7fa4\u751f" },
         { sansaiId: 2, status: "\u3084\u3084\u9045\u3081", quantity: "\u5c11\u306a\u3044", memo: "\u3082\u3046\u5c11\u3057\u3067\u7d42\u308f\u308a" },
@@ -4698,7 +4698,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
       overallCondition: "\u826f\u597d", illegalActivity: false, photos: [], notes: "\u4eca\u5e74\u306f\u4f8b\u5e74\u3088\ud882\udca1\u9031\u9593\u65e9\u3044",
     },
     {
-      id: 2, date: "2026-04-25", spotId: 2, patrolledBy: "\u9234\u6728",
+      id: 2, date: "2026-04-25", spotId: 2, patrolledBy: ["\u9234\u6728"],
       sansaiStatus: [
         { sansaiId: 2, status: "\u65ec", quantity: "\u666e\u901a", memo: "\u5927\u578b\u682a\u591a\u6570" },
         { sansaiId: 5, status: "\u3082\u3046\u3059\u3050", quantity: "\u666e\u901a", memo: "\u6765\u9031\u304c\u898b\u9803" },
@@ -4728,7 +4728,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
   const [lightbox, setLightbox] = useState(null);
 
   const emptyRecord = {
-    date: today, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _73 => _73[0], 'optionalAccess', _74 => _74.id]), () => ( "")), patrolledBy: "",
+    date: today, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _73 => _73[0], 'optionalAccess', _74 => _74.id]), () => ( "")), patrolledBy: [],
     sansaiStatus: [], overallCondition: "\u826f\u597d",
     illegalActivity: false, photos: [], notes: "", gps: null,
     clothingChecks: [],
@@ -4903,7 +4903,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
               , React.createElement('div', { style: {display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8},}
                 , React.createElement('div', null
                   , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)"},}, spotName(rec.spotId))
-                  , React.createElement('div', { style: {fontSize:11, color:"#888", marginTop:2},}, "\ud83d\uddd3 " , rec.date, " \ud83d\udc64 "  , rec.patrolledBy)
+                  , React.createElement('div', { style: {fontSize:11, color:"#888", marginTop:2},}, "\ud83d\uddd3 " , rec.date, " \ud83d\udc64 "  , Array.isArray(rec.patrolledBy) ? rec.patrolledBy.join("\u30fb") : rec.patrolledBy)
                 )
                 , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:4, alignItems:"flex-end"},}
                   , React.createElement('span', { style: {fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:20,
@@ -5107,9 +5107,27 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
               )
               , React.createElement('div', { className: "form-group",}
                 , React.createElement('label', { className: "form-label",}, "\u5de1\u56de\u8005")
-                , React.createElement('select', { className: "form-select", value: recForm.patrolledBy, onChange: e=>setRecForm(f=>({...f,patrolledBy:e.target.value})),}
-                  , React.createElement('option', { value: "",}, "\u9078\u629e")
-                  , MEMBERS_LIST.map(m=>React.createElement('option', { key: m,}, m))
+                , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:8},}
+                  , MEMBERS_LIST.map(name => (
+                    React.createElement('label', { key: name, style: {
+                      display:"flex", alignItems:"center", gap:6,
+                      padding:"6px 12px", borderRadius:20, cursor:"pointer",
+                      background: (recForm.patrolledBy||[]).includes(name) ? "var(--forest)" : "var(--mist)",
+                      color: (recForm.patrolledBy||[]).includes(name) ? "white" : "#555",
+                      fontSize:13, fontWeight:600, transition:"all 0.15s"
+                    },}
+                      , React.createElement('input', { type: "checkbox",
+                        checked: (recForm.patrolledBy||[]).includes(name),
+                        onChange: e => setRecForm(f => ({
+                          ...f,
+                          patrolledBy: e.target.checked
+                            ? [...(f.patrolledBy||[]), name]
+                            : (f.patrolledBy||[]).filter(n => n !== name)
+                        })),
+                        style: {display:"none"},} )
+                      , (recForm.patrolledBy||[]).includes(name) ? "\u2611\ufe0f" : "\u2b1c", " " , name
+                    )
+                  ))
                 )
               )
             )
@@ -5422,7 +5440,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
           , React.createElement('div', { className: "form-box", onClick: e=>e.stopPropagation(), style: {maxHeight:"88vh", overflowY:"auto"},}
             , React.createElement('div', { style: {marginBottom:16},}
               , React.createElement('div', { style: {fontSize:18, fontWeight:700, color:"var(--forest)"},}, spotName(selectedRecord.spotId))
-              , React.createElement('div', { style: {fontSize:12, color:"#888", marginTop:4},}, "\ud83d\uddd3 " , selectedRecord.date, " \ud83d\udc64 "  , selectedRecord.patrolledBy)
+              , React.createElement('div', { style: {fontSize:12, color:"#888", marginTop:4},}, "\ud83d\uddd3 " , selectedRecord.date, " \ud83d\udc64 "  , Array.isArray(selectedRecord.patrolledBy) ? selectedRecord.patrolledBy.join("\u30fb") : selectedRecord.patrolledBy)
             )
 
             , selectedRecord.illegalActivity && (
