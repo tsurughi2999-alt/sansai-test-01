@@ -133,9 +133,12 @@ body{margin:0;padding:0;}
     gap: 2px;
     background: white;
     border-radius: 12px;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: auto;
+    max-height: 60vh;
     box-shadow: 0 2px 16px rgba(0,0,0,0.08);
     margin-bottom: 24px;
+    -webkit-overflow-scrolling: touch;
   }
   .cal-header {
     background: var(--forest);
@@ -145,6 +148,9 @@ body{margin:0;padding:0;}
     text-align: center;
     padding: 10px 2px;
     letter-spacing: 0.05em;
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
   .cal-label {
     background: var(--soil);
@@ -4736,6 +4742,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
   };
   const [recForm, setRecForm] = useState(emptyRecord);
   const [autoCam, setAutoCam] = useState(false);
+  const [editTarget, setEditTarget] = useState(null); // \u7de8\u96c6\u4e2d\u306e\u8a18\u9332ID
   const patrolGPS = useGPS();
 
   const emptySchedule = { date: today, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _75 => _75[0], 'optionalAccess', _76 => _76.id]), () => ( "")), assignee: "", memo: "", calendarId: "3" };
@@ -4787,6 +4794,25 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
     patrolGPS.clearGps();
     setAutoCam(false);
     setShowRecordForm(false);
+  };
+
+  const openEditRecord = (rec) => {
+    setRecForm({
+      date: rec.date || "",
+      spotId: String(rec.spotId || ""),
+      patrolledBy: Array.isArray(rec.patrolledBy) ? rec.patrolledBy : [rec.patrolledBy].filter(Boolean),
+      sansaiStatus: rec.sansaiStatus || [],
+      overallCondition: rec.overallCondition || "\u826f\u597d",
+      illegalActivity: rec.illegalActivity || false,
+      photos: rec.photos || [],
+      notes: rec.notes || "",
+      gps: rec.gps || null,
+      clothingChecks: rec.clothingChecks || [],
+      toolsChecks: rec.toolsChecks || [],
+    });
+    setEditTarget(rec.id);
+    setSelectedRecord(null);
+    setShowRecordForm(true);
   };
 
   const deleteRecord = (id) => {
@@ -5099,7 +5125,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
       , showRecordForm && (
         React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setShowRecordForm(false),}
           , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},}
-            , React.createElement('div', { className: "form-title",}, "\ud83d\udd0d \u5de1\u56de\u8a18\u9332\u3092\u8ffd\u52a0" )
+            , React.createElement('div', { className: "form-title",}, editTarget ? "\u270f\ufe0f \u5de1\u56de\u8a18\u9332\u3092\u7de8\u96c6" : "\ud83d\udd0d \u5de1\u56de\u8a18\u9332\u3092\u8ffd\u52a0")
             , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:12},}
               , React.createElement('div', { className: "form-group",}
                 , React.createElement('label', { className: "form-label",}, "\u5de1\u56de\u65e5 *" )
@@ -5501,7 +5527,13 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
             )
 
             , React.createElement('div', { className: "form-actions", style: {justifyContent:"space-between"},}
-              , React.createElement('button', { onClick: ()=>setDeleteConfirm(selectedRecord), style: {padding:"10px 16px", background:"#fee", border:"none", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600, color:"#c0392b"},}, "\ud83d\uddd1\ufe0f \u524a\u9664"
+              , React.createElement('button', { onClick: () => openEditRecord(selectedRecord),
+                  style: {padding:"10px 16px", background:"var(--mist)", border:"none",
+                    borderRadius:8, cursor:"pointer", color:"var(--forest)",
+                    fontFamily:"'Noto Serif JP',serif", fontSize:14, fontWeight:600},}, "\u270f\ufe0f \u7de8\u96c6"
+
+                )
+                , React.createElement('button', { onClick: ()=>setDeleteConfirm(selectedRecord), style: {padding:"10px 16px", background:"#fee", border:"none", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600, color:"#c0392b"},}, "\ud83d\uddd1\ufe0f \u524a\u9664"
 
               )
               , React.createElement('button', { className: "btn-submit", onClick: ()=>setSelectedRecord(null),}, "\u9589\u3058\u308b")
