@@ -4821,8 +4821,10 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
     illegalActivity: false, photos: [], notes: "", gps: null,
     clothingChecks: [],
     toolsChecks: [],
+    companions: [],
   };
   const [recForm, setRecForm] = useState(emptyRecord);
+  const [companionInput, setCompanionInput] = useState("");
   const [autoCam, setAutoCam] = useState(false);
   const [editTarget, setEditTarget] = useState(null); // \u7de8\u96c6\u4e2d\u306e\u8a18\u9332ID
   const patrolGPS = useGPS();
@@ -4869,10 +4871,21 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
     });
   };
 
+  const addCompanion = () => {
+    const name = companionInput.trim();
+    if (!name) return;
+    setRecForm(f => (f.companions||[]).includes(name) ? f : ({ ...f, companions: [...(f.companions||[]), name] }));
+    setCompanionInput("");
+  };
+  const removeCompanion = (name) => {
+    setRecForm(f => ({ ...f, companions: (f.companions||[]).filter(n => n !== name) }));
+  };
+
   const saveRecord = () => {
     if (!recForm.date || !recForm.spotId) return;
     setRecords(prev => [{ id: Date.now(), ...recForm, spotId: Number(recForm.spotId), gps: patrolGPS.gps },...prev]);
     setRecForm(emptyRecord);
+    setCompanionInput("");
     patrolGPS.clearGps();
     setAutoCam(false);
     setShowRecordForm(false);
@@ -4891,8 +4904,10 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
       gps: rec.gps || null,
       clothingChecks: rec.clothingChecks || [],
       toolsChecks: rec.toolsChecks || [],
+      companions: rec.companions || [],
     });
     setEditTarget(rec.id);
+    setCompanionInput("");
     setSelectedRecord(null);
     setShowRecordForm(true);
   };
@@ -5011,7 +5026,9 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
               , React.createElement('div', { style: {display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8},}
                 , React.createElement('div', null
                   , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)"},}, spotName(rec.spotId))
-                  , React.createElement('div', { style: {fontSize:11, color:"#888", marginTop:2},}, "\ud83d\uddd3 " , rec.date, " \ud83d\udc64 "  , Array.isArray(rec.patrolledBy) ? rec.patrolledBy.join("\u30fb") : rec.patrolledBy)
+                  , React.createElement('div', { style: {fontSize:11, color:"#888", marginTop:2},}, "\ud83d\uddd3 " , rec.date, " \ud83d\udc64 "  , Array.isArray(rec.patrolledBy) ? rec.patrolledBy.join("\u30fb") : rec.patrolledBy
+                    , _optionalChain([rec, 'access', _1000 => _1000.companions, 'optionalAccess', _1001 => _1001.length]) > 0 && ` \uff0b\u540c\u884c\uff1a${rec.companions.join("\u30fb")}`
+                  )
                 )
                 , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:4, alignItems:"flex-end"},}
                   , React.createElement('span', { style: {fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:20,
@@ -5045,12 +5062,12 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
           ))
           , React.createElement('div', { style: {display:"flex", gap:10},}
             , React.createElement('button', { className: "add-btn", style: {flex:1, justifyContent:"center"},
-              onClick: ()=>{ setRecForm(emptyRecord); patrolGPS.clearGps(); setAutoCam(false); setShowRecordForm(true); },}, "\uff0b \u5de1\u56de\u8a18\u9332\u3092\u8ffd\u52a0"
+              onClick: ()=>{ setRecForm(emptyRecord); setCompanionInput(""); patrolGPS.clearGps(); setAutoCam(false); setShowRecordForm(true); },}, "\uff0b \u5de1\u56de\u8a18\u9332\u3092\u8ffd\u52a0"
 
             )
             , React.createElement('button', { style: {padding:"12px 16px", background:"#e8f5e9", border:"2px solid #43a047", borderRadius:8,
               cursor:"pointer", fontSize:13, fontWeight:600, color:"#2e7d32", display:"flex", alignItems:"center", gap:6},
-              onClick: ()=>{ setRecForm(emptyRecord); patrolGPS.clearGps(); setAutoCam(true); setShowRecordForm(true); },}, "\ud83d\udcf8 \u30ab\u30e1\u30e9\u8d77\u52d5\u3057\u3066\u8a18\u9332"
+              onClick: ()=>{ setRecForm(emptyRecord); setCompanionInput(""); patrolGPS.clearGps(); setAutoCam(true); setShowRecordForm(true); },}, "\ud83d\udcf8 \u30ab\u30e1\u30e9\u8d77\u52d5\u3057\u3066\u8a18\u9332"
 
             )
           )
@@ -5205,7 +5222,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
 
       /* ===== \u5de1\u56de\u8a18\u9332\u30d5\u30a9\u30fc\u30e0 ===== */
       , showRecordForm && (
-        React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setShowRecordForm(false),}
+        React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&(setShowRecordForm(false),setCompanionInput("")),}
           , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},}
             , React.createElement('div', { className: "form-title",}, editTarget ? "\u270f\ufe0f \u5de1\u56de\u8a18\u9332\u3092\u7de8\u96c6" : "\ud83d\udd0d \u5de1\u56de\u8a18\u9332\u3092\u8ffd\u52a0")
             , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:12},}
@@ -5237,6 +5254,36 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
                     )
                   ))
                 )
+              )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "\ud83d\udc65 \u540c\u884c\u8005")
+              , React.createElement('div', { style: {fontSize:11, color:"#999", marginBottom:6},}, "\u30e1\u30f3\u30d0\u30fc\u4ee5\u5916\u306e\u65b9\u3082\u81ea\u7531\u306b\u5165\u529b\u3067\u304d\u307e\u3059")
+              , (recForm.companions||[]).length > 0 && (
+                React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:8, marginBottom:8},}
+                  , (recForm.companions||[]).map(name => (
+                    React.createElement('span', { key: name, style: {
+                      display:"flex", alignItems:"center", gap:6,
+                      padding:"6px 10px 6px 12px", borderRadius:20,
+                      background:"var(--soil)", color:"var(--moss)",
+                      fontSize:13, fontWeight:600
+                    },}
+                      , name
+                      , React.createElement('button', { type: "button", onClick: ()=>removeCompanion(name),
+                        style: {background:"none", border:"none", cursor:"pointer", color:"#999", fontSize:13,
+                          lineHeight:1, padding:0, display:"flex", alignItems:"center"},}, "\u2715")
+                    )
+                  ))
+                )
+              )
+              , React.createElement('div', { style: {display:"flex", gap:8},}
+                , React.createElement('input', { className: "form-input", style: {flex:1}, value: companionInput,
+                  placeholder: "\u4f8b\uff1a\u4f50\u85e4\u3055\u3093\uff08\u304a\u53cb\u9054\uff09",
+                  onChange: e=>setCompanionInput(e.target.value),
+                  onKeyDown: e=>{ if(e.key==="Enter"){ e.preventDefault(); addCompanion(); } },} )
+                , React.createElement('button', { type: "button", onClick: addCompanion,
+                  style: {padding:"0 16px", background:"var(--fern)", color:"white", border:"none",
+                    borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600, whiteSpace:"nowrap"},}, "\uff0b \u8ffd\u52a0")
               )
             )
             , React.createElement('div', { className: "form-group",}
@@ -5348,7 +5395,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
             )
 
             , React.createElement('div', { className: "form-actions",}
-              , React.createElement('button', { className: "btn-cancel", onClick: ()=>setShowRecordForm(false),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
+              , React.createElement('button', { className: "btn-cancel", onClick: ()=>{setShowRecordForm(false); setCompanionInput("");},}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
               , React.createElement('button', { className: "btn-submit", onClick: saveRecord,}, "\u8a18\u9332\u3059\u308b")
             )
           )
@@ -5548,7 +5595,9 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
           , React.createElement('div', { className: "form-box", onClick: e=>e.stopPropagation(), style: {maxHeight:"88vh", overflowY:"auto"},}
             , React.createElement('div', { style: {marginBottom:16},}
               , React.createElement('div', { style: {fontSize:18, fontWeight:700, color:"var(--forest)"},}, spotName(selectedRecord.spotId))
-              , React.createElement('div', { style: {fontSize:12, color:"#888", marginTop:4},}, "\ud83d\uddd3 " , selectedRecord.date, " \ud83d\udc64 "  , Array.isArray(selectedRecord.patrolledBy) ? selectedRecord.patrolledBy.join("\u30fb") : selectedRecord.patrolledBy)
+              , React.createElement('div', { style: {fontSize:12, color:"#888", marginTop:4},}, "\ud83d\uddd3 " , selectedRecord.date, " \ud83d\udc64 "  , Array.isArray(selectedRecord.patrolledBy) ? selectedRecord.patrolledBy.join("\u30fb") : selectedRecord.patrolledBy
+                , _optionalChain([selectedRecord, 'access', _1010 => _1010.companions, 'optionalAccess', _1011 => _1011.length]) > 0 && ` \uff0b\u540c\u884c\uff1a${selectedRecord.companions.join("\u30fb")}`
+              )
             )
 
             , selectedRecord.illegalActivity && (
