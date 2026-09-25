@@ -6663,6 +6663,7 @@ function HarvestView({ spots, members, sansaiList }) {
     try { localStorage.setItem("sansai_harvests", JSON.stringify(harvests)); } catch(e) {}
   }, [harvests]);
   const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState(null); // null=新規、obj=編集中の収穫記録
   const [selectedHarvest, setSelectedHarvest] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [lightbox, setLightbox] = useState(null);
@@ -6699,8 +6700,35 @@ function HarvestView({ spots, members, sansaiList }) {
 
   const saveHarvest = () => {
     if (!form.date || !form.sansaiId || !form.amount) return;
-    setHarvests(prev => [{ id: Date.now(), ...form, sansaiId: Number(form.sansaiId), spotId: Number(form.spotId), amount: Number(form.amount), gps: harvestGPS.gps }, ...prev]);
+    const data = { ...form, sansaiId: Number(form.sansaiId), spotId: Number(form.spotId), amount: Number(form.amount), gps: harvestGPS.gps || form.gps || null };
+    if (editTarget) {
+      setHarvests(prev => prev.map(h => h.id === editTarget.id ? { ...h, ...data } : h));
+    } else {
+      setHarvests(prev => [{ id: Date.now(), ...data }, ...prev]);
+    }
     setForm(emptyForm);
+    setEditTarget(null);
+    harvestGPS.clearGps();
+    setAutoCam(false);
+    setShowForm(false);
+  };
+
+  const openEditHarvest = (h) => {
+    setForm({
+      date: h.date, sansaiId: h.sansaiId, spotId: h.spotId != null ? String(h.spotId) : "",
+      collectors: [...(h.collectors||[])], amount: h.amount, unit: h.unit, condition: h.condition,
+      memo: h.memo || "", photos: h.photos || [], gps: h.gps || null,
+    });
+    setEditTarget(h);
+    harvestGPS.clearGps();
+    setAutoCam(false);
+    setSelectedHarvest(null);
+    setShowForm(true);
+  };
+
+  const closeHarvestForm = () => {
+    setForm(emptyForm);
+    setEditTarget(null);
     harvestGPS.clearGps();
     setAutoCam(false);
     setShowForm(false);
@@ -6911,21 +6939,21 @@ function HarvestView({ spots, members, sansaiList }) {
 
       , React.createElement('div', { style: {display:"flex", gap:10, marginTop:8},}
         , React.createElement('button', { className: "add-btn", style: {flex:1, justifyContent:"center"},
-          onClick: ()=>{ setForm(emptyForm); harvestGPS.clearGps(); setAutoCam(false); setShowForm(true); },}, "\uff0b \u53ce\u7a6b\u3092\u8a18\u9332"
+          onClick: ()=>{ setForm(emptyForm); setEditTarget(null); harvestGPS.clearGps(); setAutoCam(false); setShowForm(true); },}, "\uff0b \u53ce\u7a6b\u3092\u8a18\u9332"
 
         )
         , React.createElement('button', { style: {padding:"12px 16px", background:"#e8f5e9", border:"2px solid #43a047", borderRadius:8,
           cursor:"pointer", fontSize:13, fontWeight:600, color:"#2e7d32", display:"flex", alignItems:"center", gap:6},
-          onClick: ()=>{ setForm(emptyForm); harvestGPS.clearGps(); setAutoCam(true); setShowForm(true); },}, "\ud83d\udcf8 \u64ae\u5f71\u3057\u3066\u8a18\u9332"
+          onClick: ()=>{ setForm(emptyForm); setEditTarget(null); harvestGPS.clearGps(); setAutoCam(true); setShowForm(true); },}, "\ud83d\udcf8 \u64ae\u5f71\u3057\u3066\u8a18\u9332"
 
         )
       )
 
       /* ===== \u8a18\u9332\u30d5\u30a9\u30fc\u30e0 ===== */
       , showForm && (
-        React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setShowForm(false),}
+        React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&closeHarvestForm(),}
           , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},}
-            , React.createElement('div', { className: "form-title",}, "\ud83e\uddfa \u53ce\u7a6b\u3092\u8a18\u9332" )
+            , React.createElement('div', { className: "form-title",}, editTarget ? "\u270f\ufe0f \u53ce\u7a6b\u3092\u7de8\u96c6" : "\ud83e\uddfa \u53ce\u7a6b\u3092\u8a18\u9332" )
             , React.createElement('div', { className: "form-group",}
               , React.createElement('label', { className: "form-label",}, "\u63a1\u53d6\u65e5 *" )
               , React.createElement('input', { type: "date", className: "form-input", value: form.date, onChange: e=>setForm(f=>({...f,date:e.target.value})),} )
@@ -7019,8 +7047,8 @@ function HarvestView({ spots, members, sansaiList }) {
               )
             )
             , React.createElement('div', { className: "form-actions",}
-              , React.createElement('button', { className: "btn-cancel", onClick: ()=>setShowForm(false),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
-              , React.createElement('button', { className: "btn-submit", onClick: saveHarvest,}, "\u8a18\u9332\u3059\u308b")
+              , React.createElement('button', { className: "btn-cancel", onClick: closeHarvestForm,}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
+              , React.createElement('button', { className: "btn-submit", onClick: saveHarvest,}, editTarget ? "\u4fdd\u5b58\u3059\u308b" : "\u8a18\u9332\u3059\u308b")
             )
           )
         )
@@ -7079,7 +7107,13 @@ function HarvestView({ spots, members, sansaiList }) {
                 style: {padding:"10px 16px", background:"#fee", border:"none", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600, color:"#c0392b"},}, "\ud83d\uddd1\ufe0f \u524a\u9664"
 
               )
-              , React.createElement('button', { className: "btn-submit", onClick: ()=>setSelectedHarvest(null),}, "\u9589\u3058\u308b")
+              , React.createElement('div', { style: {display:"flex", gap:8},}
+                , React.createElement('button', { onClick: ()=>openEditHarvest(selectedHarvest),
+                  style: {padding:"10px 16px", background:"var(--mist)", border:"none", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600, color:"var(--forest)"},}, "\u270f\ufe0f \u7de8\u96c6"
+
+                )
+                , React.createElement('button', { className: "btn-submit", onClick: ()=>setSelectedHarvest(null),}, "\u9589\u3058\u308b")
+              )
             )
           )
         )
