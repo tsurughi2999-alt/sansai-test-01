@@ -1079,6 +1079,20 @@ const styles = `
     transition: all 0.2s;
   }
   .like-btn:hover { background: #fee; border-color: #f88; color: #e55; }
+  .delete-btn {
+    background: none;
+    border: 1px solid #f3b3b3;
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #c0392b;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+  }
+  .delete-btn:hover { background: #fdecea; border-color: #e55; color: #a51c1c; }
 
   /* ===== SANSAI INFO ===== */
   .sansai-grid {
@@ -3925,6 +3939,15 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
     setPosts(prev => prev.map(p => p.id===id ? {...p, likes: p.likes+1} : p));
   };
 
+  const handleDelete = (e, id) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm("\u3053\u306e\u8a18\u9332\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f\u3053\u306e\u64cd\u4f5c\u306f\u5143\u306b\u623b\u305b\u307e\u305b\u3093\u3002")) return;
+    setPosts(prev => prev.filter(p => p.id !== id));
+    if (editTarget && editTarget.id === id) {
+      closeForm();
+    }
+  };
+
   return (
     React.createElement('div', null
       , React.createElement('div', { className: "section-title",}, "\ud83d\udcdd \u63a1\u53d6\u30d6\u30ed\u30b0" )
@@ -3975,6 +3998,7 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
                   return s ? React.createElement('span', { key: sid, className: "blog-sansai-tag",}, s.emoji, " " , s.name) : null;
                 })
                 , React.createElement('button', { className: "like-btn", onClick: e=>handleLike(e, post.id),}, "\u2764 " , post.likes)
+                , React.createElement('button', { className: "delete-btn", onClick: e=>handleDelete(e, post.id),}, "\ud83d\uddd1 \u524a\u9664")
               )
             )
           );
@@ -4082,6 +4106,7 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
               )
             )
             , React.createElement('div', { className: "form-actions",}
+              , editTarget && React.createElement('button', { className: "delete-btn", style: {marginRight:"auto"}, onClick: e=>handleDelete(e, editTarget.id),}, "\ud83d\uddd1 \u524a\u9664")
               , React.createElement('button', { className: "btn-cancel", onClick: closeForm,}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
               , React.createElement('button', { className: "btn-submit", onClick: handleSave,}, editTarget ? "\u4fdd\u5b58\u3059\u308b" : "\u6295\u7a3f\u3059\u308b")
             )
