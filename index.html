@@ -3870,13 +3870,49 @@ function SpotsView({ spots, setSpots, sansaiList }) {
 
 function BlogView({ posts, setPosts, spots, members, sansaiList }) {
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title:"", content:"", sansai:[], spot:"", author: _nullishCoalesce(_optionalChain([members, 'access', _56 => _56[0], 'optionalAccess', _57 => _57.name]), () => ( "")), date: new Date().toISOString().split("T")[0], photos: [] });
+  const [editTarget, setEditTarget] = useState(null); // null=新規、obj=編集中の投稿
+  const blankForm = () => ({ title:"", content:"", sansai:[], spot:"", author: _nullishCoalesce(_optionalChain([members, 'access', _56 => _56[0], 'optionalAccess', _57 => _57.name]), () => ( "")), date: new Date().toISOString().split("T")[0], photos: [], gps: null });
+  const [form, setForm] = useState(blankForm());
   const [lightbox, setLightbox] = useState(null); // {images, index}
+  const blogGPS = useGPS();
 
-  const handleAdd = () => {
+  const openAdd = () => {
+    setForm(blankForm());
+    setEditTarget(null);
+    blogGPS.clearGps();
+    setShowForm(true);
+  };
+
+  const openEdit = (post) => {
+    setForm({
+      title: post.title, content: post.content, sansai: [...post.sansai],
+      spot: post.spot != null ? String(post.spot) : "",
+      author: post.author, date: post.date, photos: post.photos || [],
+      gps: post.gps || null,
+    });
+    blogGPS.clearGps();
+    setEditTarget(post);
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    setForm(blankForm());
+    setEditTarget(null);
+    blogGPS.clearGps();
+    setShowForm(false);
+  };
+
+  const handleSave = () => {
     if (!form.title.trim() || !form.content.trim()) return;
-    setPosts(prev => [{ id: Date.now(), ...form, spot: form.spot ? parseInt(form.spot) : null, likes: 0 }, ...prev]);
-    setForm({ title:"", content:"", sansai:[], spot:"", author: _nullishCoalesce(_optionalChain([members, 'access', _58 => _58[0], 'optionalAccess', _59 => _59.name]), () => ( "")), date: new Date().toISOString().split("T")[0], photos: [] });
+    const data = { ...form, spot: form.spot ? parseInt(form.spot) : null, gps: blogGPS.gps || form.gps || null };
+    if (editTarget) {
+      setPosts(prev => prev.map(p => p.id === editTarget.id ? { ...p, ...data } : p));
+    } else {
+      setPosts(prev => [{ id: Date.now(), ...data, likes: 0 }, ...prev]);
+    }
+    setForm(blankForm());
+    setEditTarget(null);
+    blogGPS.clearGps();
     setShowForm(false);
   };
 
@@ -3884,7 +3920,8 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
     setForm(f => ({ ...f, sansai: f.sansai.includes(id) ? f.sansai.filter(x=>x!==id) : [...f.sansai, id] }));
   };
 
-  const handleLike = (id) => {
+  const handleLike = (e, id) => {
+    e.stopPropagation();
     setPosts(prev => prev.map(p => p.id===id ? {...p, likes: p.likes+1} : p));
   };
 
@@ -3902,19 +3939,20 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
         , posts.map(post => {
           const spot = spots.find(s=>s.id===post.spot);
           return (
-            React.createElement('div', { key: post.id, className: "blog-card",}
+            React.createElement('div', { key: post.id, className: "blog-card", style: {cursor:"pointer"}, onClick: ()=>openEdit(post),}
               , React.createElement('div', { className: "blog-meta",}
                 , React.createElement('span', { className: "blog-author",}, post.author)
                 , React.createElement('span', null, post.date)
                 , spot && React.createElement('span', null, "\ud83d\udccd " , spot.name)
                 , _optionalChain([post, 'access', _60 => _60.photos, 'optionalAccess', _61 => _61.length]) > 0 && React.createElement('span', { style: {color:"var(--moss)", fontSize:11},}, "\ud83d\udcf7 " , post.photos.length, "\u679a")
+                , post.gps && React.createElement('span', { style: {color:"#1565c0", fontSize:11, fontWeight:600},}, "\ud83d\udce1 GPS")
               )
               , React.createElement('div', { className: "blog-title",}, post.title)
 
               , _optionalChain([post, 'access', _62 => _62.photos, 'optionalAccess', _63 => _63.length]) > 0 && (
                 React.createElement('div', { className: "blog-photos",}
                   , post.photos.map((src, i) => (
-                    React.createElement('div', { key: i, className: "blog-photo", onClick: ()=>setLightbox({images:post.photos, index:i}),}
+                    React.createElement('div', { key: i, className: "blog-photo", onClick: e=>{e.stopPropagation(); setLightbox({images:post.photos, index:i});},}
                       , React.createElement('img', { src: src, alt: `post-photo-${i}`,} )
                     )
                   ))
@@ -3922,28 +3960,37 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
               )
 
               , React.createElement('div', { className: "blog-content",}, post.content)
+
+              , post.gps && (
+                React.createElement('div', { style: {fontSize:11, color:"#2e7d32", background:"#e8f5e9", borderRadius:8, padding:"6px 10px", marginBottom:10, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"},}
+                  , React.createElement('span', null, "\ud83d\udccd \u7def\u5ea6\uff1a" , post.gps.lat.toFixed(6), " \u3000\u7d4c\u5ea6\uff1a" , post.gps.lng.toFixed(6))
+                  , React.createElement('a', { href: `https://maps.google.com/?q=${post.gps.lat},${post.gps.lng}`, target: "_blank", rel: "noopener noreferrer", onClick: e=>e.stopPropagation(),
+                    style: {color:"#1565c0", fontWeight:600, textDecoration:"none"},}, "\ud83d\uddfa \u5730\u56f3\u3067\u78ba\u8a8d")
+                )
+              )
+
               , React.createElement('div', { className: "blog-footer",}
                 , post.sansai.map(sid => {
                   const s = (sansaiList||(sansaiList||SANSAI_DATA)).find(x=>x.id===sid);
                   return s ? React.createElement('span', { key: sid, className: "blog-sansai-tag",}, s.emoji, " " , s.name) : null;
                 })
-                , React.createElement('button', { className: "like-btn", onClick: ()=>handleLike(post.id),}, "\u2764 " , post.likes)
+                , React.createElement('button', { className: "like-btn", onClick: e=>handleLike(e, post.id),}, "\u2764 " , post.likes)
               )
             )
           );
         })
       )
 
-      , React.createElement('button', { className: "add-btn", onClick: ()=>setShowForm(true),}, "\uff0b \u8a18\u9332\u3092\u6295\u7a3f" )
+      , React.createElement('button', { className: "add-btn", onClick: openAdd,}, "\uff0b \u8a18\u9332\u3092\u6295\u7a3f" )
 
       , lightbox && (
         React.createElement(Lightbox, { images: lightbox.images, startIndex: lightbox.index, onClose: ()=>setLightbox(null),} )
       )
 
       , showForm && (
-        React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setShowForm(false),}
+        React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&closeForm(),}
           , React.createElement('div', { className: "form-box",}
-            , React.createElement('div', { className: "form-title",}, "\ud83d\udcdd \u63a1\u53d6\u8a18\u9332\u3092\u6295\u7a3f" )
+            , React.createElement('div', { className: "form-title",}, editTarget ? "\u270f\ufe0f \u63a1\u53d6\u8a18\u9332\u3092\u7de8\u96c6" : "\ud83d\udcdd \u63a1\u53d6\u8a18\u9332\u3092\u6295\u7a3f" )
             , React.createElement('div', { className: "form-group",}
               , React.createElement('label', { className: "form-label",}, "\u6295\u7a3f\u8005")
               , React.createElement('select', { className: "form-select", value: form.author, onChange: e=>setForm(f=>({...f,author:e.target.value})),}
@@ -3979,6 +4026,16 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
               , React.createElement('label', { className: "form-label",}, "\u8a18\u9332\u30fb\u611f\u60f3 *" )
               , React.createElement('textarea', { className: "form-textarea", value: form.content, onChange: e=>setForm(f=>({...f,content:e.target.value})), placeholder: "\u63a1\u53d6\u306e\u69d8\u5b50\u3001\u91cf\u3001\u6599\u7406\u3057\u305f\u611f\u60f3\u306a\u3069...",} )
             )
+
+            , React.createElement(GPSCapture, { gps: blogGPS.gps, gpsStatus: blogGPS.gpsStatus,
+              gpsError: blogGPS.gpsError, onCapture: blogGPS.getLocation,
+              onClear: blogGPS.clearGps, googleMapsUrl: blogGPS.googleMapsUrl,} )
+            , editTarget && form.gps && blogGPS.gpsStatus === "idle" && (
+              React.createElement('div', { style: {fontSize:11, color:"#2e7d32", background:"#e8f5e9", borderRadius:10, padding:"8px 12px", marginTop:-10, marginBottom:16},}
+                , "\u767b\u9332\u6e08\u307f\u306eGPS\uff1a\u7def\u5ea6" , form.gps.lat.toFixed(6), " / \u7d4c\u5ea6" , form.gps.lng.toFixed(6), "\uff08\u5909\u66f4\u3057\u306a\u3044\u5834\u5408\u306f\u3053\u306e\u307e\u307e\u3067OK\u3002\u518d\u53d6\u5f97\u3059\u308b\u3068\u4e0a\u306e\u30dc\u30bf\u30f3\u3067\u66f4\u65b0\u3067\u304d\u307e\u3059\uff09"
+              )
+            )
+
             , React.createElement('div', { className: "form-group",}
               , React.createElement('label', { className: "form-label",}, "\ud83d\udcf7 \u5199\u771f" )
               , React.createElement('div', null
@@ -4025,8 +4082,8 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
               )
             )
             , React.createElement('div', { className: "form-actions",}
-              , React.createElement('button', { className: "btn-cancel", onClick: ()=>setShowForm(false),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
-              , React.createElement('button', { className: "btn-submit", onClick: handleAdd,}, "\u6295\u7a3f\u3059\u308b")
+              , React.createElement('button', { className: "btn-cancel", onClick: closeForm,}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
+              , React.createElement('button', { className: "btn-submit", onClick: handleSave,}, editTarget ? "\u4fdd\u5b58\u3059\u308b" : "\u6295\u7a3f\u3059\u308b")
             )
           )
         )
