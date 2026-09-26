@@ -3883,6 +3883,8 @@ function SpotsView({ spots, setSpots, sansaiList }) {
 }
 
 function BlogView({ posts, setPosts, spots, members, sansaiList }) {
+  const { photos: photoStore, savePhoto, removePhoto } = usePhotos();
+  const resolveSrc = (entry) => photoStore[entry] || entry;
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState(null); // null=新規、obj=編集中の投稿
   const blankForm = () => ({ title:"", content:"", sansai:[], spot:"", author: _nullishCoalesce(_optionalChain([members, 'access', _56 => _56[0], 'optionalAccess', _57 => _57.name]), () => ( "")), date: new Date().toISOString().split("T")[0], photos: [], gps: null });
@@ -3942,7 +3944,11 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
   const handleDelete = (e, id) => {
     if (e) e.stopPropagation();
     if (!window.confirm("\u3053\u306e\u8a18\u9332\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f\u3053\u306e\u64cd\u4f5c\u306f\u5143\u306b\u623b\u305b\u307e\u305b\u3093\u3002")) return;
-    setPosts(prev => prev.filter(p => p.id !== id));
+    setPosts(prev => {
+      const target = prev.find(p => p.id === id);
+      if (target && Array.isArray(target.photos)) target.photos.forEach(p => removePhoto(p));
+      return prev.filter(p => p.id !== id);
+    });
     if (editTarget && editTarget.id === id) {
       closeForm();
     }
@@ -3975,8 +3981,8 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
               , _optionalChain([post, 'access', _62 => _62.photos, 'optionalAccess', _63 => _63.length]) > 0 && (
                 React.createElement('div', { className: "blog-photos",}
                   , post.photos.map((src, i) => (
-                    React.createElement('div', { key: i, className: "blog-photo", onClick: e=>{e.stopPropagation(); setLightbox({images:post.photos, index:i});},}
-                      , React.createElement('img', { src: src, alt: `post-photo-${i}`,} )
+                    React.createElement('div', { key: i, className: "blog-photo", onClick: e=>{e.stopPropagation(); setLightbox({images:post.photos.map(resolveSrc), index:i});},}
+                      , React.createElement('img', { src: resolveSrc(src), alt: `post-photo-${i}`,} )
                     )
                   ))
                 )
@@ -4069,9 +4075,11 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
                     background:"var(--soil)", border:"2px dashed var(--fern)", textAlign:"center"},}
                     , React.createElement('input', { type: "file", accept: "image/*", multiple: true, style: {display:"none"},
                       onChange: e=>Array.from(e.target.files).forEach(file=>{
-                        const reader=new FileReader();
-                        reader.onload=ev=>setForm(f=>({...f,photos:[...f.photos,ev.target.result]}));
-                        reader.readAsDataURL(file);
+                        if (!file.type.startsWith("image/")) return;
+                        compressImageFile(file, 1200, 0.8, async (dataUrl) => {
+                          const id = await savePhoto(dataUrl);
+                          setForm(f=>({...f,photos:[...f.photos,id]}));
+                        });
                       }),} )
                     , React.createElement('span', { style: {fontSize:22},}, "\ud83d\uddbc")
                     , React.createElement('span', { style: {fontSize:11, color:"var(--moss)", fontWeight:600},}, "\u30d5\u30a9\u30c8\u304b\u3089\u9078\u629e")
@@ -4081,10 +4089,11 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
                     background:"#e8f5e9", border:"2px dashed #43a047", textAlign:"center"},}
                     , React.createElement('input', { type: "file", accept: "image/*", capture: "environment", style: {display:"none"},
                       onChange: e=>{
-                        const file=e.target.files[0]; if(!file) return;
-                        const reader=new FileReader();
-                        reader.onload=ev=>setForm(f=>({...f,photos:[...f.photos,ev.target.result]}));
-                        reader.readAsDataURL(file);
+                        const file=e.target.files[0]; if(!file || !file.type.startsWith("image/")) return;
+                        compressImageFile(file, 1200, 0.8, async (dataUrl) => {
+                          const id = await savePhoto(dataUrl);
+                          setForm(f=>({...f,photos:[...f.photos,id]}));
+                        });
                       },} )
                     , React.createElement('span', { style: {fontSize:22},}, "\ud83d\udcf8")
                     , React.createElement('span', { style: {fontSize:11, color:"#2e7d32", fontWeight:600},}, "\u30ab\u30e1\u30e9\u3067\u64ae\u5f71")
@@ -4094,8 +4103,8 @@ function BlogView({ posts, setPosts, spots, members, sansaiList }) {
                   React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:8},}
                     , form.photos.map((src,i)=>(
                       React.createElement('div', { key: i, style: {position:"relative", width:72, height:72},}
-                        , React.createElement('img', { src: src, style: {width:"100%", height:"100%", borderRadius:8, objectFit:"cover"},} )
-                        , React.createElement('button', { onClick: ()=>setForm(f=>({...f,photos:f.photos.filter((_,idx)=>idx!==i)})),
+                        , React.createElement('img', { src: resolveSrc(src), style: {width:"100%", height:"100%", borderRadius:8, objectFit:"cover"},} )
+                        , React.createElement('button', { onClick: ()=>{ removePhoto(src); setForm(f=>({...f,photos:f.photos.filter((_,idx)=>idx!==i)})); },
                           style: {position:"absolute", top:-6, right:-6, background:"#c0392b", color:"white",
                             border:"none", borderRadius:"50%", width:20, height:20, cursor:"pointer",
                             fontSize:11, display:"flex", alignItems:"center", justifyContent:"center"},}, "\u2715")
@@ -4156,7 +4165,9 @@ const RANKS_LIST = ["\u521d\u7d1a\uff08\u521d\u5fc3\u8005\uff09","\u4e2d\u7d1a",
 
 function MemberAvatar({ member, size }) {
   const sz = size || 48;
-  const src = member.avatar || member.photo;
+  const { photos } = usePhotos();
+  const src = (member.avatarId && photos[member.avatarId]) || member.avatar
+    || (member.photoId && photos[member.photoId]) || member.photo;
   const primaryRole = Array.isArray(member.role) ? member.role[0] : member.role;
   if (src) return (
     React.createElement('img', { src: src, style: {width:sz, height:sz, borderRadius:"50%", objectFit:"cover",
@@ -4184,6 +4195,13 @@ function loadMembersFromStorage(initial) {
 function saveMembersToStorage(members) {
   try {
     localStorage.setItem("sansai_members", JSON.stringify(members));
+    // \u4fdd\u5b58\u76f4\u5f8c\u306b\u8aad\u307f\u623b\u3057\u3066\u691c\u8a3c\uff08\u30d7\u30e9\u30a4\u30d9\u30fc\u30c8\u30e2\u30fc\u30c9\u306a\u3069\u3067\u9759\u304b\u306b\u5931\u6557\u3059\u308b\u30b1\u30fc\u30b9\u306e\u5bfe\u7b56\uff09
+    const check = localStorage.getItem("sansai_members");
+    const parsed = check ? JSON.parse(check) : null;
+    if (!parsed || parsed.length !== members.length) {
+      alert("\u4fdd\u5b58\u306e\u691c\u8a3c\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002\u30d6\u30e9\u30a6\u30b6\u306e\u8a2d\u5b9a\uff08\u30d7\u30e9\u30a4\u30d9\u30fc\u30c8\u30e2\u30fc\u30c9\u3084\u30b9\u30c8\u30ec\u30fc\u30b8\u5236\u9650\u306a\u3069\uff09\u306b\u3088\u308a\u3001\u5909\u66f4\u304c\u4fdd\u5b58\u3055\u308c\u3066\u3044\u306a\u3044\u53ef\u80fd\u6027\u304c\u3042\u308a\u307e\u3059\u3002\u30da\u30fc\u30b8\u3092\u9589\u3058\u308b\u524d\u306b\u3082\u3046\u4e00\u5ea6\u3053\u306e\u753b\u9762\u3067\u4eba\u6570\u3092\u3054\u78ba\u8a8d\u304f\u3060\u3055\u3044\u3002");
+      return false;
+    }
     return true;
   } catch(e) {
     alert("\u4fdd\u5b58\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002\u30d6\u30e9\u30a6\u30b6\u306e\u4fdd\u5b58\u5bb9\u91cf\uff08\u5236\u9650\u3042\u308a\uff09\u3092\u8d85\u3048\u305f\u53ef\u80fd\u6027\u304c\u3042\u308a\u307e\u3059\u3002\u5199\u771f\u30fb\u30a4\u30e9\u30b9\u30c8\u306e\u30b5\u30a4\u30ba\u3092\u5c0f\u3055\u304f\u3059\u308b\u304b\u3001\u4e0d\u8981\u306a\u5199\u771f\u3092\u524a\u9664\u3057\u3066\u304b\u3089\u3082\u3046\u4e00\u5ea6\u4fdd\u5b58\u3057\u3066\u304f\u3060\u3055\u3044\u3002\u3053\u306e\u5909\u66f4\u306f\u4fdd\u5b58\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002");
@@ -4215,6 +4233,7 @@ function compressImageFile(file, maxDim, quality, callback) {
 
 function MembersView({ members, setMembers }) {
   const todayStr = new Date().toISOString().split("T")[0];
+  const { photos, savePhoto, removePhoto } = usePhotos();
   const [notifyModal, setNotifyModal] = useState(null); // \u901a\u77e5\u5bfe\u8c61member or "all"
   const [notifyMsg, setNotifyMsg] = useState("");
   const [notifySubject, setNotifySubject] = useState("");
@@ -4303,10 +4322,10 @@ function MembersView({ members, setMembers }) {
     setFormRank(m.rank||"\u521d\u7d1a\uff08\u521d\u5fc3\u8005\uff09");
     setFormMemo(m.memo||"");
     setFormJoined(m.joined||todayStr);
-    setFormPhoto(m.photo||null);
-    setFormAvatar(m.avatar||null);
+    setFormPhoto(m.photoId ? (photos[m.photoId]||null) : (m.photo||null));
+    setFormAvatar(m.avatarId ? (photos[m.avatarId]||null) : (m.avatar||null));
     setFormBio(m.bio||"");
-    setFormBigPhoto(m.bigPhoto||null);
+    setFormBigPhoto(m.bigPhotoId ? (photos[m.bigPhotoId]||null) : (m.bigPhoto||null));
     setAiSvg(null);
     setEditTarget(m);
     setShowForm(true);
@@ -4387,15 +4406,18 @@ function MembersView({ members, setMembers }) {
   };
 
   // \u2500\u2500 \u8ffd\u52a0 \u2500\u2500
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!formName.trim()) { alert("\u540d\u524d\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044"); return; }
+    const [photoId, avatarId, bigPhotoId] = await Promise.all([
+      savePhoto(formPhoto), savePhoto(formAvatar), savePhoto(formBigPhoto),
+    ]);
     const newMember = {
       id: Date.now(),
       name: formName.trim(), nickname: formNickname.trim(),
       role: formRoles, rank: formRank,
       memo: formMemo, joined: formJoined,
-      photo: formPhoto, avatar: formAvatar,
-      bio: formBio, bigPhoto: formBigPhoto,
+      photoId, avatarId, photo: null, avatar: null,
+      bio: formBio, bigPhotoId, bigPhoto: null,
     };
     const updated = [...members, newMember];
     setMembers(updated);
@@ -4405,15 +4427,18 @@ function MembersView({ members, setMembers }) {
   };
 
   // \u2500\u2500 \u7de8\u96c6\u4fdd\u5b58 \u2500\u2500
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     if (!formName.trim()) { alert("\u540d\u524d\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044"); return; }
+    const [photoId, avatarId, bigPhotoId] = await Promise.all([
+      savePhoto(formPhoto), savePhoto(formAvatar), savePhoto(formBigPhoto),
+    ]);
     const updated = members.map(m => m.id === editTarget.id ? {
       ...m,
       name: formName.trim(), nickname: formNickname.trim(),
       role: formRoles, rank: formRank,
       memo: formMemo, joined: formJoined,
-      photo: formPhoto, avatar: formAvatar,
-      bio: formBio, bigPhoto: formBigPhoto,
+      photoId, avatarId, photo: null, avatar: null,
+      bio: formBio, bigPhotoId, bigPhoto: null,
     } : m);
     setMembers(updated);
     saveMembersToStorage(updated);
@@ -4425,6 +4450,9 @@ function MembersView({ members, setMembers }) {
   // \u2500\u2500 \u524a\u9664 \u2500\u2500
   const handleDelete = () => {
     if (!deleteTarget) return;
+    removePhoto(deleteTarget.photoId);
+    removePhoto(deleteTarget.avatarId);
+    removePhoto(deleteTarget.bigPhotoId);
     const updated = members.filter(m => m.id !== deleteTarget.id);
     setMembers(updated);
     saveMembersToStorage(updated);
@@ -4736,11 +4764,16 @@ function MembersView({ members, setMembers }) {
       )
 
       /* \u30e1\u30f3\u30d0\u30fc\u8a73\u7d30\uff08\u81ea\u5df1\u7d39\u4ecb\uff09\u30e2\u30fc\u30c0\u30eb */
-      , selectedMember && (
+      , selectedMember && (() => {
+        const dm = selectedMember;
+        const dmImg = (dm.bigPhotoId && photos[dm.bigPhotoId]) || dm.bigPhoto
+          || (dm.avatarId && photos[dm.avatarId]) || dm.avatar
+          || (dm.photoId && photos[dm.photoId]) || dm.photo;
+        return (
         React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setSelectedMember(null),}
           , React.createElement('div', { className: "form-box", style: {maxHeight:"90vh", overflowY:"auto", padding:0},}
-            , (selectedMember.bigPhoto || selectedMember.photo || selectedMember.avatar) && (
-              React.createElement('img', { src: selectedMember.bigPhoto || selectedMember.avatar || selectedMember.photo,
+            , dmImg && (
+              React.createElement('img', { src: dmImg,
                 style: {width:"100%", maxHeight:260, objectFit:"cover", display:"block",
                   borderTopLeftRadius:16, borderTopRightRadius:16},} )
             )
@@ -4780,7 +4813,8 @@ function MembersView({ members, setMembers }) {
             )
           )
         )
-      )
+      );
+      })()
 
       /* \u901a\u77e5\u30e2\u30fc\u30c0\u30eb */
       , notifyModal && (
@@ -4913,6 +4947,8 @@ function MembersView({ members, setMembers }) {
 
 
 function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, clothing, tools }) {
+  const { photos: photoStore, savePhoto, removePhoto } = usePhotos();
+  const resolveSrc = (entry) => photoStore[entry] || entry;
   const today = new Date().toISOString().split("T")[0];
   const currentMonth = new Date().getMonth() + 1;
 
@@ -4940,7 +4976,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
   ]);
   });
   useEffect(() => {
-    try { localStorage.setItem("sansai_patrol", JSON.stringify(records)); } catch(e) {}
+    try { safeLocalSave("sansai_patrol", records); } catch(e) {}
   }, [records]);
   const [schedules, setSchedules] = useState([
     { id: 1, spotId: 1, date: "2026-06-05", assignee: "\u7530\u4e2d", memo: "\u30b3\u30b7\u30a2\u30d6\u30e9\u7d42\u76e4\u78ba\u8a8d",
@@ -5009,9 +5045,10 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
   const handlePhotoUpload = (files) => {
     Array.from(files).forEach(file => {
       if (!file.type.startsWith("image/")) return;
-      const reader = new FileReader();
-      reader.onload = (e) => setRecForm(f => ({ ...f, photos: [...f.photos, e.target.result] }));
-      reader.readAsDataURL(file);
+      compressImageFile(file, 1200, 0.8, async (dataUrl) => {
+        const id = await savePhoto(dataUrl);
+        setRecForm(f => ({ ...f, photos: [...f.photos, id] }));
+      });
     });
   };
 
@@ -5057,7 +5094,11 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
   };
 
   const deleteRecord = (id) => {
-    setRecords(prev => prev.filter(r => r.id !== id));
+    setRecords(prev => {
+      const target = prev.find(r => r.id === id);
+      if (target && Array.isArray(target.photos)) target.photos.forEach(p => removePhoto(p));
+      return prev.filter(r => r.id !== id);
+    });
     setDeleteConfirm(null);
     setSelectedRecord(null);
   };
@@ -5196,7 +5237,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
                 React.createElement('div', { style: {display:"flex", gap:6, marginTop:8},}
                   , rec.photos.slice(0,3).map((p,i) => (
                     React.createElement('div', { key: i, style: {width:52, height:52, borderRadius:8, overflow:"hidden", flexShrink:0},}
-                      , React.createElement('img', { src: p, style: {width:"100%", height:"100%", objectFit:"cover"},} )
+                      , React.createElement('img', { src: resolveSrc(p), style: {width:"100%", height:"100%", objectFit:"cover"},} )
                     )
                   ))
                   , rec.photos.length > 3 && React.createElement('div', { style: {width:52, height:52, borderRadius:8, background:"#eee", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, color:"#888", fontWeight:700},}, "+", rec.photos.length-3)
@@ -5522,8 +5563,8 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
                 React.createElement('div', { className: "photo-grid",}
                   , recForm.photos.map((src,i)=>(
                     React.createElement('div', { key: i, className: "photo-thumb",}
-                      , React.createElement('img', { src: src, alt: `photo-${i}`,} )
-                      , React.createElement('button', { className: "del-btn", onClick: ()=>setRecForm(f=>({...f,photos:f.photos.filter((_,idx)=>idx!==i)})),}, "\u2715")
+                      , React.createElement('img', { src: resolveSrc(src), alt: `photo-${i}`,} )
+                      , React.createElement('button', { className: "del-btn", onClick: ()=>{ removePhoto(src); setRecForm(f=>({...f,photos:f.photos.filter((_,idx)=>idx!==i)})); },}, "\u2715")
                     )
                   ))
                 )
@@ -5772,8 +5813,8 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
                 , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)", marginBottom:8},}, "\ud83d\udcf7 \u5199\u771f" )
                 , React.createElement('div', { className: "blog-photos",}
                   , selectedRecord.photos.map((src,i)=>(
-                    React.createElement('div', { key: i, className: "blog-photo", onClick: ()=>setLightbox({images:selectedRecord.photos, index:i}),}
-                      , React.createElement('img', { src: src,} )
+                    React.createElement('div', { key: i, className: "blog-photo", onClick: ()=>setLightbox({images:selectedRecord.photos.map(resolveSrc), index:i}),}
+                      , React.createElement('img', { src: resolveSrc(src),} )
                     )
                   ))
                 )
@@ -6864,6 +6905,8 @@ function MemoView({ spots, sansaiList }) {
 }
 
 function HarvestView({ spots, members, sansaiList }) {
+  const { photos: photoStore, savePhoto, removePhoto } = usePhotos();
+  const resolveSrc = (entry) => photoStore[entry] || entry;
   const today = new Date().toISOString().split("T")[0];
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
@@ -6878,7 +6921,7 @@ function HarvestView({ spots, members, sansaiList }) {
     return INITIAL_HARVESTS;
   });
   useEffect(() => {
-    try { localStorage.setItem("sansai_harvests", JSON.stringify(harvests)); } catch(e) {}
+    try { safeLocalSave("sansai_harvests", harvests); } catch(e) {}
   }, [harvests]);
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState(null); // null=新規、obj=編集中の収穫記録
@@ -6922,9 +6965,10 @@ function HarvestView({ spots, members, sansaiList }) {
   const handlePhotoUpload = (files) => {
     Array.from(files).forEach(file => {
       if (!file.type.startsWith("image/")) return;
-      const reader = new FileReader();
-      reader.onload = (e) => setForm(f => ({ ...f, photos: [...f.photos, e.target.result] }));
-      reader.readAsDataURL(file);
+      compressImageFile(file, 1200, 0.8, async (dataUrl) => {
+        const id = await savePhoto(dataUrl);
+        setForm(f => ({ ...f, photos: [...f.photos, id] }));
+      });
     });
   };
 
@@ -6969,7 +7013,11 @@ function HarvestView({ spots, members, sansaiList }) {
   };
 
   const deleteHarvest = (id) => {
-    setHarvests(prev => prev.filter(h => h.id !== id));
+    setHarvests(prev => {
+      const target = prev.find(h => h.id === id);
+      if (target && Array.isArray(target.photos)) target.photos.forEach(p => removePhoto(p));
+      return prev.filter(h => h.id !== id);
+    });
     setDeleteConfirm(null);
     setSelectedHarvest(null);
   };
@@ -7089,7 +7137,7 @@ function HarvestView({ spots, members, sansaiList }) {
                 )
                 , _optionalChain([h, 'access', _172 => _172.photos, 'optionalAccess', _173 => _173.length]) > 0 && (
                   React.createElement('div', { style: {width:52, height:52, borderRadius:8, overflow:"hidden", flexShrink:0},}
-                    , React.createElement('img', { src: h.photos[0], style: {width:"100%", height:"100%", objectFit:"cover"},} )
+                    , React.createElement('img', { src: resolveSrc(h.photos[0]), style: {width:"100%", height:"100%", objectFit:"cover"},} )
                   )
                 )
               )
@@ -7306,8 +7354,8 @@ function HarvestView({ spots, members, sansaiList }) {
                 React.createElement('div', { className: "photo-grid",}
                   , form.photos.map((src,i)=>(
                     React.createElement('div', { key: i, className: "photo-thumb",}
-                      , React.createElement('img', { src: src, alt: "",} )
-                      , React.createElement('button', { className: "del-btn", onClick: ()=>setForm(f=>({...f,photos:f.photos.filter((_,idx)=>idx!==i)})),}, "\u2715")
+                      , React.createElement('img', { src: resolveSrc(src), alt: "",} )
+                      , React.createElement('button', { className: "del-btn", onClick: ()=>{ removePhoto(src); setForm(f=>({...f,photos:f.photos.filter((_,idx)=>idx!==i)})); },}, "\u2715")
                     )
                   ))
                 )
@@ -7363,8 +7411,8 @@ function HarvestView({ spots, members, sansaiList }) {
               , _optionalChain([selectedHarvest, 'access', _174 => _174.photos, 'optionalAccess', _175 => _175.length]) > 0 && (
                 React.createElement('div', { className: "blog-photos",}
                   , selectedHarvest.photos.map((src,i)=>(
-                    React.createElement('div', { key: i, className: "blog-photo", onClick: ()=>setLightbox({images:selectedHarvest.photos, index:i}),}
-                      , React.createElement('img', { src: src, alt: "",} )
+                    React.createElement('div', { key: i, className: "blog-photo", onClick: ()=>setLightbox({images:selectedHarvest.photos.map(resolveSrc), index:i}),}
+                      , React.createElement('img', { src: resolveSrc(src), alt: "",} )
                     )
                   ))
                 )
@@ -7933,6 +7981,96 @@ function MemoView({ spots, sansaiList }) {
   );
 }
 
+// ===== IndexedDB \u5199\u771f\u30b9\u30c8\u30ec\u30fc\u30b8\uff08localStorage\u306e\u5bb9\u91cf\u5236\u9650\u56de\u907f\uff09 =====
+const IDB_NAME = "sansai_photos_db";
+const IDB_STORE = "photos";
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) { reject(new Error("no-idb")); return; }
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbSet(id, dataUrl) {
+  try {
+    const db = await idbOpen();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).put(dataUrl, id);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch(e) { return false; }
+}
+async function idbDelete(id) {
+  try {
+    const db = await idbOpen();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).delete(id);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch(e) { return false; }
+}
+async function idbGetAll() {
+  try {
+    const db = await idbOpen();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, "readonly");
+      const store = tx.objectStore(IDB_STORE);
+      const result = {};
+      const req = store.openCursor();
+      req.onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) { result[cursor.key] = cursor.value; cursor.continue(); }
+        else resolve(result);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  } catch(e) { return {}; }
+}
+function genPhotoId() {
+  return "p_" + Date.now() + "_" + Math.random().toString(36).slice(2,9);
+}
+function safeLocalSave(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+    return true;
+  } catch(e) {
+    alert("\u4fdd\u5b58\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002\u30d6\u30e9\u30a6\u30b6\u306e\u4fdd\u5b58\u5bb9\u91cf\uff08\u5236\u9650\u3042\u308a\uff09\u3092\u8d85\u3048\u305f\u53ef\u80fd\u6027\u304c\u3042\u308a\u307e\u3059\u3002\u3053\u306e\u5909\u66f4\u306f\u4fdd\u5b58\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002");
+    return false;
+  }
+}
+
+const PhotoContext = React.createContext({ photos: {}, ready: false, savePhoto: async()=>null, removePhoto: async()=>{} });
+function usePhotos() { return React.useContext(PhotoContext); }
+function PhotoProvider({ children }) {
+  const [photos, setPhotos] = useState({});
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    idbGetAll().then(all => { setPhotos(all); setReady(true); }).catch(() => setReady(true));
+  }, []);
+  const savePhoto = async (dataUrl) => {
+    if (!dataUrl) return null;
+    const id = genPhotoId();
+    setPhotos(prev => ({ ...prev, [id]: dataUrl }));
+    idbSet(id, dataUrl);
+    return id;
+  };
+  const removePhoto = async (id) => {
+    if (!id) return;
+    setPhotos(prev => { const next = { ...prev }; delete next[id]; return next; });
+    idbDelete(id);
+  };
+  return React.createElement(PhotoContext.Provider, { value: { photos, ready, savePhoto, removePhoto } }, children);
+}
+
 // ===== APP =====
 function App() {
   const [tab, setTab] = useState("home");
@@ -7953,7 +8091,7 @@ function App() {
     return INITIAL_BLOG;
   });
   useEffect(() => {
-    try { localStorage.setItem("sansai_blog", JSON.stringify(posts)); } catch(e) {}
+    try { safeLocalSave("sansai_blog", posts); } catch(e) {}
   }, [posts]);
   const [calEvents, setCalEvents] = useState([]);
   const [clothing, setClothing] = useState(() => {
@@ -8092,7 +8230,7 @@ window.App = App;
     try{
       var c=document.getElementById('root');
       var rt=ReactDOM.createRoot(c);
-      rt.render(React.createElement(window.App));
+      rt.render(React.createElement(PhotoProvider, null, React.createElement(window.App)));
     }catch(e){
       document.getElementById('root').innerHTML=
         '<div style="padding:20px;font-family:sans-serif;color:#c0392b;background:#fdecea;border-radius:12px;margin:20px;">'+
