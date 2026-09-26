@@ -4232,14 +4232,18 @@ function MembersView({ members, setMembers }) {
   const [formJoined, setFormJoined] = useState(todayStr);
   const [formPhoto, setFormPhoto] = useState(null);
   const [formAvatar, setFormAvatar] = useState(null);
+  const [formBio, setFormBio] = useState("");
+  const [formBigPhoto, setFormBigPhoto] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSvg, setAiSvg] = useState(null);
+  const [selectedMember, setSelectedMember] = useState(null);
   const camRef = React.useRef(null);
 
   const resetForm = () => {
     setFormName(""); setFormNickname(""); setFormRole("\u4e00\u822c");
     setFormRank("\u521d\u7d1a\uff08\u521d\u5fc3\u8005\uff09"); setFormMemo(""); setFormJoined(todayStr);
     setFormPhoto(null); setFormAvatar(null); setAiSvg(null);
+    setFormBio(""); setFormBigPhoto(null);
   };
 
   const openAdd = () => {
@@ -4264,9 +4268,20 @@ function MembersView({ members, setMembers }) {
     setFormJoined(m.joined||todayStr);
     setFormPhoto(m.photo||null);
     setFormAvatar(m.avatar||null);
+    setFormBio(m.bio||"");
+    setFormBigPhoto(m.bigPhoto||null);
     setAiSvg(null);
     setEditTarget(m);
     setShowForm(true);
+  };
+
+  // \u2500\u2500 \u5927\u304d\u3081\u306e\u5199\u771f\u30fb\u30a4\u30e9\u30b9\u30c8\u8aad\u307f\u8fbc\u307f \u2500\u2500
+  const loadBigPhoto = (files) => {
+    const file = files && files[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = e => setFormBigPhoto(e.target.result);
+    reader.readAsDataURL(file);
   };
 
   // \u2500\u2500 \u5199\u771f\u8aad\u307f\u8fbc\u307f \u2500\u2500
@@ -4347,6 +4362,7 @@ function MembersView({ members, setMembers }) {
       role: formRole, rank: formRank,
       memo: formMemo, joined: formJoined,
       photo: formPhoto, avatar: formAvatar,
+      bio: formBio, bigPhoto: formBigPhoto,
     };
     const updated = [...members, newMember];
     setMembers(updated);
@@ -4364,6 +4380,7 @@ function MembersView({ members, setMembers }) {
       role: formRole, rank: formRank,
       memo: formMemo, joined: formJoined,
       photo: formPhoto, avatar: formAvatar,
+      bio: formBio, bigPhoto: formBigPhoto,
     } : m);
     setMembers(updated);
     saveMembersToStorage(updated);
@@ -4423,7 +4440,7 @@ function MembersView({ members, setMembers }) {
               boxShadow:"0 2px 12px rgba(0,0,0,0.07)", border:"1px solid var(--mist)", display:"flex"},}
               , React.createElement('div', { style: {width:6, background:ROLE_COLOR_MAP[m.role]||"#aaa", flexShrink:0},} )
               , React.createElement('div', { style: {width:60, display:"flex", alignItems:"center", justifyContent:"center",
-                background:"var(--soil)", flexShrink:0, padding:8},}
+                background:"var(--soil)", flexShrink:0, padding:8, cursor:"pointer"}, onClick: ()=>setSelectedMember(m),}
                 , React.createElement(MemberAvatar, { member: m, size: 42,} )
               )
               , React.createElement('div', { style: {flex:1, padding:"12px 14px", minWidth:0},}
@@ -4626,12 +4643,100 @@ function MembersView({ members, setMembers }) {
                 onChange: e=>setFormMemo(e.target.value), placeholder: "\u5f97\u610f\u306a\u5c71\u83dc\u30fb\u62c5\u5f53\u30a8\u30ea\u30a2\u306a\u3069...",} )
             )
 
+            /* \u81ea\u5df1\u7d39\u4ecb */
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "\ud83d\udcac \u81ea\u5df1\u7d39\u4ecb")
+              , React.createElement('textarea', { className: "form-textarea", style: {minHeight:90}, value: formBio,
+                onChange: e=>setFormBio(e.target.value),
+                placeholder: "\u8da3\u5473\u30fb\u610f\u6c17\u8fbc\u307f\u30fb\u597d\u304d\u306a\u5c71\u83dc\u306a\u3069\u3092\u81ea\u7531\u306b\u66f8\u3044\u3066\u304f\u3060\u3055\u3044\u3002\u30a2\u30d0\u30bf\u30fc\u3092\u30bf\u30c3\u30d7\u3059\u308b\u3068\u8868\u793a\u3055\u308c\u307e\u3059\u3002",} )
+            )
+
+            /* \u5927\u304d\u3081\u306e\u5199\u771f\u30fb\u30a4\u30e9\u30b9\u30c8 */
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "\ud83d\uddbc\ufe0f \u5927\u304d\u3081\u306e\u5199\u771f\u30fb\u30a4\u30e9\u30b9\u30c8")
+              , React.createElement('div', { style: {fontSize:11, color:"#999", marginBottom:8},}, "\u81ea\u5df1\u7d39\u4ecb\u30e2\u30fc\u30c0\u30eb\u3067\u5927\u304d\u304f\u8868\u793a\u3055\u308c\u307e\u3059\uff08\u4e38\u30a2\u30a4\u30b3\u30f3\u3068\u306f\u5225\uff09")
+              , formBigPhoto && (
+                React.createElement('div', { style: {marginBottom:10},}
+                  , React.createElement('img', { src: formBigPhoto, style: {width:"100%", maxHeight:220, objectFit:"cover",
+                      borderRadius:12, border:"3px solid var(--fern)", display:"block"},} )
+                )
+              )
+              , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8},}
+                , React.createElement('label', { style: {display:"flex", alignItems:"center", gap:8, padding:"9px 14px",
+                  background:"var(--soil)", border:"2px dashed var(--fern)", borderRadius:10,
+                  cursor:"pointer", fontSize:12, fontWeight:600, color:"var(--moss)"},}
+                  , React.createElement('input', { type: "file", accept: "image/*", style: {display:"none"},
+                    onChange: e=>loadBigPhoto(e.target.files),} ), "\ud83d\uddbc \u30d5\u30a9\u30c8\u304b\u3089\u9078\u629e"
+
+                )
+                , React.createElement('label', { style: {display:"flex", alignItems:"center", gap:8, padding:"9px 14px",
+                  background:"#e8f5e9", border:"2px dashed #43a047", borderRadius:10,
+                  cursor:"pointer", fontSize:12, fontWeight:600, color:"#2e7d32"},}
+                  , React.createElement('input', { type: "file", accept: "image/*", capture: "environment", style: {display:"none"},
+                    onChange: e=>loadBigPhoto(e.target.files),} ), "\ud83d\udcf8 \u30ab\u30e1\u30e9\u3067\u64ae\u5f71"
+
+                )
+                , formBigPhoto && (
+                  React.createElement('button', { onClick: ()=>setFormBigPhoto(null),
+                    style: {background:"#fee", border:"none", borderRadius:8, padding:"8px",
+                      cursor:"pointer", fontSize:11, color:"#c0392b", fontWeight:600},}, "\u2715 \u5199\u771f\u30fb\u30a4\u30e9\u30b9\u30c8\u3092\u524a\u9664"
+
+                  )
+                )
+              )
+            )
+
             , React.createElement('div', { className: "form-actions",}
               , React.createElement('button', { className: "btn-cancel", onClick: ()=>{setShowForm(false); resetForm();},}, "\u30ad\u30e3\u30f3\u30bb\u30eb"
 
               )
               , React.createElement('button', { className: "btn-submit", onClick: editTarget ? handleEditSave : handleAdd,}
                 , editTarget ? "\ud83d\udcbe \u5909\u66f4\u3092\u4fdd\u5b58" : "\u2705 \u8ffd\u52a0\u3059\u308b"
+              )
+            )
+          )
+        )
+      )
+
+      /* \u30e1\u30f3\u30d0\u30fc\u8a73\u7d30\uff08\u81ea\u5df1\u7d39\u4ecb\uff09\u30e2\u30fc\u30c0\u30eb */
+      , selectedMember && (
+        React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setSelectedMember(null),}
+          , React.createElement('div', { className: "form-box", style: {maxHeight:"90vh", overflowY:"auto", padding:0},}
+            , (selectedMember.bigPhoto || selectedMember.photo || selectedMember.avatar) && (
+              React.createElement('img', { src: selectedMember.bigPhoto || selectedMember.avatar || selectedMember.photo,
+                style: {width:"100%", maxHeight:260, objectFit:"cover", display:"block",
+                  borderTopLeftRadius:16, borderTopRightRadius:16},} )
+            )
+            , React.createElement('div', { style: {padding:20},}
+              , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:10, marginBottom:4},}
+                , React.createElement(MemberAvatar, { member: selectedMember, size: 44,} )
+                , React.createElement('div', null
+                  , React.createElement('div', { style: {fontSize:18, fontWeight:700, color:"var(--forest)"},}, selectedMember.name)
+                  , selectedMember.nickname && React.createElement('div', { style: {fontSize:12, color:"#888"},}, "\u300c" , selectedMember.nickname, "\u300d")
+                )
+              )
+              , React.createElement('div', { style: {display:"flex", gap:6, flexWrap:"wrap", margin:"10px 0"},}
+                , React.createElement('span', { style: {fontSize:11, fontWeight:700, color:"white",
+                    background:ROLE_COLOR_MAP[selectedMember.role]||"#aaa", padding:"3px 9px", borderRadius:10},}, selectedMember.role)
+                , React.createElement('span', { style: {fontSize:11, fontWeight:700, color:"white",
+                    background:RANK_COLOR_MAP[selectedMember.rank]||"#aaa", padding:"3px 9px", borderRadius:10},}
+                  , RANK_BADGE_MAP[selectedMember.rank], " " , selectedMember.rank)
+              )
+              , React.createElement('div', { style: {fontSize:12, color:"#aaa", marginBottom:14},}, "\u53c2\u52a0\u65e5\uff1a" , selectedMember.joined)
+              , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)", marginBottom:6},}, "\ud83d\udcac \u81ea\u5df1\u7d39\u4ecb")
+              , React.createElement('div', { style: {fontSize:13, color:"#444", lineHeight:1.7, whiteSpace:"pre-wrap",
+                  background:"var(--soil)", borderRadius:10, padding:"12px 14px", marginBottom: selectedMember.memo ? 14 : 4},}
+                , selectedMember.bio && selectedMember.bio.trim() ? selectedMember.bio : "\u81ea\u5df1\u7d39\u4ecb\u306f\u307e\u3060\u767b\u9332\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"
+              )
+              , selectedMember.memo && (
+                React.createElement('div', null
+                  , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)", marginBottom:6},}, "\ud83d\udcdd \u30e1\u30e2")
+                  , React.createElement('div', { style: {fontSize:13, color:"#666", marginBottom:14},}, selectedMember.memo)
+                )
+              )
+              , React.createElement('div', { className: "form-actions", style: {marginTop:6},}
+                , React.createElement('button', { className: "btn-cancel", onClick: ()=>setSelectedMember(null),}, "\u9589\u3058\u308b")
+                , React.createElement('button', { className: "btn-submit", onClick: ()=>{ openEdit(selectedMember); setSelectedMember(null); },}, "\u270f\ufe0f \u7de8\u96c6\u3059\u308b")
               )
             )
           )
