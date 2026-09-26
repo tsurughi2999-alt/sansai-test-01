@@ -4157,16 +4157,17 @@ const RANKS_LIST = ["\u521d\u7d1a\uff08\u521d\u5fc3\u8005\uff09","\u4e2d\u7d1a",
 function MemberAvatar({ member, size }) {
   const sz = size || 48;
   const src = member.avatar || member.photo;
+  const primaryRole = Array.isArray(member.role) ? member.role[0] : member.role;
   if (src) return (
     React.createElement('img', { src: src, style: {width:sz, height:sz, borderRadius:"50%", objectFit:"cover",
-      border:`3px solid ${ROLE_COLOR_MAP[member.role]||"#aaa"}`, flexShrink:0},} )
+      border:`3px solid ${ROLE_COLOR_MAP[primaryRole]||"#aaa"}`, flexShrink:0},} )
   );
   return (
     React.createElement('div', { style: {width:sz, height:sz, borderRadius:"50%", flexShrink:0,
-      background:ROLE_COLOR_MAP[member.role]||"#aaa",
+      background:ROLE_COLOR_MAP[primaryRole]||"#aaa",
       display:"flex", alignItems:"center", justifyContent:"center",
       color:"white", fontWeight:700, fontSize:Math.round(sz*0.4),
-      border:`3px solid ${ROLE_COLOR_MAP[member.role]||"#aaa"}`},}
+      border:`3px solid ${ROLE_COLOR_MAP[primaryRole]||"#aaa"}`},}
       , (member.name||"?").charAt(0)
     )
   );
@@ -4226,7 +4227,7 @@ function MembersView({ members, setMembers }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [formName, setFormName] = useState("");
   const [formNickname, setFormNickname] = useState("");
-  const [formRole, setFormRole] = useState("\u4e00\u822c");
+  const [formRoles, setFormRoles] = useState(["\u4e00\u822c"]);
   const [formRank, setFormRank] = useState("\u521d\u7d1a\uff08\u521d\u5fc3\u8005\uff09");
   const [formMemo, setFormMemo] = useState("");
   const [formJoined, setFormJoined] = useState(todayStr);
@@ -4238,13 +4239,21 @@ function MembersView({ members, setMembers }) {
   const [aiSvg, setAiSvg] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
   const camRef = React.useRef(null);
+  const bigPhotoFileRef = React.useRef(null);
+  const bigPhotoCamRef = React.useRef(null);
 
   const resetForm = () => {
-    setFormName(""); setFormNickname(""); setFormRole("\u4e00\u822c");
+    setFormName(""); setFormNickname(""); setFormRoles(["\u4e00\u822c"]);
     setFormRank("\u521d\u7d1a\uff08\u521d\u5fc3\u8005\uff09"); setFormMemo(""); setFormJoined(todayStr);
     setFormPhoto(null); setFormAvatar(null); setAiSvg(null);
     setFormBio(""); setFormBigPhoto(null);
   };
+
+  const toggleRole = (r) => {
+    setFormRoles(prev => prev.includes(r) ? (prev.length>1 ? prev.filter(x=>x!==r) : prev) : [...prev, r]);
+  };
+
+  const getRoles = (m) => Array.isArray(m.role) ? m.role : (m.role ? [m.role] : []);
 
   const openAdd = () => {
     resetForm();
@@ -4262,7 +4271,7 @@ function MembersView({ members, setMembers }) {
   const openEdit = (m) => {
     setFormName(m.name||"");
     setFormNickname(m.nickname||"");
-    setFormRole(m.role||"\u4e00\u822c");
+    setFormRoles(Array.isArray(m.role) ? (m.role.length?m.role:["\u4e00\u822c"]) : (m.role ? [m.role] : ["\u4e00\u822c"]));
     setFormRank(m.rank||"\u521d\u7d1a\uff08\u521d\u5fc3\u8005\uff09");
     setFormMemo(m.memo||"");
     setFormJoined(m.joined||todayStr);
@@ -4305,7 +4314,7 @@ function MembersView({ members, setMembers }) {
       "\u63a1\u53d6\u30ea\u30fc\u30c0\u30fc":"#c0392b","\u6599\u7406\u62c5\u5f53":"#e67e22","\u30ca\u30d3\u62c5\u5f53":"#2980b9",
       "\u8a18\u9332\u4fc2":"#8e44ad","\u65b0\u5165\u308a":"#27ae60","\u30d9\u30c6\u30e9\u30f3":"#2d4a2d","\u4e00\u822c":"#7f8c8d",
     };
-    const bgColor = roleColors[formRole] || "#2d4a2d";
+    const bgColor = roleColors[formRoles[0]] || "#2d4a2d";
 
     // \u80cc\u666f\u30b0\u30e9\u30c7\u30fc\u30b7\u30e7\u30f3
     const grad = ctx.createLinearGradient(0, 0, 200, 200);
@@ -4346,7 +4355,7 @@ function MembersView({ members, setMembers }) {
     ctx.font = "bold 16px sans-serif";
     ctx.fillStyle = "rgba(255,255,255,0.8)";
     ctx.shadowBlur = 0;
-    ctx.fillText(formRole || "", 100, 160);
+    ctx.fillText(formRoles.join("\u30fb") || "", 100, 160);
 
     const dataUrl = canvas.toDataURL("image/png");
     setFormAvatar(dataUrl);
@@ -4359,7 +4368,7 @@ function MembersView({ members, setMembers }) {
     const newMember = {
       id: Date.now(),
       name: formName.trim(), nickname: formNickname.trim(),
-      role: formRole, rank: formRank,
+      role: formRoles, rank: formRank,
       memo: formMemo, joined: formJoined,
       photo: formPhoto, avatar: formAvatar,
       bio: formBio, bigPhoto: formBigPhoto,
@@ -4377,7 +4386,7 @@ function MembersView({ members, setMembers }) {
     const updated = members.map(m => m.id === editTarget.id ? {
       ...m,
       name: formName.trim(), nickname: formNickname.trim(),
-      role: formRole, rank: formRank,
+      role: formRoles, rank: formRank,
       memo: formMemo, joined: formJoined,
       photo: formPhoto, avatar: formAvatar,
       bio: formBio, bigPhoto: formBigPhoto,
@@ -4407,8 +4416,8 @@ function MembersView({ members, setMembers }) {
       , React.createElement('div', { style: {display:"flex", gap:10, marginBottom:20, flexWrap:"wrap"},}
         , [
           {label:"\u7dcf\u30e1\u30f3\u30d0\u30fc", val:`${members.length}\u540d`, icon:"\ud83d\udc65"},
-          {label:"\u30d9\u30c6\u30e9\u30f3",   val:`${members.filter(m=>["\u30d9\u30c6\u30e9\u30f3","\u63a1\u53d6\u30ea\u30fc\u30c0\u30fc"].includes(m.role)).length}\u540d`, icon:"\ud83c\udfc6"},
-          {label:"\u65b0\u5165\u308a",     val:`${members.filter(m=>m.role==="\u65b0\u5165\u308a").length}\u540d`, icon:"\ud83c\udf31"},
+          {label:"\u30d9\u30c6\u30e9\u30f3",   val:`${members.filter(m=>getRoles(m).some(r=>["\u30d9\u30c6\u30e9\u30f3","\u63a1\u53d6\u30ea\u30fc\u30c0\u30fc"].includes(r))).length}\u540d`, icon:"\ud83c\udfc6"},
+          {label:"\u65b0\u5165\u308a",     val:`${members.filter(m=>getRoles(m).includes("\u65b0\u5165\u308a")).length}\u540d`, icon:"\ud83c\udf31"},
         ].map(item=>(
           React.createElement('div', { key: item.label, style: {flex:1, minWidth:90, background:"white", borderRadius:12,
             padding:"10px 14px", boxShadow:"0 2px 8px rgba(0,0,0,0.07)", textAlign:"center", border:"1px solid var(--mist)"},}
@@ -4438,7 +4447,7 @@ function MembersView({ members, setMembers }) {
           , members.map(m => (
             React.createElement('div', { key: m.id, style: {background:"white", borderRadius:14, overflow:"hidden",
               boxShadow:"0 2px 12px rgba(0,0,0,0.07)", border:"1px solid var(--mist)", display:"flex"},}
-              , React.createElement('div', { style: {width:6, background:ROLE_COLOR_MAP[m.role]||"#aaa", flexShrink:0},} )
+              , React.createElement('div', { style: {width:6, background:ROLE_COLOR_MAP[getRoles(m)[0]]||"#aaa", flexShrink:0},} )
               , React.createElement('div', { style: {width:60, display:"flex", alignItems:"center", justifyContent:"center",
                 background:"var(--soil)", flexShrink:0, padding:8, cursor:"pointer"}, onClick: ()=>setSelectedMember(m),}
                 , React.createElement(MemberAvatar, { member: m, size: 42,} )
@@ -4449,10 +4458,12 @@ function MembersView({ members, setMembers }) {
                   , m.nickname && React.createElement('span', { style: {fontSize:12, color:"#888"},}, "\u300c", m.nickname, "\u300d")
                 )
                 , React.createElement('div', { style: {display:"flex", gap:4, flexWrap:"wrap", marginBottom:4},}
-                  , React.createElement('span', { style: {fontSize:10, fontWeight:700, color:"white",
-                    background:ROLE_COLOR_MAP[m.role]||"#aaa", padding:"2px 7px", borderRadius:10},}
-                    , m.role
-                  )
+                  , getRoles(m).map(r => (
+                    React.createElement('span', { key: r, style: {fontSize:10, fontWeight:700, color:"white",
+                      background:ROLE_COLOR_MAP[r]||"#aaa", padding:"2px 7px", borderRadius:10},}
+                      , r
+                    )
+                  ))
                   , React.createElement('span', { style: {fontSize:10, fontWeight:700, color:"white",
                     background:RANK_COLOR_MAP[m.rank]||"#aaa", padding:"2px 7px", borderRadius:10},}
                     , RANK_BADGE_MAP[m.rank], " " , m.rank
@@ -4599,16 +4610,16 @@ function MembersView({ members, setMembers }) {
 
             /* \u5f79\u5272 */
             , React.createElement('div', { className: "form-group",}
-              , React.createElement('label', { className: "form-label",}, "\u5f79\u5272")
+              , React.createElement('label', { className: "form-label",}, "\u5f79\u5272\uff08\u8907\u6570\u9078\u629e\u53ef\uff09")
               , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:8},}
                 , ROLES_LIST.map(r=>(
-                  React.createElement('div', { key: r, onClick: ()=>setFormRole(r),
+                  React.createElement('div', { key: r, onClick: ()=>toggleRole(r),
                     style: {padding:"7px 14px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
-                      background:formRole===r?(ROLE_COLOR_MAP[r]||"#555"):"var(--mist)",
-                      color:formRole===r?"white":"#555",
-                      border:`2px solid ${formRole===r?(ROLE_COLOR_MAP[r]||"#555"):"transparent"}`,
+                      background:formRoles.includes(r)?(ROLE_COLOR_MAP[r]||"#555"):"var(--mist)",
+                      color:formRoles.includes(r)?"white":"#555",
+                      border:`2px solid ${formRoles.includes(r)?(ROLE_COLOR_MAP[r]||"#555"):"transparent"}`,
                       transition:"all 0.15s"},}
-                    , r
+                    , (formRoles.includes(r) ? "\u2713 " : ""), r
                   )
                 ))
               )
@@ -4662,17 +4673,19 @@ function MembersView({ members, setMembers }) {
                 )
               )
               , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8},}
-                , React.createElement('label', { style: {display:"flex", alignItems:"center", gap:8, padding:"9px 14px",
+                , React.createElement('div', { onClick: ()=>{ if (bigPhotoFileRef.current) bigPhotoFileRef.current.click(); },
+                  style: {display:"flex", alignItems:"center", gap:8, padding:"9px 14px",
                   background:"var(--soil)", border:"2px dashed var(--fern)", borderRadius:10,
                   cursor:"pointer", fontSize:12, fontWeight:600, color:"var(--moss)"},}
-                  , React.createElement('input', { type: "file", accept: "image/*", style: {display:"none"},
+                  , React.createElement('input', { ref: bigPhotoFileRef, type: "file", accept: "image/*", style: {display:"none"},
                     onChange: e=>loadBigPhoto(e.target.files),} ), "\ud83d\uddbc \u30d5\u30a9\u30c8\u304b\u3089\u9078\u629e"
 
                 )
-                , React.createElement('label', { style: {display:"flex", alignItems:"center", gap:8, padding:"9px 14px",
+                , React.createElement('div', { onClick: ()=>{ if (bigPhotoCamRef.current) bigPhotoCamRef.current.click(); },
+                  style: {display:"flex", alignItems:"center", gap:8, padding:"9px 14px",
                   background:"#e8f5e9", border:"2px dashed #43a047", borderRadius:10,
                   cursor:"pointer", fontSize:12, fontWeight:600, color:"#2e7d32"},}
-                  , React.createElement('input', { type: "file", accept: "image/*", capture: "environment", style: {display:"none"},
+                  , React.createElement('input', { ref: bigPhotoCamRef, type: "file", accept: "image/*", capture: "environment", style: {display:"none"},
                     onChange: e=>loadBigPhoto(e.target.files),} ), "\ud83d\udcf8 \u30ab\u30e1\u30e9\u3067\u64ae\u5f71"
 
                 )
@@ -4716,8 +4729,10 @@ function MembersView({ members, setMembers }) {
                 )
               )
               , React.createElement('div', { style: {display:"flex", gap:6, flexWrap:"wrap", margin:"10px 0"},}
-                , React.createElement('span', { style: {fontSize:11, fontWeight:700, color:"white",
-                    background:ROLE_COLOR_MAP[selectedMember.role]||"#aaa", padding:"3px 9px", borderRadius:10},}, selectedMember.role)
+                , getRoles(selectedMember).map(r => (
+                  React.createElement('span', { key: r, style: {fontSize:11, fontWeight:700, color:"white",
+                    background:ROLE_COLOR_MAP[r]||"#aaa", padding:"3px 9px", borderRadius:10},}, r)
+                ))
                 , React.createElement('span', { style: {fontSize:11, fontWeight:700, color:"white",
                     background:RANK_COLOR_MAP[selectedMember.rank]||"#aaa", padding:"3px 9px", borderRadius:10},}
                   , RANK_BADGE_MAP[selectedMember.rank], " " , selectedMember.rank)
@@ -4759,7 +4774,7 @@ function MembersView({ members, setMembers }) {
                   , notifyModal.nickname && React.createElement('span', { style: {fontSize:12, color:"#888"},}, " \u300c" , notifyModal.nickname, "\u300d")
                 )
                 , React.createElement('div', { style: {fontSize:12, color:"#888", marginTop:4},}
-                  , notifyModal.role, " / "  , notifyModal.rank
+                  , (Array.isArray(notifyModal.role) ? notifyModal.role.join("\u30fb") : notifyModal.role), " / "  , notifyModal.rank
                 )
               )
             )
