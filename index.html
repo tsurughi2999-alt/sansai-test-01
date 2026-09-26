@@ -4182,7 +4182,35 @@ function loadMembersFromStorage(initial) {
   return initial;
 }
 function saveMembersToStorage(members) {
-  try { localStorage.setItem("sansai_members", JSON.stringify(members)); } catch(e) {}
+  try {
+    localStorage.setItem("sansai_members", JSON.stringify(members));
+    return true;
+  } catch(e) {
+    alert("\u4fdd\u5b58\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002\u30d6\u30e9\u30a6\u30b6\u306e\u4fdd\u5b58\u5bb9\u91cf\uff08\u5236\u9650\u3042\u308a\uff09\u3092\u8d85\u3048\u305f\u53ef\u80fd\u6027\u304c\u3042\u308a\u307e\u3059\u3002\u5199\u771f\u30fb\u30a4\u30e9\u30b9\u30c8\u306e\u30b5\u30a4\u30ba\u3092\u5c0f\u3055\u304f\u3059\u308b\u304b\u3001\u4e0d\u8981\u306a\u5199\u771f\u3092\u524a\u9664\u3057\u3066\u304b\u3089\u3082\u3046\u4e00\u5ea6\u4fdd\u5b58\u3057\u3066\u304f\u3060\u3055\u3044\u3002\u3053\u306e\u5909\u66f4\u306f\u4fdd\u5b58\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002");
+    return false;
+  }
+}
+function compressImageFile(file, maxDim, quality, callback) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      let width = img.width, height = img.height;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+        else { width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+      try { callback(canvas.toDataURL("image/jpeg", quality)); }
+      catch(err) { callback(e.target.result); }
+    };
+    img.onerror = () => callback(e.target.result);
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function MembersView({ members, setMembers }) {
@@ -4288,18 +4316,14 @@ function MembersView({ members, setMembers }) {
   const loadBigPhoto = (files) => {
     const file = files && files[0];
     if (!file || !file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = e => setFormBigPhoto(e.target.result);
-    reader.readAsDataURL(file);
+    compressImageFile(file, 1000, 0.8, (dataUrl) => setFormBigPhoto(dataUrl));
   };
 
   // \u2500\u2500 \u5199\u771f\u8aad\u307f\u8fbc\u307f \u2500\u2500
   const loadPhoto = (files) => {
     const file = files && files[0];
     if (!file || !file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = e => { setFormPhoto(e.target.result); setFormAvatar(null); };
-    reader.readAsDataURL(file);
+    compressImageFile(file, 500, 0.82, (dataUrl) => { setFormPhoto(dataUrl); setFormAvatar(null); });
   };
 
   // \u2500\u2500 AI \u30a2\u30d0\u30bf\u30fc\u751f\u6210 \u2500\u2500
