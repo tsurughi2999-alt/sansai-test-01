@@ -4781,9 +4781,12 @@ function MembersView({ members, setMembers }) {
         React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setSelectedMember(null),}
           , React.createElement('div', { className: "form-box", style: {maxHeight:"90vh", overflowY:"auto", padding:0},}
             , dmImg && (
-              React.createElement('img', { src: dmImg,
-                style: {width:"100%", maxHeight:260, objectFit:"cover", display:"block",
-                  borderTopLeftRadius:16, borderTopRightRadius:16},} )
+              React.createElement('div', { style: {width:"100%", maxHeight:320, overflow:"hidden",
+                  background:"var(--soil)", borderTopLeftRadius:16, borderTopRightRadius:16,
+                  display:"flex", alignItems:"center", justifyContent:"center"},}
+                , React.createElement('img', { src: dmImg,
+                    style: {width:"100%", maxHeight:320, objectFit:"contain", display:"block"},} )
+              )
             )
             , React.createElement('div', { style: {padding:20},}
               , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:10, marginBottom:4},}
