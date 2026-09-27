@@ -6012,9 +6012,9 @@ function DangerPlantsView() {
 function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
   const [entries, setEntries] = useState((sansaiList||(sansaiList||(sansaiList||SANSAI_DATA))).map(s => ({
     ...s,
-    customSpots: [], // \u304a\u3059\u3059\u3081\u30b9\u30dd\u30c3\u30c8\uff08\u8ffd\u52a0\u53ef\u80fd\uff09
-    notes: "",       // \u8ffd\u52a0\u30e1\u30e2
-    isCustom: false, // \u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0\u304b\u3069\u3046\u304b
+    customSpots: s.customSpots || [], // \u304a\u3059\u3059\u3081\u30b9\u30dd\u30c3\u30c8\uff08\u8ffd\u52a0\u53ef\u80fd\uff09
+    notes: s.notes || "",       // \u8ffd\u52a0\u30e1\u30e2
+    isCustom: s.isCustom || false, // \u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0\u304b\u3069\u3046\u304b
   })));
   const [selected, setSelected] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -6036,7 +6036,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
     if (!form.name.trim() || form.months.length === 0) return;
     const newEntry = { ...form, id: Date.now(), isCustom: true };
     setEntries(prev => [...prev, newEntry]);
-    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc}]);
+    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", isCustom:true}]);
     setForm(emptyForm);
     setShowAddForm(false);
   };
@@ -6049,6 +6049,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
 
   const handleEdit = () => {
     setEntries(prev => prev.map(e => e.id === form.id ? { ...e, ...form } : e));
+    setSansaiList(prev => prev.map(e => e.id === form.id ? { ...e, ...form } : e));
     // \u8a73\u7d30\u8868\u793a\u4e2d\u3060\u3063\u305f\u3089\u66f4\u65b0
     if (_optionalChain([selected, 'optionalAccess', _95 => _95.id]) === form.id) setSelected({ ...selected, ...form });
     setShowEditForm(false);
@@ -6081,18 +6082,21 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
     if (!detailSpotInput.trim()) return;
     const updated = { ...entry, customSpots: [...(entry.customSpots||[]), detailSpotInput.trim()] };
     setEntries(prev => prev.map(e => e.id === entry.id ? updated : e));
+    setSansaiList(prev => prev.map(e => e.id === entry.id ? { ...e, customSpots: updated.customSpots } : e));
     setSelected(updated);
     setDetailSpotInput("");
   };
   const removeDetailSpot = (entry, i) => {
     const updated = { ...entry, customSpots: (entry.customSpots||[]).filter((_,idx)=>idx!==i) };
     setEntries(prev => prev.map(e => e.id === entry.id ? updated : e));
+    setSansaiList(prev => prev.map(e => e.id === entry.id ? { ...e, customSpots: updated.customSpots } : e));
     setSelected(updated);
   };
   // \u8a73\u7d30\u30e2\u30fc\u30c0\u30eb\u306e\u30e1\u30e2\u66f4\u65b0
   const updateDetailNotes = (entry, val) => {
     const updated = { ...entry, notes: val };
     setEntries(prev => prev.map(e => e.id === entry.id ? updated : e));
+    setSansaiList(prev => prev.map(e => e.id === entry.id ? { ...e, notes: updated.notes } : e));
     setSelected(updated);
   };
 
