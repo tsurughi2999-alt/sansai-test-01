@@ -2993,7 +2993,12 @@ function ScheduleForm({ spots, onClose, onSuccess, members }) {
         /* \u8907\u6570\u30b9\u30dd\u30c3\u30c8 */
         , React.createElement('div', { className: "form-group",}
           , React.createElement('label', { className: "form-label",}, "\ud83d\udccd \u63a1\u53d6\u7b87\u6240\uff08\u8907\u6570\u8ffd\u52a0\u53ef\uff09" )
-          , form.stops.map((stop, i) => (
+          , form.stops.map((stop, i) => {
+            const selectedSpot = spots.find(s => String(s.id) === String(stop.spotId));
+            const chipList = (selectedSpot && Array.isArray(selectedSpot.sansai) && selectedSpot.sansai.length)
+              ? SANSAI_DATA.filter(s => selectedSpot.sansai.includes(s.id))
+              : SANSAI_DATA;
+            return (
             React.createElement('div', { key: i, style: {background:"var(--soil)", borderRadius:12, padding:"14px", marginBottom:12, position:"relative"},}
               /* \u7b87\u6240\u756a\u53f7\u30d8\u30c3\u30c0\u30fc */
               , React.createElement('div', { style: {display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10},}
@@ -3032,7 +3037,9 @@ function ScheduleForm({ spots, onClose, onSuccess, members }) {
 
                 )
                 , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6},}
-                  , SANSAI_DATA.map(s => (
+                  , chipList.length === 0 ? (
+                    React.createElement('div', { style: {fontSize:11, color:"#aaa"},}, "\u3053\u306e\u30b9\u30dd\u30c3\u30c8\u306b\u306f\u767b\u9332\u3055\u308c\u305f\u5c71\u83dc\u304c\u3042\u308a\u307e\u305b\u3093")
+                  ) : chipList.map(s => (
                     React.createElement('div', { key: s.id,
                       onClick: ()=>toggleStopSansai(i, s.id),
                       style: {padding:"4px 10px", borderRadius:20, cursor:"pointer", fontSize:11, fontWeight:600,
@@ -3046,7 +3053,8 @@ function ScheduleForm({ spots, onClose, onSuccess, members }) {
                 )
               )
             )
-          ))
+          );
+          })
           , React.createElement('button', { onClick: addStop,
             style: {background:"white", border:"2px dashed var(--fern)", borderRadius:10, padding:"10px", cursor:"pointer",
               fontSize:12, fontWeight:600, color:"var(--moss)", width:"100%", textAlign:"center"},}, "\uff0b \u7b87\u6240\u3092\u8ffd\u52a0"
@@ -6088,7 +6096,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
     setSelected(updated);
   };
 
-  const FormBody = ({ isEdit }) => (
+  const renderFormBody = (isEdit) => (
     React.createElement(React.Fragment, null
       , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"80px 1fr", gap:12},}
         , React.createElement('div', { className: "form-group",}
@@ -6334,7 +6342,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
         React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setShowAddForm(false),}
           , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},}
             , React.createElement('div', { className: "form-title",}, "\ud83c\udf3f \u5c71\u83dc\u3092\u8ffd\u52a0" )
-            , React.createElement(FormBody, { isEdit: false,} )
+            , renderFormBody(false)
             , React.createElement('div', { className: "form-actions",}
               , React.createElement('button', { className: "btn-cancel", onClick: ()=>setShowAddForm(false),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
               , React.createElement('button', { className: "btn-submit", onClick: handleAdd,}, "\u8ffd\u52a0\u3059\u308b")
@@ -6348,7 +6356,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
         React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setShowEditForm(false),}
           , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},}
             , React.createElement('div', { className: "form-title",}, "\u270f\ufe0f \u5c71\u83dc\u3092\u7de8\u96c6" )
-            , React.createElement(FormBody, { isEdit: true,} )
+            , renderFormBody(true)
             , React.createElement('div', { className: "form-actions",}
               , React.createElement('button', { className: "btn-cancel", onClick: ()=>setShowEditForm(false),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
               , React.createElement('button', { className: "btn-submit", onClick: handleEdit,}, "\u4fdd\u5b58\u3059\u308b")
