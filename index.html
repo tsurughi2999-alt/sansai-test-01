@@ -5321,6 +5321,8 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
       attendance: {} },
   ]);
   const [attendanceModal, setAttendanceModal] = useState(null); // \u51fa\u6b20\u7ba1\u7406\u4e2d\u306e\u30b9\u30b1\u30b8\u30e5\u30fc\u30eb
+  const [calMonth, setCalMonth] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; }); // \u6708\u9593\u4e88\u5b9a\u8868\u306e\u8868\u793a\u6708
+  const [calDay, setCalDay] = useState(null); // \u65e5\u4ed8\u30bf\u30c3\u30d7\u3067\u958b\u304f\u8a73\u7d30(YYYY-MM-DD)
 
   // \u30d5\u30a9\u30fc\u30e0
   const [showRecordForm, setShowRecordForm] = useState(false);
@@ -5716,6 +5718,71 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
             );
           })
 
+          /* \u6708\u9593\u4e88\u5b9a\u8868 */
+          , (() => {
+            const y = calMonth.y, m = calMonth.m;
+            const pad = n => String(n).padStart(2, "0");
+            const firstDow = new Date(y, m, 1).getDay();
+            const dim = new Date(y, m + 1, 0).getDate();
+            const cells = [];
+            for (let i = 0; i < firstDow; i++) cells.push(null);
+            for (let d = 1; d <= dim; d++) cells.push(d);
+            while (cells.length % 7) cells.push(null);
+            const byDate = {};
+            schedules.forEach(sc => { (byDate[sc.date] = byDate[sc.date] || []).push(sc); });
+            const moveMonth = (delta) => setCalMonth(prev => {
+              const dt = new Date(prev.y, prev.m + delta, 1);
+              return { y: dt.getFullYear(), m: dt.getMonth() };
+            });
+            const dowNames = ["\u65e5","\u6708","\u706b","\u6c34","\u6728","\u91d1","\u571f"];
+            const navBtn = { background:"var(--soil)", border:"none", borderRadius:8, padding:"6px 12px", cursor:"pointer", color:"var(--forest)", fontSize:13, fontWeight:700 };
+            return React.createElement('div', { style: {...cardStyle, marginTop:16},}
+              , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)", marginBottom:10},}, "\ud83d\uddd3 \u6708\u9593\u4e88\u5b9a\u8868")
+              , React.createElement('div', { style: {display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10},}
+                , React.createElement('button', { onClick: ()=>moveMonth(-1), style: navBtn,}, "\u25c0")
+                , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:8},}
+                  , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)"},}, y + "\u5e74" + (m + 1) + "\u6708")
+                  , React.createElement('button', { onClick: ()=>{ const d = new Date(); setCalMonth({ y: d.getFullYear(), m: d.getMonth() }); }, style: {...navBtn, fontSize:11, padding:"4px 8px"},}, "\u4eca\u6708")
+                )
+                , React.createElement('button', { onClick: ()=>moveMonth(1), style: navBtn,}, "\u25b6")
+              )
+              , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:4, marginBottom:4},}
+                , dowNames.map((n, i) => (
+                  React.createElement('div', { key: n, style: {textAlign:"center", fontSize:11, fontWeight:700, color: i===0?"#c0392b":i===6?"#2980b9":"#888"},}, n)
+                ))
+              )
+              , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:4},}
+                , cells.map((d, idx) => {
+                  if (d === null) return React.createElement('div', { key: "e" + idx,});
+                  const key = y + "-" + pad(m + 1) + "-" + pad(d);
+                  const list = byDate[key] || [];
+                  const has = list.length > 0;
+                  const isToday = key === today;
+                  const isPast = key < today;
+                  const dow = idx % 7;
+                  return React.createElement('button', { key: key, onClick: ()=>setCalDay(key),
+                    style: {
+                      minHeight:46, padding:"4px 0", borderRadius:8, cursor:"pointer",
+                      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", gap:3,
+                      border: isToday ? "2px solid var(--forest)" : "1px solid var(--mist)",
+                      background: has ? (isPast ? "#f3f3f3" : "#e8f5e9") : "white",
+                      color: dow===0?"#c0392b":dow===6?"#2980b9":"#444",
+                      fontSize:13, fontWeight: has ? 700 : 500, fontFamily:"inherit",
+                    },}
+                    , d
+                    , has && React.createElement('div', { style: {display:"flex", gap:2, alignItems:"center"},}
+                      , list.slice(0, 3).map((sc, i) => (
+                        React.createElement('span', { key: i, style: {width:6, height:6, borderRadius:"50%", background: isPast ? "#aaa" : "var(--forest)", display:"inline-block"},})
+                      ))
+                      , list.length > 3 && React.createElement('span', { style: {fontSize:9, color:"#888"},}, "+")
+                    )
+                  );
+                })
+              )
+              , React.createElement('div', { style: {fontSize:11, color:"#999", marginTop:8, textAlign:"center"},}, "\u65e5\u4ed8\u3092\u30bf\u30c3\u30d7\u3059\u308b\u3068\u8a73\u7d30\u304c\u958b\u304d\u307e\u3059")
+            );
+          })()
+
           /* \u904e\u53bb\u306e\u4e88\u5b9a */
           , schedules.filter(s=>s.date<today).length > 0 && (
             React.createElement(React.Fragment, null
@@ -5921,6 +5988,50 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
         )
       )
 
+
+      /* ===== \u65e5\u4ed8\u8a73\u7d30\u30e2\u30fc\u30c0\u30eb ===== */
+      , calDay && (() => {
+        const list = schedules.filter(sc => sc.date === calDay);
+        const dd = new Date(calDay + "T00:00:00");
+        const dowNames = ["\u65e5","\u6708","\u706b","\u6c34","\u6728","\u91d1","\u571f"];
+        const label = dd.getFullYear() + "\u5e74" + (dd.getMonth() + 1) + "\u6708" + dd.getDate() + "\u65e5\uff08" + dowNames[dd.getDay()] + "\uff09";
+        return React.createElement('div', { className: "form-overlay", onClick: ()=>setCalDay(null),}
+          , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},
+            onClick: e=>e.stopPropagation(),}
+            , React.createElement('div', { className: "form-title",}, "\ud83d\uddd3 " + label)
+            , list.length === 0 && React.createElement('div', { style: {textAlign:"center", padding:"24px 0", color:"#aaa", fontSize:13},}, "\u3053\u306e\u65e5\u306e\u5de1\u56de\u4e88\u5b9a\u306f\u3042\u308a\u307e\u305b\u3093")
+            , list.map(sc => {
+              const att = _nullishCoalesce(sc.attendance, () => ( {}));
+              const joined = Object.entries(att).filter(([,v])=>v==="\u53c2\u52a0").map(([n])=>n);
+              const absent = Object.values(att).filter(v=>v==="\u4e0d\u53c2\u52a0").length;
+              const pending = Object.values(att).filter(v=>v==="\u672a\u56de\u7b54").length;
+              return React.createElement('div', { key: sc.id, style: {background:"var(--soil)", borderRadius:12, padding:"12px 14px", marginBottom:12},}
+                , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)"},}, "\ud83d\udccd " + spotName(sc.spotId))
+                , React.createElement('div', { style: {fontSize:12, color:"#666", marginTop:4},}, "\ud83d\udc64 \u62c5\u5f53\uff1a" + (sc.assignee || "\u672a\u5b9a"))
+                , sc.memo && React.createElement('div', { style: {fontSize:12, color:"#555", marginTop:4, whiteSpace:"pre-wrap"},}, "\ud83d\udcdd " + sc.memo)
+                , React.createElement('div', { style: {display:"flex", gap:6, flexWrap:"wrap", marginTop:10},}
+                  , React.createElement('span', { style: {fontSize:11, fontWeight:700, color:"#27ae60", background:"#e8f5e9", padding:"3px 10px", borderRadius:20},}, "\u2705 \u53c2\u52a0 " + joined.length + "\u540d")
+                  , React.createElement('span', { style: {fontSize:11, fontWeight:700, color:"#c0392b", background:"#fdecea", padding:"3px 10px", borderRadius:20},}, "\u274c \u4e0d\u53c2\u52a0 " + absent + "\u540d")
+                  , React.createElement('span', { style: {fontSize:11, fontWeight:700, color:"#888", background:"#f5f5f5", padding:"3px 10px", borderRadius:20},}, "\u2753 \u672a\u56de\u7b54 " + pending + "\u540d")
+                )
+                , joined.length > 0 && React.createElement('div', { style: {marginTop:6, display:"flex", gap:4, flexWrap:"wrap"},}
+                  , joined.map(n => React.createElement('span', { key: n, style: {fontSize:11, background:"var(--forest)", color:"white", padding:"2px 8px", borderRadius:12, fontWeight:600},}, "\ud83d\udc64 " + n))
+                )
+                , React.createElement('div', { style: {display:"flex", gap:8, marginTop:10},}
+                  , React.createElement('button', { onClick: ()=>{ setCalDay(null); setAttendanceModal(sc); },
+                    style: {flex:1, background:"var(--forest)", color:"white", border:"none", borderRadius:8, padding:"8px", cursor:"pointer", fontSize:12, fontWeight:600},}, "\u270f\ufe0f \u51fa\u6b20\u3092\u7ba1\u7406")
+                  , React.createElement('button', { onClick: ()=>{ if (window.confirm("\u3053\u306e\u5de1\u56de\u4e88\u5b9a\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f")) deleteSchedule(sc.id); },
+                    style: {background:"#fee", border:"none", borderRadius:8, padding:"8px 12px", cursor:"pointer", color:"#c0392b", fontSize:12},}, "\u524a\u9664")
+                )
+              );
+            })
+            , React.createElement('div', { className: "form-actions",}
+              , React.createElement('button', { className: "btn-cancel", onClick: ()=>{ setSchForm({ ...emptySchedule, date: calDay }); setCalDay(null); setShowScheduleForm(true); },}, "\uff0b \u3053\u306e\u65e5\u306b\u8ffd\u52a0")
+              , React.createElement('button', { className: "btn-submit", onClick: ()=>setCalDay(null),}, "\u9589\u3058\u308b")
+            )
+          )
+        );
+      })()
 
       /* ===== \u51fa\u6b20\u7ba1\u7406\u30e2\u30fc\u30c0\u30eb ===== */
       , attendanceModal && (
