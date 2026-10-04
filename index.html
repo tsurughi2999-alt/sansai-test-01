@@ -10,7 +10,6 @@
   <title>山菜採り手帳</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon-96.png" type="image/png" />
-  <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
   <link rel="apple-touch-icon" href="icon-180.png" />
   <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -565,7 +564,7 @@ body{margin:0;padding:0;}
 <body>
   <div id="root">
     <div style="text-align:center;padding:60px 20px;font-family:sans-serif;color:#2d4a2d;">
-      <img src="logo-badge.png" alt="" width="140" height="140" style="width:140px;height:140px;border-radius:50%;" />
+      <div style="font-size:48px;">🌿</div>
       <div style="font-size:18px;font-weight:bold;margin:12px 0 8px;">山菜採り手帳</div>
       <div style="font-size:13px;color:#888;">読み込み中...</div>
     </div>
@@ -750,7 +749,7 @@ const DANGER_PLANTS = [
     similar: ["\u30d5\u30ad\u30ce\u30c8\u30a6", "\u30ae\u30e7\u30a6\u30b8\u30e3\u30cb\u30f3\u30cb\u30af"],
     similarIds: [1],
     desc: "\u30a2\u30c8\u30ed\u30d4\u30f3\u30fb\u30b9\u30b3\u30dd\u30e9\u30df\u30f3\u7b49\u3092\u542b\u3080\u6709\u6bd2\u690d\u7269\u3002\u65e9\u6625\u306b\u30d5\u30ad\u30ce\u30c8\u30a6\u3068\u540c\u3058\u5834\u6240\u306b\u751f\u3048\u308b\u3053\u3068\u304c\u3042\u308a\u8aa4\u98df\u4e8b\u6545\u591a\u6570\u3002\u5e7b\u899a\u30fb\u932f\u4e71\u30fb\u547c\u5438\u56f0\u96e3\u3092\u5f15\u304d\u8d77\u3053\u3059\u3002",
-    howToDistinguish: "\u30d5\u30ad\u30ce\u30c8\u30a6\u3068\u306e\u533a\u5225\uff1a\u8449\u304c\u67d4\u3089\u304b\u304f\u5927\u304d\u3044\えu3002\u72ec\u7279\u306e\u81ed\u3044\u304c\u3042\u308b\u3002\u830e\u3092\u6298\u308b\u3068\u767d\u3044\u6db2\u304c\u51fa\u308b\u3002\u30d5\u30ad\u30ce\u30c8\u30a6\u306f\u82de\uff08\u3064\u307c\u307f\uff09\u306e\u5f62\u304c\u72ec\u7279\u3002",
+    howToDistinguish: "\u30d5\u30ad\u30ce\u30c8\u30a6\u3068\u306e\u533a\u5225\uff1a\u8449\u304c\u67d4\u3089\u304b\u304f\u5927\u304d\u3044\u3002\u72ec\u7279\u306e\u81ed\u3044\u304c\u3042\u308b\u3002\u830e\u3092\u6298\u308b\u3068\u767d\u3044\u6db2\u304c\u51fa\u308b\u3002\u30d5\u30ad\u30ce\u30c8\u30a6\u306f\u82de\uff08\u3064\u307c\u307f\uff09\u306e\u5f62\u304c\u72ec\u7279\u3002",
     region: "\u5c71\u5730\u306e\u6ca2\u6cbf\u3044\u30fb\u6e7f\u3063\u305f\u659c\u9762",
     season: "\u65e9\u6625\udbbc\udc83\ud880\uddc4\u6708\uff09",
     warning: "\u30d5\u30ad\u30ce\u30c8\u30a6\u63a1\u53d6\u6642\u306b\u6df7\u5165\u6ce8\u610f\u3002\u5fc5\u305a\u5f62\u72b6\u3092\u78ba\u8a8d\u3057\u3066\u304b\u3089\u63a1\u53d6\u3002",
@@ -2295,47 +2294,6 @@ const INITIAL_TOOLS = [
 ];
 
 
-// ===== GEAR ICONS =====
-const GEAR_ICON_RULES = [
-  [/\u866b\u9664\u3051|\u866b\u3088\u3051|\u9632\u866b/, "\ud83e\udd9f"],
-  [/\u718a.*(\u30b9\u30d7\u30ec\u30fc|\u6483\u9000)|\u6483\u9000/, "\ud83d\udc3b"],
-  [/\u718a\u9234|\u9234|\u30d9\u30eb/, "\ud83d\udd14"],
-  [/\u30ca\u30a4\u30d5|\u938c|\u30ab\u30de/, "\ud83d\udd2a"],
-  [/\u30cf\u30b5\u30df|\u306f\u3055\u307f|\u92cf/, "\u2702\ufe0f"],
-  [/\u30b9\u30b3\u30c3\u30d7|\u30b4\u30c6|\u30b7\u30e3\u30d9\u30eb|\u30b9\u30b3\u30c3\u30d7/, "\u26cf\ufe0f"],
-  [/\u30b6\u30eb|\u30ab\u30b4|\u304b\u3054|\u7c60|\u3056\u308b/, "\ud83e\uddfa"],
-  [/\u30d3\u30cb\u30fc\u30eb|\u30ec\u30b8\u888b|\u30dd\u30ea\u888b|\u30b4\u30df\u888b/, "\ud83d\udecd\ufe0f"],
-  [/\u65b0\u805e/, "\ud83d\udcf0"],
-  [/\u30d8\u30c3\u30c9\u30e9\u30f3\u30d7|\u30e9\u30a4\u30c8|\u30e9\u30f3\u30bf\u30f3|\u61d0\u4e2d/, "\ud83d\udd26"],
-  [/\u30d5\u30a1\u30fc\u30b9\u30c8\u30a8\u30a4\u30c9|\u6551\u6025|\u7d46\u5275\u818f|\u5305\u5e2f/, "\ud83e\ude79"],
-  [/GPS|\u30b9\u30de|\u643a\u5e2f|\u5145\u96fb|\u30d0\u30c3\u30c6\u30ea\u30fc/, "\ud83d\udcf1"],
-  [/\u30b3\u30f3\u30d1\u30b9|\u5730\u56f3|\u30de\u30c3\u30d7/, "\ud83e\udded"],
-  [/\u6c34\u7b52|\u98f2\u307f\u6c34|\u30c9\u30ea\u30f3\u30af|\u6c34/, "\ud83d\udca7"],
-  [/\u304a\u306b\u304e\u308a|\u884c\u52d5\u98df|\u5f01\u5f53|\u98df\u6599|\u643a\u884c\u98df/, "\ud83c\udf59"],
-  [/\u30bf\u30aa\u30eb|\u624b\u306c\u3050\u3044/, "\ud83e\udde3"],
-  [/\u30d8\u30eb\u30e1\u30c3\u30c8/, "\u26d1\ufe0f"],
-  [/\u30ec\u30a4\u30f3|\u96e8|\u30ab\u30c3\u30d1|\u5408\u7fbd/, "\u2614"],
-  [/\u30e4\u30c3\u30b1|\u9632\u98a8|\u30b8\u30e3\u30b1\u30c3\u30c8|\u4e0a\u7740|\u30d5\u30ea\u30fc\u30b9|\u30d9\u30b9\u30c8/, "\ud83e\udde5"],
-  [/\u30b9\u30d1\u30c3\u30c4|\u30b2\u30a4\u30bf\u30fc|\u9774\u4e0b|\u30bd\u30c3\u30af\u30b9/, "\ud83e\udde6"],
-  [/\u9577\u9774|\u30d6\u30fc\u30c4|\u30b4\u30e0\u9774/, "\ud83d\udc62"],
-  [/\u767b\u5c71\u9774|\u30c8\u30ec\u30c3\u30ad\u30f3\u30b0|\u9774|\u30b7\u30e5\u30fc\u30ba/, "\ud83e\udd7e"],
-  [/\u8ecd\u624b|\u624b\u888b|\u30b0\u30ed\u30fc\u30d6/, "\ud83e\udde4"],
-  [/\u5e3d\u5b50|\u30cf\u30c3\u30c8|\u30ad\u30e3\u30c3\u30d7/, "\ud83e\udde2"],
-  [/\u30ba\u30dc\u30f3|\u30d1\u30f3\u30c4|\u30dc\u30c8\u30e0/, "\ud83d\udc56"],
-  [/\u30b7\u30e3\u30c4|\u9577\u8896|T\u30b7\u30e3\u30c4|\u30a4\u30f3\u30ca\u30fc/, "\ud83d\udc55"],
-];
-const GEAR_CAT_ICONS = {
-  "\u63a1\u53d6\u9053\u5177":"\ud83d\udd27", "\u53ce\u7d0d":"\ud83e\uddfa", "\u5b89\u5168":"\ud83d\udee1\ufe0f", "\u7167\u660e":"\ud83d\udd26", "\u6551\u6025":"\ud83e\ude79", "\u30ca\u30d3":"\ud83e\udded", "\u643a\u884c\u98df":"\ud83c\udf59", "\u305d\u306e\u4ed6":"\ud83d\udce6",
-  "\u4e0a\u7740":"\ud83e\udde5", "\u30ba\u30dc\u30f3":"\ud83d\udc56", "\u9774":"\ud83e\udd7e", "\u624b\u888b":"\ud83e\udde4", "\u5e3d\u5b50":"\ud83e\udde2", "\u96e8\u5177":"\u2614", "\u811a":"\ud83e\udde6", "\u982d":"\u26d1\ufe0f",
-};
-function gearIcon(item, isClothing) {
-  const name = item.name || "";
-  for (let i = 0; i < GEAR_ICON_RULES.length; i++) {
-    if (GEAR_ICON_RULES[i][0].test(name)) return GEAR_ICON_RULES[i][1];
-  }
-  return GEAR_CAT_ICONS[item.category] || (isClothing ? "\ud83d\udc55" : "\ud83c\udf92");
-}
-
 function GearView({ sansaiList }) {
   const [clothing, setClothing] = useState(() => {
     try { const s = localStorage.getItem("sansai_clothing"); if(s) return JSON.parse(s); } catch(e) {}
@@ -2608,7 +2566,7 @@ function GearView({ sansaiList }) {
                   boxShadow:"0 2px 8px rgba(0,0,0,0.06)", border:"1px solid var(--mist)",
                   display:"flex", alignItems:"flex-start", gap:12},}
                   , React.createElement('div', { style: {fontSize:24, flexShrink:0},}
-                    , gearIcon(item, mainTab==="clothing")
+                    , mainTab==="clothing" ? "\ud83d\udc55" : "\ud83c\udf92"
                   )
                   , React.createElement('div', { style: {flex:1},}
                     , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)", marginBottom:2},}
@@ -2639,31 +2597,29 @@ function GearView({ sansaiList }) {
   );
 }
 
-function HomeView({ onTabChange, secretOn, onSecretTap }) {
-  const [secretCount, setSecretCount] = React.useState(0);
+function HomeView({ onTabChange }) {
   const menuItems = [
     { id:"calendar", icon:"\ud83c\udf43", label:"\u5c71\u83dc\u30ab\u30ec\u30f3\u30c0\u30fc", desc:"\u63a1\u53d6\u9069\u671f\u4e00\u89a7", color:"#2d4a2d" },
     { id:"plan",     icon:"\ud83d\udcc5", label:"\u63a1\u53d6\u30d7\u30e9\u30f3",   desc:"\u5929\u6c17\u30fb\u30ab\u30ec\u30f3\u30c0\u30fc\u9023\u643a", color:"#27ae60" },
     { id:"spots",    icon:"\ud83d\udccd", label:"\u30b9\u30dd\u30c3\u30c8",       desc:"\u63a1\u53d6\u5834\u6240\u7ba1\u7406", color:"#e74c3c" },
     { id:"blog",     icon:"\ud83d\udcdd", label:"\u30d6\u30ed\u30b0",         desc:"\u63a1\u53d6\u8a18\u9332\u30fb\u5199\u771f", color:"#e67e22" },
-    { id:"info",     icon:"\ud83c\udf3f", label:"\u5c71\u83dc\u56f3\u9451",     desc:"\u5c71\u83dc\u306e\u77e5\u8b58\u30fb\u5371\u967a\u690d\u7269", color:"#16a085" },
+    { id:"sansai",   icon:"\ud83c\udf3f", label:"\u5c71\u83dc\u56f3\u9451",     desc:"\u5c71\u83dc\u306e\u77e5\u8b58\u30fb\u5371\u967a\u690d\u7269", color:"#16a085" },
     { id:"members",  icon:"\ud83d\udc65", label:"\u30e1\u30f3\u30d0\u30fc",     desc:"\u30b0\u30eb\u30fc\u30d7\u7ba1\u7406", color:"#8e44ad" },
     { id:"patrol",   icon:"\ud83d\udd0d", label:"\u30d1\u30c8\u30ed\u30fc\u30eb",   desc:"\u5de1\u56de\u8a18\u9332\u30fb\u751f\u80b2\u72b6\u6cc1", color:"#2980b9" },
     { id:"harvest",  icon:"\ud83e\uddfa", label:"\u53ce\u7a6b\u8a18\u9332",   desc:"\u53ce\u7a6b\u91cf\u30fb\u7d71\u8a08", color:"#d35400" },
     { id:"memo",     icon:"\ud83d\udcd2", label:"\u5fd8\u5099\u9332",       desc:"\u30a2\u30af\u30bb\u30b9\u30fb\u9053\u9806\u30e1\u30e2", color:"#7f8c8d" },
     { id:"gear",     icon:"\ud83d\udc55", label:"\u670d\u88c5\u30fb\u9053\u5177",   desc:"\u5c71\u83dc\u5225\u306e\u670d\u88c5\u30fb\u9053\u5177\u30ea\u30b9\u30c8", color:"#34495e" },
-    { id:"links",    icon:"🔗", label:"リンク集",     desc:"SNS・おすすめWeb", color:"#2c7a7b" },
-    { id:"manual",   icon:"📖", label:"使い方・Q&A",  desc:"操作説明・よくある質問", color:"#b7791f" },
   ];
-  { let _lb = ""; try { _lb = localStorage.getItem("sansai_last_backup") || ""; } catch (e) {}
-    menuItems.push({ id:"backup", icon:"💾", label:"バックアップ", desc: _lb ? ("最終: " + fmtBackupDate(_lb)) : "まだ未実施・データの保存/復元", color:"#4a5568" }); }
-  if (secretOn) menuItems.push({ id:"secret", icon:"📝", label:"メモ", desc:"作成者専用・非公開", color:"#6b46c1" });
 
   return (
     React.createElement('div', { style: {minHeight:"100vh", background:"linear-gradient(160deg,#1a3a1a 0%,#2d5a2d 40%,#1a3a1a 100%)", padding:"0 0 40px"},}
       /* \u30d8\u30c3\u30c0\u30fc\u30fb\u30ed\u30b4\u30a8\u30ea\u30a2 */
       , React.createElement('div', { style: {textAlign:"center", padding:"48px 20px 32px"},}
-        , React.createElement('img', { src: "logo-badge.png", alt: "\u5c71\u83dc\u63a1\u308a\u624b\u5e33", width: 220, height: 220, style: {width:220, height:220, maxWidth:"70vw", maxHeight:"70vw", marginBottom:16, filter:"drop-shadow(0 6px 16px rgba(0,0,0,0.45))"},})
+        , React.createElement('div', { style: {fontSize:72, marginBottom:12, filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.3))"},}, "\ud83c\udf3f")
+        , React.createElement('div', { style: {fontSize:32, fontWeight:700, color:"white", fontFamily:"'Noto Serif JP',serif",
+          letterSpacing:2, textShadow:"0 2px 8px rgba(0,0,0,0.4)", marginBottom:8},}, "\u5c71\u83dc\u63a1\u308a\u624b\u5e33"
+
+        )
         , React.createElement('div', { style: {fontSize:14, color:"rgba(255,255,255,0.7)", letterSpacing:1},}, "\u4e2d\u90e8\u30fb\u5317\u9678\u30a8\u30ea\u30a2 | \u30b0\u30eb\u30fc\u30d7\u7ba1\u7406"
 
         )
@@ -2698,291 +2654,15 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
       )
 
       /* \u30d5\u30c3\u30bf\u30fc */
-      , React.createElement('div', { onClick: () => { const n = secretCount + 1; if (n >= 7) { setSecretCount(0); onSecretTap && onSecretTap(); } else setSecretCount(n); }, style: {textAlign:"center", marginTop:32, color:"rgba(255,255,255,0.4)", fontSize:11, userSelect:"none"},}, "\u5c71\u83dc\u63a1\u308a\u624b\u5e33 v2.0 | \u4e2d\u90e8\u30fb\u5317\u9678\u30a8\u30ea\u30a2"
+      , React.createElement('div', { style: {textAlign:"center", marginTop:32, color:"rgba(255,255,255,0.4)", fontSize:11},}, "\u5c71\u83dc\u63a1\u308a\u624b\u5e33 v2.0 | \u4e2d\u90e8\u30fb\u5317\u9678\u30a8\u30ea\u30a2"
 
       )
     )
   );
 }
 
-// ===== 山菜イラスト・詳細情報（カレンダー用）=====
-const _spiral = (cx, cy, r0, r1, turns, start) => {
-  let p = ""; const n = Math.round(turns * 28);
-  for (let i = 0; i <= n; i++) {
-    const t = i / n, a = start + t * turns * 2 * Math.PI, r = r0 + (r1 - r0) * t;
-    p += (i ? "L" : "M") + (cx + r * Math.cos(a)).toFixed(1) + " " + (cy + r * Math.sin(a)).toFixed(1);
-  }
-  return p;
-};
-const _star = (cx, cy, ro, ri, n, rot) => {
-  let p = "";
-  for (let i = 0; i < n * 2; i++) {
-    const a = rot + i * Math.PI / n, r = i % 2 ? ri : ro;
-    p += (i ? "L" : "M") + (cx + r * Math.cos(a)).toFixed(1) + " " + (cy + r * Math.sin(a)).toFixed(1);
-  }
-  return p + "Z";
-};
-const _svg = (inner) => '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">' + inner + '</svg>';
-const _gnd = '<ellipse cx="50" cy="93" rx="34" ry="4" fill="#7a5c3a" opacity=".25"/>';
-const _trefoil = (x, y, s, rot, fill, vein) => '<g transform="translate(' + x + ' ' + y + ') rotate(' + rot + ') scale(' + s + ')" fill="' + fill + '">'
-  + '<ellipse cx="0" cy="-12" rx="7" ry="11"/><ellipse cx="-11" cy="-1" rx="7" ry="10" transform="rotate(-62 -11 -1)"/><ellipse cx="11" cy="-1" rx="7" ry="10" transform="rotate(62 11 -1)"/>'
-  + '<path d="M0 0V-20M0 0L-13 -4M0 0L13 -4" stroke="' + (vein || "#3f7d3a") + '" stroke-width="1" fill="none" opacity=".6"/></g>';
-const _fiddle = (x, y, r, stem, color, w, sway) => '<path d="M' + x + ' 92 C' + x + ' 80 ' + (x + (sway || 0)) + ' 70 ' + (x + (sway || 0)) + ' ' + (y + r) + '" stroke="' + stem + '" stroke-width="' + w + '" fill="none" stroke-linecap="round"/>'
-  + '<path d="' + _spiral(x + (sway || 0), y, r, 1.5, 1.7, Math.PI / 2) + '" stroke="' + color + '" stroke-width="' + w + '" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
-const _taraArt = (bud) => _svg(_gnd
-  + '<path d="M43 92 L46 46 L56 46 L58 92Z" fill="#8a6a45"/><path d="M52 46 L56 46 L58 92 L54 92Z" fill="#6f5233"/>'
-  + '<path d="M43 82 l-7 -3 l7 -2z M58 74 l7 -3 l-7 -2z M44 66 l-7 -3 l7 -2z M57 58 l7 -3 l-7 -2z" fill="#4e3820"/>'
-  + '<path d="M50 48 C34 46 26 30 36 16 C46 22 50 34 50 48Z" fill="' + bud[0] + '"/>'
-  + '<path d="M50 48 C66 46 74 30 64 16 C54 22 50 34 50 48Z" fill="' + bud[1] + '"/>'
-  + '<path d="M50 48 C43 36 45 22 50 8 C55 22 57 36 50 48Z" fill="' + bud[2] + '"/>'
-  + '<path d="M45 50 C45 43 55 43 55 50Z" fill="#9c4f2a"/>');
-
-const SANSAI_ART = {
-  fuki: _svg(_gnd
-    + '<path d="M50 90 C48 74 49 64 50 56" stroke="#9bb56a" stroke-width="5" fill="none" stroke-linecap="round"/>'
-    + '<path d="M26 70 C18 58 22 46 31 43 C39 48 39 62 35 72Z" fill="#a4c165"/><path d="M74 72 C82 60 78 48 69 45 C61 50 61 64 65 74Z" fill="#a4c165"/>'
-    + '<path d="M50 16 C33 24 29 46 37 62 C43 69 57 69 63 62 C71 46 67 24 50 16Z" fill="#b3cc76"/>'
-    + '<path d="M50 22 C39 31 38 48 43 64 C48 67 52 67 57 64 C62 48 61 31 50 22Z" fill="#cbdc92"/>'
-    + '<path d="M50 30 C45 39 45 52 47 64 L53 64 C55 52 55 39 50 30Z" fill="#e4edb4"/>'
-    + '<path d="M38 50 Q50 40 62 50 M40 58 Q50 50 60 58" stroke="#8fae55" fill="none" stroke-width="1.3"/>'),
-  tara: _taraArt(["#7fb04a", "#6da03d", "#9cc963"]),
-  bouna: _taraArt(["#8fb85a", "#7aa84a", "#b1d27a"]),
-  koshi: _svg(_gnd
-    + '<path d="M50 92 L50 58" stroke="#8a7d5a" stroke-width="5" stroke-linecap="round"/>'
-    + [-68, -34, 0, 34, 68].map((a, i) => '<ellipse cx="50" cy="' + (i === 2 ? 32 : 36) + '" rx="7.5" ry="' + (i === 2 ? 19 : 17) + '" transform="rotate(' + a + ' 50 58)" fill="' + (i === 2 ? "#8cc25a" : "#a3cf72") + '"/>'
-      + '<path d="M50 58 L50 ' + (i === 2 ? 20 : 24) + '" transform="rotate(' + a + ' 50 58)" stroke="#5f9a3a" stroke-width="1" opacity=".7"/>').join("")
-    + '<circle cx="50" cy="58" r="5" fill="#a0603a"/>'),
-  warabi: _svg(_gnd
-    + '<path d="M50 92 C50 76 50 62 50 50" stroke="#9d8a4a" stroke-width="5.5" fill="none" stroke-linecap="round"/>'
-    + '<path d="' + _spiral(50, 34, 16, 2, 1.6, Math.PI / 2) + '" stroke="#8fa64f" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
-    + '<path d="' + _spiral(50, 34, 16, 2, 1.6, Math.PI / 2) + '" stroke="#e5e8c4" stroke-width="1.4" stroke-dasharray="1 4" fill="none" stroke-linecap="round"/>'
-    + '<path d="M27 92 C27 80 27 74 27 68" stroke="#9d8a4a" stroke-width="4" fill="none" stroke-linecap="round"/>'
-    + '<path d="' + _spiral(27, 60, 8, 1.2, 1.5, Math.PI / 2) + '" stroke="#9bb257" stroke-width="4" fill="none" stroke-linecap="round"/>'),
-  zenmai: _svg(_gnd
-    + '<path d="M50 92 L50 54" stroke="#a48a5a" stroke-width="5" stroke-linecap="round"/>'
-    + '<circle cx="50" cy="36" r="19" fill="#d7bd94"/>'
-    + '<path d="' + _spiral(50, 36, 17, 2, 2.2, Math.PI / 2) + '" stroke="#9a6f45" stroke-width="3.2" fill="none" stroke-linecap="round"/>'
-    + '<path d="M30 30 Q24 36 29 44 M70 30 Q76 36 71 44" stroke="#e9d6b4" stroke-width="2" fill="none" stroke-linecap="round" opacity=".8"/>'),
-  udo: _svg(_gnd
-    + '<path d="M41 92 L44 36 L57 36 L60 92Z" fill="#f2ecd0"/><path d="M52 36 L57 36 L60 92 L53 92Z" fill="#e2d6a8"/>'
-    + '<path d="M44 60 h14 M43 76 h16" stroke="#cfc28f" stroke-width="1.2"/>'
-    + '<path d="M50 38 C34 36 24 26 28 14 C40 16 48 26 50 38Z" fill="#9bb06a"/><path d="M50 38 C66 36 76 26 72 14 C60 16 52 26 50 38Z" fill="#8a7396"/><path d="M50 36 C45 26 46 16 50 8 C54 16 55 26 50 36Z" fill="#b7c986"/>'),
-  mitsuba: _svg(_gnd
-    + '<path d="M50 92 C50 76 50 66 50 50 M50 92 C46 78 34 70 30 56 M50 92 C54 78 66 70 70 56" stroke="#8cc06a" stroke-width="2.6" fill="none" stroke-linecap="round"/>'
-    + _trefoil(50, 48, 1.15, 0, "#5faa4f") + _trefoil(28, 52, 0.9, -32, "#74b85a") + _trefoil(72, 52, 0.9, 32, "#74b85a")),
-  nobiru: _svg(_gnd
-    + '<path d="M47 68 C40 48 30 34 20 22 M50 66 C50 48 48 32 46 14 M53 68 C60 50 70 38 80 26 M50 68 C56 56 66 52 76 52" stroke="#78bb54" stroke-width="3" fill="none" stroke-linecap="round"/>'
-    + '<ellipse cx="50" cy="78" rx="12" ry="13" fill="#f6f0e0" stroke="#d6c89d" stroke-width="1.5"/>'
-    + '<path d="M46 66 h8 l-1 6 h-6z" fill="#ddd2ae"/><path d="M43 88 l-4 7 M50 91 v6 M57 88 l4 7" stroke="#c8b98a" stroke-width="1.6" stroke-linecap="round"/>'
-    + '<circle cx="46" cy="12" r="3.6" fill="#a9c47a"/>'),
-  akebi: _svg(
-    '<path d="M80 30 C84 22 88 16 92 8" stroke="#6b5a3a" stroke-width="3" fill="none" stroke-linecap="round"/>'
-    + '<ellipse cx="80" cy="14" rx="5" ry="9" transform="rotate(-50 80 14)" fill="#6da850"/><ellipse cx="90" cy="20" rx="5" ry="9" transform="rotate(30 90 20)" fill="#5c9944"/>'
-    + '<path d="M18 62 C18 36 44 26 80 32 C86 48 76 74 50 80 C32 82 18 74 18 62Z" fill="#7a4f9a"/>'
-    + '<path d="M18 62 C22 44 44 34 70 34" stroke="#a37ac0" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/>'
-    + '<path d="M28 54 C44 46 66 46 76 54 C66 68 44 70 28 54Z" fill="#f3f0ea"/><path d="M28 54 C44 46 66 46 76 54" stroke="#e0dcd2" stroke-width="2" fill="none"/>'
-    + [[38, 55], [46, 58], [54, 56], [62, 58], [69, 55], [42, 52], [58, 52]].map(p => '<ellipse cx="' + p[0] + '" cy="' + p[1] + '" rx="2" ry="3" transform="rotate(20 ' + p[0] + ' ' + p[1] + ')" fill="#25201d"/>').join("")),
-  matsu: _svg(_gnd
-    + '<path d="M42 92 C40 78 42 62 45 52 L58 52 C61 62 63 78 61 92Z" fill="#eadfc6"/>'
-    + '<path d="M44 66 h16 M43 76 h18 M44 86 h16" stroke="#c4a880" stroke-width="1.4" stroke-dasharray="3 2"/>'
-    + '<path d="M16 54 C16 30 34 18 52 18 C70 18 86 30 86 54 C70 60 32 60 16 54Z" fill="#8a5a36"/>'
-    + '<path d="M28 36 C38 27 52 24 64 28 M24 46 C34 40 44 38 52 38" stroke="#b17e54" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".8"/>'
-    + '<path d="M45 55 C48 60 56 60 59 55" stroke="#b79b70" stroke-width="2" fill="none"/>'),
-  nameko: _svg(_gnd
-    + [[30, 60, 15, "#c8742e"], [56, 50, 18, "#d0813a"], [74, 68, 12, "#bf6c28"], [44, 74, 12, "#c97a34"]].map(m =>
-      '<rect x="' + (m[0] - 3) + '" y="' + m[1] + '" width="6" height="' + (92 - m[1]) + '" rx="3" fill="#e6d4a8"/>'
-      + '<path d="M' + (m[0] - m[2]) + ' ' + (m[1] + 4) + ' C' + (m[0] - m[2]) + ' ' + (m[1] - m[2] * 1.1) + ' ' + (m[0] + m[2]) + ' ' + (m[1] - m[2] * 1.1) + ' ' + (m[0] + m[2]) + ' ' + (m[1] + 4) + 'Z" fill="' + m[3] + '"/>'
-      + '<ellipse cx="' + (m[0] - m[2] * 0.3) + '" cy="' + (m[1] - m[2] * 0.6) + '" rx="' + (m[2] * 0.3) + '" ry="' + (m[2] * 0.16) + '" fill="#f1b673" opacity=".8"/>').join("")),
-  seri: _svg(_gnd
-    + '<path d="M50 92 C50 76 50 66 50 52 M50 92 C44 78 32 70 28 56 M50 92 C56 78 68 70 72 56" stroke="#7fbf6a" stroke-width="2.4" fill="none" stroke-linecap="round"/>'
-    + _trefoil(50, 46, 1.1, 0, "#4d9a4a", "#2f6d2f") + _trefoil(26, 52, 0.85, -35, "#5aa857", "#2f6d2f") + _trefoil(74, 52, 0.85, 35, "#5aa857", "#2f6d2f")
-    + '<path d="M44 92 l-6 4 M50 92 v6 M56 92 l6 4" stroke="#f0ead8" stroke-width="2" stroke-linecap="round"/>'),
-  wasabi: _svg(_gnd
-    + '<path d="M50 92 L50 60" stroke="#8fb85a" stroke-width="4" stroke-linecap="round"/>'
-    + '<path d="M50 28 C30 38 16 52 22 64 C28 74 44 70 50 58 C56 70 72 74 78 64 C84 52 70 38 50 28Z" fill="#3f8a44"/>'
-    + '<path d="M50 58 L50 34 M50 58 L28 56 M50 58 L72 56 M50 58 L34 42 M50 58 L66 42" stroke="#8fc98a" stroke-width="1.2" fill="none" opacity=".8"/>'),
-  hanawasabi: _svg(_gnd
-    + '<path d="M50 92 C50 74 52 60 52 44" stroke="#7fb85a" stroke-width="4" fill="none" stroke-linecap="round"/>'
-    + '<path d="M50 80 C36 78 28 70 30 60 C40 62 48 68 50 80Z" fill="#3f8a44"/>'
-    + [[52, 26], [42, 32], [62, 32], [46, 42], [58, 42], [52, 34], [36, 44], [68, 44]].map(p => '<g transform="translate(' + p[0] + ' ' + p[1] + ')"><g fill="#fff" stroke="#b9cf94" stroke-width=".9"><circle cx="0" cy="-3.4" r="3.4"/><circle cx="3.4" cy="0" r="3.4"/><circle cx="0" cy="3.4" r="3.4"/><circle cx="-3.4" cy="0" r="3.4"/></g><circle r="1.5" fill="#d9e6a6"/></g>').join("")),
-  myoga: _svg(_gnd
-    + '<path d="M12 92 C14 62 26 36 38 24 C36 46 30 70 24 92Z" fill="#6fae57"/><path d="M88 92 C86 62 74 36 62 24 C64 46 70 70 76 92Z" fill="#5da04b"/>'
-    + '<path d="M50 20 C35 32 31 54 39 76 C45 85 55 85 61 76 C69 54 65 32 50 20Z" fill="#e58a9a"/>'
-    + '<path d="M50 28 C43 44 43 64 47 80 M50 28 C57 44 57 64 53 80 M39 60 Q50 54 61 60" stroke="#c4667a" stroke-width="1.4" fill="none"/>'),
-  yoshina: _svg(_gnd
-    + '<path d="M50 92 C50 72 50 62 50 48 M50 76 C54 66 62 60 72 58" stroke="#8fbf6a" stroke-width="3" fill="none" stroke-linecap="round"/>'
-    + '<path d="' + _star(50, 32, 24, 13, 7, -Math.PI / 2) + '" fill="#5aa350" stroke="#3f7d3a" stroke-width="1" stroke-linejoin="round"/>'
-    + '<path d="M50 48 L50 12 M50 48 L28 28 M50 48 L72 28 M50 48 L30 46 M50 48 L70 46" stroke="#a9d49a" stroke-width="1.1" fill="none"/>'
-    + '<path d="' + _star(72, 56, 11, 6, 7, -Math.PI / 2) + '" fill="#79b866" stroke="#3f7d3a" stroke-width=".8" stroke-linejoin="round"/>'),
-  mizu: _svg(_gnd
-    + '<path d="M50 92 L50 22" stroke="#e58f92" stroke-width="8" stroke-linecap="round"/><path d="M52 92 L52 24" stroke="#f3b3b0" stroke-width="2" stroke-linecap="round" opacity=".7"/>'
-    + [[76, 48, 1], [64, 32, -1], [50, 68, 1]].map(() => "").join("")
-    + [[76, 30], [62, 46], [78, 62]].map(p => '<ellipse cx="' + p[0] + '" cy="' + p[1] + '" rx="16" ry="6.5" transform="rotate(-20 ' + p[0] + ' ' + p[1] + ')" fill="#5aa858"/>').join("")
-    + [[24, 30], [38, 46], [22, 62]].map(p => '<ellipse cx="' + p[0] + '" cy="' + p[1] + '" rx="16" ry="6.5" transform="rotate(20 ' + p[0] + ' ' + p[1] + ')" fill="#6ab568"/>').join("")
-    + '<circle cx="50" cy="34" r="1.6" fill="#b04a55"/><circle cx="50" cy="56" r="1.6" fill="#b04a55"/>'),
-  gyoja: _svg(_gnd
-    + '<path d="M43 92 L46 62 L54 62 L57 92Z" fill="#b34a6a"/><path d="M52 62 L54 62 L57 92 L53 92Z" fill="#8c3552"/>'
-    + '<path d="M50 66 C26 60 18 30 33 12 C50 20 57 44 50 66Z" fill="#5aa648"/><path d="M50 66 C74 60 82 30 67 12 C50 20 43 44 50 66Z" fill="#6bb356"/>'
-    + '<path d="M50 66 C42 46 40 30 33 14 M50 66 C58 46 60 30 67 14" stroke="#3f7d3a" stroke-width="1.2" fill="none" opacity=".7"/>'),
-  urui: _svg(_gnd
-    + '<path d="M50 92 C50 78 46 66 38 56 M50 92 C50 78 56 66 64 58" stroke="#9bcf72" stroke-width="5" fill="none" stroke-linecap="round"/>'
-    + '<path d="M38 56 C20 50 14 30 26 16 C40 22 50 40 38 56Z" fill="#a8d67a"/><path d="M64 58 C82 52 88 32 76 18 C62 24 52 42 64 58Z" fill="#9ccc6c"/>'
-    + '<path d="M38 56 C30 44 28 30 26 18 M64 58 C70 46 72 32 76 20" stroke="#6fa845" stroke-width="1.3" fill="none"/>'
-    + '<path d="M50 92 C50 70 50 52 50 38 C44 30 46 18 50 10 C54 18 56 30 50 38Z" fill="#bce08e"/>'),
-  nemagari: _svg(_gnd
-    + '<path d="M42 92 C40 70 44 50 56 32 C60 24 64 18 72 14 C70 30 68 50 63 66 C61 78 63 86 60 92Z" fill="#c7a271"/>'
-    + '<path d="M42 84 Q51 80 61 84 M41 72 Q51 68 62 72 M43 60 Q53 56 64 60 M49 46 Q58 42 67 44" stroke="#8a6a45" stroke-width="1.6" fill="none"/>'
-    + '<path d="M72 14 C64 18 58 26 56 32 C63 30 69 25 72 14Z" fill="#7aa84a"/>'),
-  kogomi: _svg(_gnd
-    + _fiddle(50, 34, 14, "#8fc76a", "#7cc24f", 5, 0)
-    + _fiddle(50, 46, 10, "#8fc76a", "#8ccd5b", 4, -26)
-    + _fiddle(50, 46, 10, "#8fc76a", "#6db843", 4, 26)),
-};
-
-const SANSAI_KEYS = [["花ワサビ","hanawasabi"],["葉ワサビ","wasabi"],["ワサビ","wasabi"],["フキノトウ","fuki"],["タラノメ","tara"],["コシアブラ","koshi"],["ワラビ","warabi"],["ゼンマイ","zenmai"],["ウド","udo"],["ミツバ","mitsuba"],["ノビル","nobiru"],["アケビ","akebi"],["マツタケ","matsu"],["ナメコ","nameko"],["セリ","seri"],["ミョウガ","myoga"],["ヨシナ","yoshina"],["シドケ","yoshina"],["モミジガサ","yoshina"],["ミズ","mizu"],["ウワバミソウ","mizu"],["行者","gyoja"],["ギョウジャ","gyoja"],["ウルイ","urui"],["ボウナ","bouna"],["根曲がり","nemagari"],["ネマガリ","nemagari"],["コゴミ","kogomi"],["クサソテツ","kogomi"]];
-function sansaiKey(name) {
-  const n = (name || "").replace(/\s/g, "");
-  for (const [k, id] of SANSAI_KEYS) if (n.indexOf(k) === 0) return id;
-  for (const [k, id] of SANSAI_KEYS) if (n.indexOf(k) > 0) return id;
-  return null;
-}
-
-const SANSAI_INFO = {
-  fuki: { alias: "蕗の薹（フキの花芽）", look: "雪解け直後、地面から直接顔を出す丸い蕾。淡い緑の苞が重なり、花が開く前の固く締まったものを摘む。", prep: "天ぷら、ふき味噌、味噌汁の香りづけに。苦味が強いので刻んで水にさらすか、さっと茹でる。", caution: "フクジュソウの芽との誤食事故が毎年起きている。フキノトウは茎や葉がなく蕾だけが出る。細かく切れ込んだ葉が付いていたらフクジュソウ（有毒）の可能性が高い。フキノトウも食べ過ぎず、アクを抜いて食べる。", tip: "日当たりのよい斜面や畦道から先に出る。花が開ききったものは苦味が増す。" },
-  tara: { alias: "タラの芽（タラノキの新芽）", look: "トゲだらけの幹の先端に付く芽。いちばん上の頂芽（1番芽）が大きく、品質もよい。", prep: "天ぷらが定番。おひたし、胡麻和え、バター炒めにも。生食は避け、必ず加熱する。", caution: "頂芽を全部採ると木が弱って枯れることがある。脇の2番芽は残す。トゲで手を傷つけやすいので手袋を。", tip: "芽鱗（茶色い皮）が開ききる前が旬。私有地は許可を取ってから。" },
-  bouna: { alias: "", look: "タラノメに似た若芽。図鑑や現物で、木の特徴を確認してから採る。", prep: "山菜として天ぷら・おひたしなどに。", caution: "初めて採るときは、見分けられる人に同行してもらう。", tip: "" },
-  koshi: { alias: "地域により「ゴンゼツ」「アブラッコ」とも", look: "ウコギ科の落葉高木の新芽。5枚の小葉が手のひらのように広がり、芽の基部は赤茶色。", prep: "天ぷらが最高。おひたし、混ぜご飯、炒め物にも。独特の甘い香りとコクがある。", caution: "放射性セシウムを蓄積しやすく、一部の地域で出荷制限・採取自粛の対象になったことがある。採取地の自治体の最新情報を確認する。", tip: "木が高いので高枝ばさみが便利。枝を折ったり、木を傷めない。" },
-  warabi: { alias: "蕨", look: "拳のように先が丸まった若芽。日当たりのよい草地や斜面に群生する。茎の根元に近いところでポキッと折れる部分から上を採る。", prep: "アク抜きが必須。重曹（または木灰）を振って熱湯をかけ、そのまま一晩置く。おひたし、煮物、炒め物に。", caution: "生食や、アク抜きが不十分なまま食べない（発がん性物質プタキロサイドを含む）。", tip: "採ったらすぐアク抜きすると色よく仕上がる。" },
-  zenmai: { alias: "薇", look: "赤茶色の綿毛に覆われた、渦巻き状の若芽。湿った沢沿いの斜面に生える。", prep: "綿毛を取り、茹でてアクを抜く。天日干し（干しゼンマイ）にすると保存がきく。煮物・炒め物・ナムルに。", caution: "アクが強いので下茹でが必要。", tip: "1株から全部採らず、数本は残すと翌年も採れる。" },
-  udo: { alias: "山独活（ヤマウド）", look: "太い茎が立ち上がり、羽のような複葉が出る。全体に細かい毛があり、切ると強い香りがする。", prep: "皮を厚めにむいて酢水にさらす。酢味噌和え、きんぴら、天ぷら、味噌汁に。", caution: "似た植物と間違えないため、香りが弱いものは採らない。", tip: "春の芽出しを根元から切る。皮も炒めて食べられる。" },
-  mitsuba: { alias: "野生ミツバ（山みつば）", look: "3枚一組の葉で、茎を折ると独特の香りがする。半日陰の湿った場所に生える。", prep: "おひたし、吸い物、かき揚げ、卵とじに。", caution: "香りが弱い・無いものは別の植物の可能性がある。必ず香りを確認する。有毒植物と間違える事故があるため、迷ったら採らない。", tip: "根を残して、地上部を切って採る。" },
-  nobiru: { alias: "野蒜", look: "白い丸い球根と、細く中空の緑の葉。ネギやニラのような強い臭いがある。", prep: "洗って味噌をつけて生食、酢味噌和え、天ぷら、炒め物に。", caution: "スイセンやタマスダレなどの葉との誤食が多い。ノビルの葉は丸く中空でネギ臭がする。臭いがないものは食べない。", tip: "スコップで球根ごと掘る。" },
-  akebi: { alias: "木通", look: "秋に紫色に熟す実。熟すと縦に割れ、白い果肉が見える。割れない実は同じ仲間のムベ。", prep: "白い果肉は種を出して食べる。皮は肉詰め、味噌炒め、天ぷらに。苦味は下茹でで和らぐ。", caution: "熟していない実は渋みがある。つる植物なので、高い所で作業するときは足元に注意。", tip: "実が落ちる前、割れたころが食べごろ。" },
-  matsu: { alias: "松茸", look: "アカマツ林に生える。強い芳香、褐色の傘に繊維状のささくれ、柄にツバがある。", prep: "焼き松茸、土瓶蒸し、松茸ご飯に。香りを飛ばさないよう加熱は短く。", caution: "香りだけで判断せず、キノコは詳しい人に確認してもらってから食べる。毒キノコの誤食は命にかかわる。管理された山林では採取が禁止されている場合が多い。", tip: "採った跡は落ち葉や土を戻す。" },
-  nameko: { alias: "滑子", look: "広葉樹の倒木や切り株に群生する。橙〜茶色でぬめりのある傘、柄にもぬめりとツバの跡がある。", prep: "味噌汁、鍋、おろし和えに。ぬめりを生かす。", caution: "ぬめりのない・苦いキノコ（ニガクリタケなど）と混同しない。必ず詳しい人に確認してから食べる。", tip: "倒木の根元近くから発生する。" },
-  seri: { alias: "芹", look: "水辺に群生する、羽状の葉と強い香りの草。根は白いひげ状で、地表をはう茎（匍匐茎）を伸ばす。", prep: "せり鍋、おひたし、胡麻和えに。根も食べられる。", caution: "猛毒のドクゼリに似る。ドクゼリは大型で、地下茎が太く竹の節のようで、セリの香りがしない。太い地下茎のものは採らない。", tip: "根ごと採り、よく洗って泥を落とす。" },
-  hanawasabi: { alias: "山葵の花", look: "清流沿いに咲く、小さな白い花が集まった花茎。", prep: "さっと湯通しして辛味を出し、醤油漬け・からし和えに。", caution: "栽培されているワサビ田では採らない。", tip: "開花直後の蕾の状態が良い。" },
-  wasabi: { alias: "山葵の葉", look: "ハート形の濃い緑の葉に長い葉柄。清流沿いの湿った場所に生える。かじると辛味と香りがある。", prep: "刻んで熱湯をかけ、密閉して辛味を出し、醤油漬けにする。", caution: "辛味と香りがない場合は別の植物。栽培されているワサビ田では採らない。", tip: "根を残して、葉と茎だけを摘む。" },
-  myoga: { alias: "茗荷", look: "地面近くに出る、淡い赤紫を帯びた卵形の蕾（花穂）。笹のような葉の根元にある。", prep: "薬味、味噌汁、天ぷら、甘酢漬けに。", caution: "香りを確認してから採る。", tip: "やや湿った半日陰で探す。根は傷めない。" },
-  yoshina: { alias: "シドケ／モミジガサ", look: "若芽は傘を閉じたような形。育つと手のひら状に切れ込む葉になる。", prep: "おひたし、胡麻和え、天ぷらに。アクは少なめ。", caution: "トリカブトの若葉との混同による中毒事故がある。確実に見分けられないものは採らない。", tip: "沢筋や林の下の湿った場所に生える。" },
-  mizu: { alias: "ウワバミソウ", look: "沢沿いの湿った場所に生える。赤みを帯びた透けるような茎に、左右対になる葉が付く。", prep: "茎と葉を茹でて、たたきやおひたし、味噌汁に。独特のぬめりが特徴。", caution: "群生地が限られる。根を残して株を守る。", tip: "ぬめりのある茎の部分を食べる。" },
-  gyoja: { alias: "アイヌネギ（キトビロ）", look: "2〜3枚の広い葉と、赤紫色の基部。強いニンニクのような臭いがある。", prep: "おひたし、醤油漬け、餃子の具、天ぷらに。", caution: "バイケイソウ、コバイケイソウ、スズラン、イヌサフランと誤食する重大事故が毎年起きている。必ずニンニク臭を確認し、臭いのないものは採らない。", tip: "採りすぎで減りやすい。1株から1枚までにして、根（鱗茎）は掘らない。" },
-  urui: { alias: "オオバギボウシの若芽", look: "先の尖った卵形の若葉で、葉脈が弓なりに走る。巻いた状態で出て、ぬめりがある。", prep: "おひたし、味噌汁、酢味噌和え、天ぷらに。", caution: "猛毒のバイケイソウと混同する事故が多い。バイケイソウは葉に縦のヒダがあり、茎が節を持ち、葉が互い違いに付く。", tip: "芽だけを採り、株全体は採らない。" },
-  nemagari: { alias: "チシマザサの筍（姫竹）", look: "雪の重みで根元が曲がった笹の若い筍。褐色の皮に包まれる。", prep: "皮をむいて茹で、味噌汁、炊き込みご飯、焼き、鯖缶との煮物に。", caution: "笹藪はクマとの遭遇リスクが高い。鈴やラジオを持ち、複数人で行動する。", tip: "手で折れる位置から上を採る。" },
-  kogomi: { alias: "クサソテツ", look: "株の中心から巻いた若芽が数本〜数十本出る。茎の内側に深い溝があり、綿毛はほとんどない。", prep: "アクがほとんどなく、おひたし・天ぷら・マヨ和え・炒め物に。加熱して食べる。", caution: "ワラビ・ゼンマイと違いアク抜きは不要だが、必ず加熱する。", tip: "全部採らず、1株から2〜3本は残す。" },
-};
-
-// 山菜ごとの写真ID（写真本体は既存のIndexedDBに保存）
-let _spIds = null;
-function sansaiPhotoIds() {
-  if (!_spIds) { try { _spIds = JSON.parse(localStorage.getItem("sansai_photo_ids_v1") || "{}"); } catch (e) { _spIds = {}; } }
-  return _spIds;
-}
-function saveSansaiPhotoIds(obj) {
-  _spIds = obj;
-  try { localStorage.setItem("sansai_photo_ids_v1", JSON.stringify(obj)); } catch (e) {}
-}
-
-function SansaiIcon({ s, size }) {
-  const { photos: store } = usePhotos();
-  const px = size || 30;
-  const first = (sansaiPhotoIds()[s.name] || []).find(id => store[id]);
-  const box = { width: px, height: px, flexShrink: 0, borderRadius: "50%", overflow: "hidden", background: "#fff",
-    boxShadow: "0 0 0 1.5px " + ((s.color || "#6aab5e") + "99"), display: "inline-flex", alignItems: "center", justifyContent: "center" };
-  if (first) return React.createElement("span", { style: box }, React.createElement("img", { src: store[first], alt: s.name, style: { width: "100%", height: "100%", objectFit: "cover" } }));
-  const k = sansaiKey(s.name);
-  if (k && SANSAI_ART[k]) return React.createElement("span", { style: { ...box, padding: 1 }, dangerouslySetInnerHTML: { __html: SANSAI_ART[k] } });
-  return React.createElement("span", { style: { ...box, fontSize: px * 0.6 } }, s.emoji || "\ud83c\udf3f");
-}
-
-function SansaiDetailModal({ s, onClose, onPhotosChanged }) {
-  const { photos: store, savePhoto, removePhoto } = usePhotos();
-  const [, bump] = useState(0);
-  const [viewer, setViewer] = useState(null);
-  const [cur, setCur] = useState(0);
-  const key = sansaiKey(s.name);
-  const info = key ? SANSAI_INFO[key] : null;
-  const ids = (sansaiPhotoIds()[s.name] || []).filter(id => store[id]);
-  const shownId = ids[Math.min(cur, ids.length - 1)];
-  const changed = () => { bump(x => x + 1); if (onPhotosChanged) onPhotosChanged(); };
-
-  const addFile = (file) => {
-    if (!file || !file.type.startsWith("image/")) return;
-    compressImageFile(file, 1200, 0.8, async (dataUrl) => {
-      const id = await savePhoto(dataUrl);
-      const all = { ...sansaiPhotoIds() };
-      all[s.name] = [...(all[s.name] || []), id];
-      saveSansaiPhotoIds(all);
-      setCur(all[s.name].length - 1);
-      changed();
-    });
-  };
-  const removeCur = () => {
-    if (!shownId || !window.confirm("この写真を削除しますか？")) return;
-    const all = { ...sansaiPhotoIds() };
-    all[s.name] = (all[s.name] || []).filter(id => id !== shownId);
-    saveSansaiPhotoIds(all);
-    removePhoto(shownId);
-    setCur(0);
-    changed();
-  };
-
-  const sec = (title, text, tone) => text ? React.createElement("div", { style: { marginBottom: 12, padding: "10px 12px", borderRadius: 10,
-      background: tone === "warn" ? "#fdecea" : "var(--soil)", border: tone === "warn" ? "1px solid #f3b7b0" : "1px solid var(--mist)" } },
-    React.createElement("div", { style: { fontSize: 12, fontWeight: 700, marginBottom: 4, color: tone === "warn" ? "#a3281c" : "var(--forest)" } }, title),
-    React.createElement("div", { style: { fontSize: 13, lineHeight: 1.75, color: tone === "warn" ? "#7a1f16" : "var(--ink)" } }, text)) : null;
-
-  const fileBtn = (label, capture, bg, bd, fg) => React.createElement("label", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-      padding: "10px 6px", borderRadius: 10, cursor: "pointer", background: bg, border: "2px dashed " + bd, color: fg, fontSize: 12, fontWeight: 700 } },
-    React.createElement("input", Object.assign({ type: "file", accept: "image/*", style: { display: "none" },
-      onChange: e => { const fs = Array.from(e.target.files || []); fs.forEach(addFile); e.target.value = ""; } }, capture ? { capture: "environment" } : { multiple: true })),
-    label);
-
-  return React.createElement("div", { onClick: e => e.target === e.currentTarget && onClose(),
-      style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 10 } },
-    React.createElement("div", { style: { background: "var(--paper)", borderRadius: 18, width: "100%", maxWidth: 520, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 8px 40px rgba(0,0,0,0.4)" } },
-      // 写真エリア
-      React.createElement("div", { style: { position: "relative", background: "linear-gradient(180deg,#eef5e6,#dfeacf)", borderRadius: "18px 18px 0 0", padding: 12 } },
-        React.createElement("button", { onClick: onClose, "aria-label": "閉じる", style: { position: "absolute", top: 8, right: 8, zIndex: 2, width: 34, height: 34, borderRadius: "50%", border: "none", background: "rgba(0,0,0,0.5)", color: "#fff", fontSize: 18, cursor: "pointer" } }, "\u2715"),
-        shownId
-          ? React.createElement("img", { src: store[shownId], alt: s.name, onClick: () => setViewer(store[shownId]), style: { width: "100%", height: "auto", maxHeight: "65vh", objectFit: "contain", borderRadius: 12, display: "block", cursor: "zoom-in" } })
-          : React.createElement("div", { style: { height: 220, display: "flex", alignItems: "center", justifyContent: "center" } },
-              key ? React.createElement("div", { style: { width: 210, height: 210 }, dangerouslySetInnerHTML: { __html: SANSAI_ART[key] } })
-                  : React.createElement("div", { style: { fontSize: 110 } }, s.emoji || "\ud83c\udf3f")),
-        ids.length > 1 && React.createElement("div", { style: { display: "flex", gap: 6, marginTop: 8, overflowX: "auto" } },
-          ids.map((id, i) => React.createElement("img", { key: id, src: store[id], onClick: () => setCur(i),
-            style: { width: 52, height: 52, objectFit: "cover", borderRadius: 8, flexShrink: 0, cursor: "pointer", border: i === Math.min(cur, ids.length - 1) ? "3px solid var(--forest)" : "3px solid transparent" } }))),
-        !shownId && React.createElement("div", { style: { textAlign: "center", fontSize: 11, color: "#5a6e4a", marginTop: 4 } }, "実物の写真はまだ登録されていません（下のボタンから追加できます）")
-      ),
-      React.createElement("div", { style: { padding: "14px 16px 18px" } },
-        React.createElement("div", { style: { fontFamily: "'Shippori Mincho',serif", fontSize: 24, fontWeight: 700, color: "var(--forest)" } }, s.name),
-        info && info.alias && React.createElement("div", { style: { fontSize: 12, color: "#777", marginBottom: 8 } }, info.alias),
-        React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 5, margin: "8px 0 12px" } },
-          (s.months || []).map(m => React.createElement("span", { key: m, style: { padding: "3px 10px", borderRadius: 14, fontSize: 12, fontWeight: 700, background: "var(--forest)", color: "#fff" } }, m + "月"))),
-        s.region && sec("生育場所", s.region),
-        sec("特徴", s.desc),
-        info && sec("見分け方", info.look),
-        info && sec("下処理・食べ方", info.prep),
-        info && sec("注意", info.caution, "warn"),
-        info && sec("採取のコツ", info.tip),
-        s.notes && sec("メモ", s.notes),
-        React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 6 } },
-          fileBtn("\ud83d\uddbc 写真を追加", false, "var(--soil)", "var(--fern)", "var(--moss)"),
-          fileBtn("\ud83d\udcf8 撮影", true, "#e8f5e9", "#43a047", "#2e7d32")),
-        shownId && React.createElement("button", { onClick: removeCur, style: { marginTop: 8, width: "100%", padding: "8px", borderRadius: 10, border: "1px solid #f3b7b0", background: "#fff", color: "#c0392b", fontSize: 12, cursor: "pointer", fontFamily: "inherit" } }, "表示中の写真を削除"),
-        React.createElement("div", { style: { marginTop: 12, fontSize: 11, color: "#8a5a1f", lineHeight: 1.7 } }, "山菜・きのこは、確信が持てないものは採らない・食べない。初めての山菜は少量から試し、迷ったときは詳しい人に確認しましょう。")
-      )
-    ),
-    viewer && React.createElement("div", { onClick: e => { e.stopPropagation(); setViewer(null); },
-      style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: 8 } },
-      React.createElement("img", { src: viewer, style: { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" } }))
-  );
-}
-
 function CalendarView({ sansaiList, setSansaiList }) {
   const currentMonth = new Date().getMonth() + 1;
-  const [detail, setDetail] = useState(null);
-  const [, bumpPhotos] = useState(0);
 
   const [showForm, setShowForm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -3027,7 +2707,7 @@ function CalendarView({ sansaiList, setSansaiList }) {
         , React.createElement('div', { className: "legend-item",}, React.createElement('div', { className: "legend-dot", style: {background:"#f0f0f0"},}), "\u63a1\u53d6\u5916")
       )
 
-      , React.createElement('div', { className: "calendar-grid", style: {gridTemplateColumns:"116px repeat(12, 1fr)"},}
+      , React.createElement('div', { className: "calendar-grid",}
         , React.createElement('div', { className: "cal-header", style: {background:"#1a2e1a"},}, "\u5c71\u83dc")
         , MONTHS.map((m, i) => (
           React.createElement('div', { key: i, className: "cal-header", style: i+1===currentMonth?{background:"#4a7a3d"}:{},}, m)
@@ -3035,12 +2715,8 @@ function CalendarView({ sansaiList, setSansaiList }) {
         , sansaiList.map(s => {
           const peak = s.months[Math.floor(s.months.length / 2)];
           return [
-            React.createElement('div', { key: "l"+s.id, className: "cal-label", style: {display:"flex", alignItems:"center", justifyContent:"space-between", padding:"4px 4px 4px 6px", height:40, overflow:"hidden"},}
-              , React.createElement('button', { onClick: ()=>setDetail(s), title: s.name+"の詳細を見る",
-                style: {display:"flex", alignItems:"center", gap:5, background:"none", border:"none", cursor:"pointer", padding:0, margin:0, textAlign:"left", font:"inherit", color:"inherit", minWidth:0, flex:1},}
-                , React.createElement(SansaiIcon, { s: s, size: 30 })
-                , React.createElement('span', { style: {textDecoration:"underline dotted", textUnderlineOffset:3, lineHeight:1.25},}, s.name)
-              )
+            React.createElement('div', { key: "l"+s.id, className: "cal-label", style: {display:"flex", alignItems:"center", justifyContent:"space-between", paddingRight:4},}
+              , React.createElement('span', null, s.emoji, " " , s.name)
               , React.createElement('button', { onClick: ()=>setDeleteTarget(s),
                 style: {background:"none", border:"none", cursor:"pointer", color:"#c0392b", fontSize:12, padding:"0 2px", opacity:0.6, flexShrink:0},
                 title: "\u524a\u9664",}, "\u2715")
@@ -3065,8 +2741,6 @@ function CalendarView({ sansaiList, setSansaiList }) {
       , React.createElement('button', { className: "add-btn", style: {marginTop:16}, onClick: ()=>{setForm(emptyForm);setShowForm(true);},}, "\uff0b \u5c71\u83dc\u3092\u8ffd\u52a0"
 
       )
-
-      , detail && React.createElement(SansaiDetailModal, { s: detail, onClose: ()=>setDetail(null), onPhotosChanged: ()=>bumpPhotos(x=>x+1),} )
 
       /* \u8ffd\u52a0\u30d5\u30a9\u30fc\u30e0 */
       , showForm && (
@@ -5107,12 +4781,9 @@ function MembersView({ members, setMembers }) {
         React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setSelectedMember(null),}
           , React.createElement('div', { className: "form-box", style: {maxHeight:"90vh", overflowY:"auto", padding:0},}
             , dmImg && (
-              React.createElement('div', { style: {width:"100%", maxHeight:320, overflow:"hidden",
-                  background:"var(--soil)", borderTopLeftRadius:16, borderTopRightRadius:16,
-                  display:"flex", alignItems:"center", justifyContent:"center"},}
-                , React.createElement('img', { src: dmImg,
-                    style: {width:"100%", maxHeight:320, objectFit:"contain", display:"block"},} )
-              )
+              React.createElement('img', { src: dmImg,
+                style: {width:"100%", maxHeight:260, objectFit:"cover", display:"block",
+                  borderTopLeftRadius:16, borderTopRightRadius:16},} )
             )
             , React.createElement('div', { style: {padding:20},}
               , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:10, marginBottom:4},}
@@ -5324,8 +4995,6 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
       attendance: {} },
   ]);
   const [attendanceModal, setAttendanceModal] = useState(null); // \u51fa\u6b20\u7ba1\u7406\u4e2d\u306e\u30b9\u30b1\u30b8\u30e5\u30fc\u30eb
-  const [calMonth, setCalMonth] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; }); // \u6708\u9593\u4e88\u5b9a\u8868\u306e\u8868\u793a\u6708
-  const [calDay, setCalDay] = useState(null); // \u65e5\u4ed8\u30bf\u30c3\u30d7\u3067\u958b\u304f\u8a73\u7d30(YYYY-MM-DD)
 
   // \u30d5\u30a9\u30fc\u30e0
   const [showRecordForm, setShowRecordForm] = useState(false);
@@ -5721,71 +5390,6 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
             );
           })
 
-          /* \u6708\u9593\u4e88\u5b9a\u8868 */
-          , (() => {
-            const y = calMonth.y, m = calMonth.m;
-            const pad = n => String(n).padStart(2, "0");
-            const firstDow = new Date(y, m, 1).getDay();
-            const dim = new Date(y, m + 1, 0).getDate();
-            const cells = [];
-            for (let i = 0; i < firstDow; i++) cells.push(null);
-            for (let d = 1; d <= dim; d++) cells.push(d);
-            while (cells.length % 7) cells.push(null);
-            const byDate = {};
-            schedules.forEach(sc => { (byDate[sc.date] = byDate[sc.date] || []).push(sc); });
-            const moveMonth = (delta) => setCalMonth(prev => {
-              const dt = new Date(prev.y, prev.m + delta, 1);
-              return { y: dt.getFullYear(), m: dt.getMonth() };
-            });
-            const dowNames = ["\u65e5","\u6708","\u706b","\u6c34","\u6728","\u91d1","\u571f"];
-            const navBtn = { background:"var(--soil)", border:"none", borderRadius:8, padding:"6px 12px", cursor:"pointer", color:"var(--forest)", fontSize:13, fontWeight:700 };
-            return React.createElement('div', { style: {...cardStyle, marginTop:16},}
-              , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)", marginBottom:10},}, "\ud83d\uddd3 \u6708\u9593\u4e88\u5b9a\u8868")
-              , React.createElement('div', { style: {display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10},}
-                , React.createElement('button', { onClick: ()=>moveMonth(-1), style: navBtn,}, "\u25c0")
-                , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:8},}
-                  , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)"},}, y + "\u5e74" + (m + 1) + "\u6708")
-                  , React.createElement('button', { onClick: ()=>{ const d = new Date(); setCalMonth({ y: d.getFullYear(), m: d.getMonth() }); }, style: {...navBtn, fontSize:11, padding:"4px 8px"},}, "\u4eca\u6708")
-                )
-                , React.createElement('button', { onClick: ()=>moveMonth(1), style: navBtn,}, "\u25b6")
-              )
-              , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:4, marginBottom:4},}
-                , dowNames.map((n, i) => (
-                  React.createElement('div', { key: n, style: {textAlign:"center", fontSize:11, fontWeight:700, color: i===0?"#c0392b":i===6?"#2980b9":"#888"},}, n)
-                ))
-              )
-              , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:4},}
-                , cells.map((d, idx) => {
-                  if (d === null) return React.createElement('div', { key: "e" + idx,});
-                  const key = y + "-" + pad(m + 1) + "-" + pad(d);
-                  const list = byDate[key] || [];
-                  const has = list.length > 0;
-                  const isToday = key === today;
-                  const isPast = key < today;
-                  const dow = idx % 7;
-                  return React.createElement('button', { key: key, onClick: ()=>setCalDay(key),
-                    style: {
-                      minHeight:46, padding:"4px 0", borderRadius:8, cursor:"pointer",
-                      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", gap:3,
-                      border: isToday ? "2px solid var(--forest)" : "1px solid var(--mist)",
-                      background: has ? (isPast ? "#f3f3f3" : "#e8f5e9") : "white",
-                      color: dow===0?"#c0392b":dow===6?"#2980b9":"#444",
-                      fontSize:13, fontWeight: has ? 700 : 500, fontFamily:"inherit",
-                    },}
-                    , d
-                    , has && React.createElement('div', { style: {display:"flex", gap:2, alignItems:"center"},}
-                      , list.slice(0, 3).map((sc, i) => (
-                        React.createElement('span', { key: i, style: {width:6, height:6, borderRadius:"50%", background: isPast ? "#aaa" : "var(--forest)", display:"inline-block"},})
-                      ))
-                      , list.length > 3 && React.createElement('span', { style: {fontSize:9, color:"#888"},}, "+")
-                    )
-                  );
-                })
-              )
-              , React.createElement('div', { style: {fontSize:11, color:"#999", marginTop:8, textAlign:"center"},}, "\u65e5\u4ed8\u3092\u30bf\u30c3\u30d7\u3059\u308b\u3068\u8a73\u7d30\u304c\u958b\u304d\u307e\u3059")
-            );
-          })()
-
           /* \u904e\u53bb\u306e\u4e88\u5b9a */
           , schedules.filter(s=>s.date<today).length > 0 && (
             React.createElement(React.Fragment, null
@@ -5991,50 +5595,6 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
         )
       )
 
-
-      /* ===== \u65e5\u4ed8\u8a73\u7d30\u30e2\u30fc\u30c0\u30eb ===== */
-      , calDay && (() => {
-        const list = schedules.filter(sc => sc.date === calDay);
-        const dd = new Date(calDay + "T00:00:00");
-        const dowNames = ["\u65e5","\u6708","\u706b","\u6c34","\u6728","\u91d1","\u571f"];
-        const label = dd.getFullYear() + "\u5e74" + (dd.getMonth() + 1) + "\u6708" + dd.getDate() + "\u65e5\uff08" + dowNames[dd.getDay()] + "\uff09";
-        return React.createElement('div', { className: "form-overlay", onClick: ()=>setCalDay(null),}
-          , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},
-            onClick: e=>e.stopPropagation(),}
-            , React.createElement('div', { className: "form-title",}, "\ud83d\uddd3 " + label)
-            , list.length === 0 && React.createElement('div', { style: {textAlign:"center", padding:"24px 0", color:"#aaa", fontSize:13},}, "\u3053\u306e\u65e5\u306e\u5de1\u56de\u4e88\u5b9a\u306f\u3042\u308a\u307e\u305b\u3093")
-            , list.map(sc => {
-              const att = _nullishCoalesce(sc.attendance, () => ( {}));
-              const joined = Object.entries(att).filter(([,v])=>v==="\u53c2\u52a0").map(([n])=>n);
-              const absent = Object.values(att).filter(v=>v==="\u4e0d\u53c2\u52a0").length;
-              const pending = Object.values(att).filter(v=>v==="\u672a\u56de\u7b54").length;
-              return React.createElement('div', { key: sc.id, style: {background:"var(--soil)", borderRadius:12, padding:"12px 14px", marginBottom:12},}
-                , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)"},}, "\ud83d\udccd " + spotName(sc.spotId))
-                , React.createElement('div', { style: {fontSize:12, color:"#666", marginTop:4},}, "\ud83d\udc64 \u62c5\u5f53\uff1a" + (sc.assignee || "\u672a\u5b9a"))
-                , sc.memo && React.createElement('div', { style: {fontSize:12, color:"#555", marginTop:4, whiteSpace:"pre-wrap"},}, "\ud83d\udcdd " + sc.memo)
-                , React.createElement('div', { style: {display:"flex", gap:6, flexWrap:"wrap", marginTop:10},}
-                  , React.createElement('span', { style: {fontSize:11, fontWeight:700, color:"#27ae60", background:"#e8f5e9", padding:"3px 10px", borderRadius:20},}, "\u2705 \u53c2\u52a0 " + joined.length + "\u540d")
-                  , React.createElement('span', { style: {fontSize:11, fontWeight:700, color:"#c0392b", background:"#fdecea", padding:"3px 10px", borderRadius:20},}, "\u274c \u4e0d\u53c2\u52a0 " + absent + "\u540d")
-                  , React.createElement('span', { style: {fontSize:11, fontWeight:700, color:"#888", background:"#f5f5f5", padding:"3px 10px", borderRadius:20},}, "\u2753 \u672a\u56de\u7b54 " + pending + "\u540d")
-                )
-                , joined.length > 0 && React.createElement('div', { style: {marginTop:6, display:"flex", gap:4, flexWrap:"wrap"},}
-                  , joined.map(n => React.createElement('span', { key: n, style: {fontSize:11, background:"var(--forest)", color:"white", padding:"2px 8px", borderRadius:12, fontWeight:600},}, "\ud83d\udc64 " + n))
-                )
-                , React.createElement('div', { style: {display:"flex", gap:8, marginTop:10},}
-                  , React.createElement('button', { onClick: ()=>{ setCalDay(null); setAttendanceModal(sc); },
-                    style: {flex:1, background:"var(--forest)", color:"white", border:"none", borderRadius:8, padding:"8px", cursor:"pointer", fontSize:12, fontWeight:600},}, "\u270f\ufe0f \u51fa\u6b20\u3092\u7ba1\u7406")
-                  , React.createElement('button', { onClick: ()=>{ if (window.confirm("\u3053\u306e\u5de1\u56de\u4e88\u5b9a\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f")) deleteSchedule(sc.id); },
-                    style: {background:"#fee", border:"none", borderRadius:8, padding:"8px 12px", cursor:"pointer", color:"#c0392b", fontSize:12},}, "\u524a\u9664")
-                )
-              );
-            })
-            , React.createElement('div', { className: "form-actions",}
-              , React.createElement('button', { className: "btn-cancel", onClick: ()=>{ setSchForm({ ...emptySchedule, date: calDay }); setCalDay(null); setShowScheduleForm(true); },}, "\uff0b \u3053\u306e\u65e5\u306b\u8ffd\u52a0")
-              , React.createElement('button', { className: "btn-submit", onClick: ()=>setCalDay(null),}, "\u9589\u3058\u308b")
-            )
-          )
-        );
-      })()
 
       /* ===== \u51fa\u6b20\u7ba1\u7406\u30e2\u30fc\u30c0\u30eb ===== */
       , attendanceModal && (
@@ -6449,99 +6009,29 @@ function DangerPlantsView() {
   );
 }
 
-// ===== 山菜図鑑用：写真ブロック・情報ブロック =====
-function sansaiSec(title, text, tone) {
-  if (!text) return null;
-  const warn = tone === "warn";
-  return React.createElement("div", { style: { padding: "10px 12px", borderRadius: 10,
-      background: warn ? "#fdecea" : "var(--soil)", border: warn ? "1px solid #f3b7b0" : "1px solid var(--mist)" } },
-    React.createElement("div", { style: { fontSize: 12, fontWeight: 700, marginBottom: 4, color: warn ? "#a3281c" : "var(--forest)" } }, title),
-    React.createElement("div", { style: { fontSize: 13, lineHeight: 1.75, color: warn ? "#7a1f16" : "var(--ink)" } }, text));
-}
-
-function SansaiInfoBlock({ s }) {
-  const key = sansaiKey(s.name);
-  const info = key ? SANSAI_INFO[key] : null;
-  if (!info) return null;
-  return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
-    sansaiSec("別名", info.alias),
-    sansaiSec("見分け方", info.look),
-    sansaiSec("下処理・食べ方", info.prep),
-    sansaiSec("注意", info.caution, "warn"),
-    sansaiSec("採取のコツ", info.tip));
-}
-
-function SansaiPhotoBlock({ s, onChanged }) {
-  const { photos: store, savePhoto, removePhoto } = usePhotos();
-  const [, bump] = useState(0);
-  const [cur, setCur] = useState(0);
-  const [viewer, setViewer] = useState(null);
-  const key = sansaiKey(s.name);
-  const ids = (sansaiPhotoIds()[s.name] || []).filter(id => store[id]);
-  const idx = Math.min(cur, Math.max(ids.length - 1, 0));
-  const shownId = ids[idx];
-  const changed = () => { bump(x => x + 1); if (onChanged) onChanged(); };
-
-  const addFile = (file) => {
-    if (!file || !file.type.startsWith("image/")) return;
-    compressImageFile(file, 1200, 0.8, async (dataUrl) => {
-      const id = await savePhoto(dataUrl);
-      const all = { ...sansaiPhotoIds() };
-      all[s.name] = [...(all[s.name] || []), id];
-      saveSansaiPhotoIds(all);
-      setCur(all[s.name].length - 1);
-      changed();
-    });
-  };
-  const removeCur = () => {
-    if (!shownId || !window.confirm("この写真を削除しますか？")) return;
-    const all = { ...sansaiPhotoIds() };
-    all[s.name] = (all[s.name] || []).filter(id => id !== shownId);
-    saveSansaiPhotoIds(all);
-    removePhoto(shownId);
-    setCur(0);
-    changed();
-  };
-  const fileBtn = (label, camera, bg, bd, fg) => React.createElement("label", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-      padding: "9px 6px", borderRadius: 10, cursor: "pointer", background: bg, border: "2px dashed " + bd, color: fg, fontSize: 12, fontWeight: 700 } },
-    React.createElement("input", Object.assign({ type: "file", accept: "image/*", style: { display: "none" },
-      onChange: e => { Array.from(e.target.files || []).forEach(addFile); e.target.value = ""; } }, camera ? { capture: "environment" } : { multiple: true })),
-    label);
-
-  return React.createElement("div", { style: { marginBottom: 14 } },
-    React.createElement("div", { style: { background: "linear-gradient(180deg,#eef5e6,#dfeacf)", borderRadius: 14, padding: 10 } },
-      shownId
-        ? React.createElement("img", { src: store[shownId], alt: s.name, onClick: () => setViewer(store[shownId]), style: { width: "100%", height: "auto", maxHeight: "65vh", objectFit: "contain", borderRadius: 10, display: "block", cursor: "zoom-in" } })
-        : React.createElement("div", { style: { height: 200, display: "flex", alignItems: "center", justifyContent: "center" } },
-            key ? React.createElement("div", { style: { width: 190, height: 190 }, dangerouslySetInnerHTML: { __html: SANSAI_ART[key] } })
-                : React.createElement("div", { style: { fontSize: 100 } }, s.emoji || "\ud83c\udf3f")),
-      ids.length > 1 && React.createElement("div", { style: { display: "flex", gap: 6, marginTop: 8, overflowX: "auto" } },
-        ids.map((id, i) => React.createElement("img", { key: id, src: store[id], onClick: () => setCur(i),
-          style: { width: 50, height: 50, objectFit: "cover", borderRadius: 8, flexShrink: 0, cursor: "pointer", border: i === idx ? "3px solid var(--forest)" : "3px solid transparent" } }))),
-      !shownId && React.createElement("div", { style: { textAlign: "center", fontSize: 11, color: "#5a6e4a", marginTop: 4 } }, "実物の写真は未登録です。下のボタンで追加できます")
-    ),
-    React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 8 } },
-      fileBtn("\ud83d\uddbc 写真を追加", false, "var(--soil)", "var(--fern)", "var(--moss)"),
-      fileBtn("\ud83d\udcf8 撮影", true, "#e8f5e9", "#43a047", "#2e7d32")),
-    shownId && React.createElement("button", { onClick: removeCur, style: { marginTop: 6, width: "100%", padding: "7px", borderRadius: 10, border: "1px solid #f3b7b0", background: "#fff", color: "#c0392b", fontSize: 12, cursor: "pointer", fontFamily: "inherit" } }, "表示中の写真を削除"),
-    viewer && React.createElement("div", { onClick: e => { e.stopPropagation(); setViewer(null); },
-      style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: 8 } },
-      React.createElement("img", { src: viewer, style: { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" } }))
-  );
-}
-
 function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
-  const [, bumpIcons] = useState(0);
   const [entries, setEntries] = useState((sansaiList||(sansaiList||(sansaiList||SANSAI_DATA))).map(s => ({
     ...s,
     customSpots: s.customSpots || [], // \u304a\u3059\u3059\u3081\u30b9\u30dd\u30c3\u30c8\uff08\u8ffd\u52a0\u53ef\u80fd\uff09
     notes: s.notes || "",       // \u8ffd\u52a0\u30e1\u30e2
-    isCustom: s.isCustom || false, // \u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0\u304b\u3069\u3046\u304b
+    // \u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0\u304b\u3069\u3046\u304b\u3002\u65e7\u30c7\u30fc\u30bf\u3067isCustom\u304c\u4fdd\u5b58\u3055\u308c\u3066\u3044\u306a\u304b\u3063\u305f\u5834\u5408\u306b\u5099\u3048\u3001\u521d\u671f\u30c7\u30fc\u30bf(SANSAI_DATA)\u306bid\u304c\u5b58\u5728\u3057\u306a\u3051\u308c\u3070\u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0\u3068\u307f\u306a\u3059
+    isCustom: s.isCustom === true ? true : !SANSAI_DATA.some(d => d.id === s.id),
   })));
   const [selected, setSelected] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+  // \u65e7\u30c7\u30fc\u30bf\u79fb\u884c\uff1aisCustom\u304c\u672a\u4fdd\u5b58\u306e\u307e\u307e\u4fdd\u5b58\u3055\u308c\u3066\u3044\u305f\u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0\u5c71\u83dc\u3092\u3001sansaiList\u5074\u306b\u3082\u6b63\u3057\u304f\u66f8\u304d\u623b\u3059\uff08\u521d\u56de\u306e\u307f\uff09
+  useEffect(() => {
+    if (!sansaiList) return;
+    const needsFix = sansaiList.some(s => s.isCustom !== true && !SANSAI_DATA.some(d => d.id === s.id));
+    if (needsFix) {
+      setSansaiList(prev => prev.map(s => (
+        s.isCustom !== true && !SANSAI_DATA.some(d => d.id === s.id) ? { ...s, isCustom: true } : s
+      )));
+    }
+  }, []);
 
   const emptyForm = { name:"", emoji:"\ud83c\udf3f", months:[], region:"", color:"#6aab5e", desc:"", customSpots:[], notes:"" };
   const [form, setForm] = useState(emptyForm);
@@ -6570,11 +6060,6 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
   };
 
   const handleEdit = () => {
-    const _old = entries.find(e => e.id === form.id);
-    if (_old && _old.name !== form.name) {
-      const _ids = { ...sansaiPhotoIds() };
-      if (_ids[_old.name]) { _ids[form.name] = [...(_ids[form.name] || []), ..._ids[_old.name]]; delete _ids[_old.name]; saveSansaiPhotoIds(_ids); }
-    }
     setEntries(prev => prev.map(e => e.id === form.id ? { ...e, ...form } : e));
     setSansaiList(prev => prev.map(e => e.id === form.id ? { ...e, ...form } : e));
     // \u8a73\u7d30\u8868\u793a\u4e2d\u3060\u3063\u305f\u3089\u66f4\u65b0
@@ -6756,19 +6241,13 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
         , entries.map(s => (
           React.createElement('div', { key: s.id, className: "sansai-card", style: {borderTopColor: s.color, position:"relative"}, onClick: ()=>{ setSelected(s); setDetailSpotInput(""); },}
             , s.isCustom && React.createElement('div', { style: {position:"absolute", top:8, right:8, background:"var(--fern)", color:"white", fontSize:9, padding:"2px 6px", borderRadius:8, fontWeight:700},}, "\u8ffd\u52a0")
-            , React.createElement('div', { className: "sansai-emoji", style: {display:"flex", justifyContent:"center"},}, React.createElement(SansaiIcon, { s: s, size: 76 }))
-            , React.createElement('div', { className: "sansai-name", style: {textAlign:"center"},}, s.name)
+            , React.createElement('div', { className: "sansai-emoji",}, s.emoji)
+            , React.createElement('div', { className: "sansai-name",}, s.name)
             , React.createElement('div', { className: "sansai-months",}, "\ud83d\uddd3 " , s.months.map(m=>MONTHS[m-1]).join("\u30fb"))
             , React.createElement('div', { className: "sansai-region",}, "\ud83d\udccd " , s.region)
             , React.createElement('div', { className: "sansai-desc",}, s.desc)
             , _optionalChain([s, 'access', _98 => _98.customSpots, 'optionalAccess', _99 => _99.length]) > 0 && (
               React.createElement('div', { style: {marginTop:8, fontSize:11, color:"var(--moss)", fontWeight:600},}, "\ud83d\udccd \u30b9\u30dd\u30c3\u30c8 "  , s.customSpots.length, "\u4ef6")
-            )
-            , React.createElement('div', { style: {display:"flex", gap:6, marginTop:10},}
-              , React.createElement('button', { onClick: e=>{ e.stopPropagation(); openEdit(s); },
-                style: {flex:1, padding:"7px 4px", background:"var(--mist)", border:"none", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600, color:"var(--forest)", fontFamily:"inherit"},}, "\u270f\ufe0f \u7de8\u96c6")
-              , React.createElement('button', { onClick: e=>{ e.stopPropagation(); setDeleteConfirm(s); },
-                style: {flex:1, padding:"7px 4px", background:"#fee", border:"none", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600, color:"#c0392b", fontFamily:"inherit"},}, "\ud83d\uddd1\ufe0f \u524a\u9664")
             )
           )
         ))
@@ -6782,8 +6261,8 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
       , selected && (
         React.createElement('div', { className: "form-overlay", onClick: ()=>setSelected(null),}
           , React.createElement('div', { className: "form-box", onClick: e=>e.stopPropagation(), style: {maxHeight:"88vh", overflowY:"auto"},}
-            , React.createElement(SansaiPhotoBlock, { s: selected, onChanged: ()=>bumpIcons(x=>x+1),} )
             , React.createElement('div', { style: {textAlign:"center", marginBottom:16},}
+              , React.createElement('div', { style: {fontSize:56},}, selected.emoji)
               , React.createElement('div', { style: {fontSize:24, fontWeight:700, color:"var(--forest)", fontFamily:"'Shippori Mincho',serif"},}, selected.name)
               , selected.isCustom && React.createElement('div', { style: {fontSize:11, color:"var(--moss)", marginTop:4},}, "\u270f\ufe0f \u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0" )
             )
@@ -6812,9 +6291,6 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
                   , React.createElement('div', { style: {lineHeight:1.8, color:"#444"},}, selected.desc)
                 )
               )
-
-              /* \u898b\u5206\u3051\u65b9\u30fb\u4e0b\u51e6\u7406\u30fb\u6ce8\u610f */
-              , React.createElement(SansaiInfoBlock, { s: selected,} )
 
               /* \u304a\u3059\u3059\u3081\u30b9\u30dd\u30c3\u30c8 */
               , React.createElement('div', null
@@ -8619,480 +8095,9 @@ function PhotoProvider({ children }) {
   return React.createElement(PhotoContext.Provider, { value: { photos, ready, savePhoto, removePhoto } }, children);
 }
 
-// ===== BACKUP (バックアップ・復元) =====
-const BACKUP_PREFIX = "sansai_";
-const BACKUP_APP_ID = "sansai-techo";
-function _lsKeys() {
-  const ks = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k && k.indexOf(BACKUP_PREFIX) === 0) ks.push(k);
-  }
-  return ks;
-}
-async function buildBackup() {
-  const ls = {};
-  _lsKeys().forEach(k => { ls[k] = localStorage.getItem(k); });
-  const photos = await idbGetAll();
-  return { app: BACKUP_APP_ID, version: 1, createdAt: new Date().toISOString(), localStorage: ls, photos: photos };
-}
-function downloadText(filename, text) {
-  const blob = new Blob([text], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
-}
-function isValidBackup(obj) {
-  return !!obj && obj.app === BACKUP_APP_ID && !!obj.localStorage && typeof obj.localStorage === "object";
-}
-async function restoreBackup(obj) {
-  if (!isValidBackup(obj)) throw new Error("invalid backup");
-  const prev = {};
-  _lsKeys().forEach(k => { prev[k] = localStorage.getItem(k); });
-  try {
-    Object.keys(prev).forEach(k => localStorage.removeItem(k));
-    Object.keys(obj.localStorage).forEach(k => {
-      if (k.indexOf(BACKUP_PREFIX) === 0 && typeof obj.localStorage[k] === "string") localStorage.setItem(k, obj.localStorage[k]);
-    });
-  } catch (e) {
-    // 失敗したら元のデータに戻す
-    try {
-      _lsKeys().forEach(k => localStorage.removeItem(k));
-      Object.keys(prev).forEach(k => localStorage.setItem(k, prev[k]));
-    } catch (e2) {}
-    throw e;
-  }
-  const photos = obj.photos || {};
-  let failed = 0;
-  for (const id of Object.keys(photos)) {
-    const ok = await idbSet(id, photos[id]);
-    if (!ok) failed++;
-  }
-  return { photoCount: Object.keys(photos).length, photoFailed: failed };
-}
-function fmtBackupDate(iso) {
-  if (!iso) return "";
-  try { return new Date(iso).toLocaleString("ja-JP", { year:"numeric", month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit" }); } catch (e) { return ""; }
-}
-
-function BackupView() {
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState(null);
-  const [last, setLast] = useState(() => { try { return localStorage.getItem("sansai_last_backup") || ""; } catch (e) { return ""; } });
-
-  const doExport = async () => {
-    setBusy(true); setMsg(null);
-    try {
-      const data = await buildBackup();
-      const d = new Date();
-      const p = (n) => String(n).padStart(2, "0");
-      const name = "sansai-backup-" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + ".json";
-      downloadText(name, JSON.stringify(data));
-      const stamp = d.toISOString();
-      try { localStorage.setItem("sansai_last_backup", stamp); } catch (e) {}
-      setLast(stamp);
-      setMsg({ ok: true, text: "✅ バックアップファイルを保存しました（" + name + "）。端末の「ダウンロード」フォルダを確認してください。写真 " + Object.keys(data.photos || {}).length + " 枚を含みます。" });
-    } catch (e) {
-      setMsg({ ok: false, text: "バックアップに失敗しました：" + (e && e.message ? e.message : e) });
-    }
-    setBusy(false);
-  };
-
-  const onPick = (e) => {
-    const f = e.target.files && e.target.files[0];
-    e.target.value = "";
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onerror = () => setMsg({ ok: false, text: "ファイルを読み込めませんでした。" });
-    reader.onload = async () => {
-      let obj = null;
-      try { obj = JSON.parse(reader.result); } catch (err) {}
-      if (!isValidBackup(obj)) {
-        setMsg({ ok: false, text: "このファイルは山菜採り手帳のバックアップではないようです。" });
-        return;
-      }
-      const pc = Object.keys(obj.photos || {}).length;
-      const when = fmtBackupDate(obj.createdAt);
-      if (!window.confirm("バックアップ" + (when ? "（" + when + "）" : "") + "の内容（写真 " + pc + " 枚）で、いまのデータをすべて置き換えます。よろしいですか？")) return;
-      setBusy(true); setMsg(null);
-      try {
-        const r = await restoreBackup(obj);
-        alert("復元しました。アプリを再読み込みします。" + (r.photoFailed ? "\n（写真 " + r.photoFailed + " 枚は復元できませんでした）" : ""));
-        window.location.reload();
-      } catch (err) {
-        setBusy(false);
-        setMsg({ ok: false, text: "復元に失敗しました。元のデータはそのまま残しています。（" + (err && err.message ? err.message : err) + "）" });
-      }
-    };
-    reader.readAsText(f);
-  };
-
-  const card = { background: "white", borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: "0 2px 10px rgba(0,0,0,0.08)" };
-  const btnBase = { display: "block", width: "100%", textAlign: "center", padding: "16px 12px", borderRadius: 12, border: "none", fontSize: 16, fontWeight: 700, fontFamily: "'Noto Serif JP',serif", cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1, boxSizing: "border-box" };
-
-  return (
-    React.createElement("div", { style: { padding: 16, maxWidth: 640, margin: "0 auto" } },
-      React.createElement("div", { style: { fontSize: 20, fontWeight: 700, color: "var(--forest)", margin: "8px 0 16px" } }, "💾 バックアップ・復元"),
-
-      React.createElement("div", { style: card },
-        React.createElement("div", { style: { fontWeight: 700, marginBottom: 6 } }, "データを保存する"),
-        React.createElement("div", { style: { fontSize: 13, color: "#555", lineHeight: 1.7, marginBottom: 12 } },
-          "スポット・ブログ・メンバー・収穫記録・メモ・写真など、このアプリのデータをすべて1つのファイルに保存します。アプリを削除したりブラウザのデータを消すと、端末内のデータは消えてしまうので、定期的に保存しておくと安心です。"),
-        React.createElement("div", { style: { fontSize: 13, color: last ? "var(--moss)" : "#c0392b", marginBottom: 12, fontWeight: 600 } },
-          last ? "最終バックアップ：" + fmtBackupDate(last) : "まだバックアップしていません"),
-        React.createElement("button", { onClick: doExport, disabled: busy, style: Object.assign({}, btnBase, { background: "var(--forest)", color: "white" }) },
-          busy ? "処理中…" : "📥 バックアップファイルを保存")
-      ),
-
-      React.createElement("div", { style: card },
-        React.createElement("div", { style: { fontWeight: 700, marginBottom: 6 } }, "データを復元する"),
-        React.createElement("div", { style: { fontSize: 13, color: "#555", lineHeight: 1.7, marginBottom: 12 } },
-          "保存したバックアップファイルを選ぶと、いまのデータをその内容で置き換えます。復元前に、念のためいまのデータもバックアップしておくのがおすすめです。"),
-        React.createElement("label", { style: Object.assign({}, btnBase, { background: "var(--earth)", color: "white" }) },
-          "📤 バックアップファイルから復元",
-          React.createElement("input", { type: "file", accept: ".json,application/json,text/plain", onChange: onPick, disabled: busy, style: { display: "none" } })
-        )
-      ),
-
-      msg && React.createElement("div", { style: { padding: "12px 14px", borderRadius: 12, fontSize: 13, lineHeight: 1.7, marginBottom: 16,
-        background: msg.ok ? "#e8f5e9" : "#fdecea", color: msg.ok ? "#1b5e20" : "#c0392b" } }, msg.text),
-
-      React.createElement("div", { style: { fontSize: 12, color: "#888", lineHeight: 1.8 } },
-        "・保存したファイルは、Googleドライブに入れたりLINEで自分に送っておくと、スマホを替えたときも安心です。",
-        React.createElement("br"),
-        "・ファイルには作成者専用の非公開メモも含まれます。他の人に渡さないようご注意ください。",
-        React.createElement("br"),
-        "・データは端末ごとに保存されています。友だちのスマホのデータは、それぞれの端末でバックアップしてください。")
-    )
-  );
-}
-
-// ===== LINKS (SNS / WEB) =====
-const LINK_CATS = ["YouTube", "Threads", "X", "Instagram", "Web"];
-const LINK_ICONS = { YouTube:"\u25b6\ufe0f", Threads:"\ud83e\uddf5", X:"\u2716\ufe0f", Instagram:"\ud83d\udcf7", Web:"\ud83c\udf10" };
-const _lq = (s) => encodeURIComponent(s);
-const DEFAULT_LINKS = [
-  { id:"d1", cat:"YouTube",   name:"YouTube\uff1a\u5c71\u83dc\u63a1\u308a",       url:"https://www.youtube.com/results?search_query="+_lq("\u5c71\u83dc\u63a1\u308a") },
-  { id:"d2", cat:"YouTube",   name:"YouTube\uff1a\u304d\u306e\u3053\u63a1\u308a", url:"https://www.youtube.com/results?search_query="+_lq("\u304d\u306e\u3053\u63a1\u308a") },
-  { id:"d3", cat:"YouTube",   name:"YouTube\uff1a\u5c71\u83dc \u898b\u5206\u3051\u65b9", url:"https://www.youtube.com/results?search_query="+_lq("\u5c71\u83dc \u898b\u5206\u3051\u65b9") },
-  { id:"d4", cat:"Threads",   name:"Threads\uff1a\u5c71\u83dc\u63a1\u308a",       url:"https://www.threads.com/search?q="+_lq("\u5c71\u83dc\u63a1\u308a") },
-  { id:"d5", cat:"Threads",   name:"Threads\uff1a\u304d\u306e\u3053\u72e9\u308a", url:"https://www.threads.com/search?q="+_lq("\u304d\u306e\u3053\u72e9\u308a") },
-  { id:"d6", cat:"X",         name:"X\uff1a\u5c71\u83dc\u63a1\u308a",             url:"https://x.com/search?q="+_lq("\u5c71\u83dc\u63a1\u308a") },
-  { id:"d7", cat:"Instagram", name:"Instagram\uff1a#\u5c71\u83dc\u63a1\u308a",     url:"https://www.instagram.com/explore/tags/"+_lq("\u5c71\u83dc\u63a1\u308a")+"/" },
-  { id:"d8", cat:"Web",       name:"\u6d88\u8cbb\u8005\u5e81\uff1a\u81ea\u7136\u6bd2\uff08\u6bd2\u8349\u30fb\u6bd2\u304d\u306e\u3053\uff09", url:"https://www.caa.go.jp/policies/policy/consumer_safety/food_safety/food_safety_portal/natural_poison/" },
-];
-
-function LinkView() {
-  const [links, setLinks] = useState(() => {
-    try { const s = localStorage.getItem("sansai_links_v1"); if (s) return JSON.parse(s); } catch(e) {}
-    return DEFAULT_LINKS;
-  });
-  useEffect(() => {
-    try { localStorage.setItem("sansai_links_v1", JSON.stringify(links)); } catch(e) {}
-  }, [links]);
-
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ cat:"YouTube", name:"", url:"" });
-  const [err, setErr] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState(null);
-
-  const openForm = () => { setForm({ cat:"YouTube", name:"", url:"" }); setErr(""); setShowForm(true); };
-  const save = () => {
-    const u = form.url.trim();
-    if (!form.name.trim()) { setErr("\u540d\u524d\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044"); return; }
-    if (!/^https?:\/\//i.test(u)) { setErr("URL\u306f https:// \u304b\u3089\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044"); return; }
-    setLinks(prev => [...prev, { id:"u"+Date.now(), cat:form.cat, name:form.name.trim(), url:u }]);
-    setShowForm(false);
-  };
-  const doDelete = () => {
-    setLinks(prev => prev.filter(l => l.id !== deleteTarget.id));
-    setDeleteTarget(null);
-  };
-  const resetAll = () => {
-    if (window.confirm("\u30ea\u30f3\u30af\u3092\u521d\u671f\u72b6\u614b\u306b\u623b\u3057\u307e\u3059\u304b\uff1f\uff08\u8ffd\u52a0\u3057\u305f\u3082\u306e\u306f\u6d88\u3048\u307e\u3059\uff09")) setLinks(DEFAULT_LINKS);
-  };
-
-  return (
-    React.createElement('div', null
-      , React.createElement('div', { style:{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, flexWrap:"wrap", marginBottom:16},}
-        , React.createElement('div', null
-          , React.createElement('div', { className:"section-title", style:{marginBottom:6},}, "\ud83d\udd17 \u30ea\u30f3\u30af\u96c6")
-          , React.createElement('div', { className:"section-desc", style:{marginBottom:0},}, "SNS\u30fb\u5c71\u83dc\u63a1\u308a\u3084\u304d\u306e\u3053\u72e9\u308a\u306e\u304a\u3059\u3059\u3081Web\uff08\u30bf\u30c3\u30d7\u3067\u958b\u304d\u307e\u3059\uff09")
-        )
-        , React.createElement('button', { className:"add-btn", onClick:openForm,}, "\uff0b \u65b0\u898f\u767b\u9332")
-      )
-
-      , LINK_CATS.map(c => {
-        const items = links.filter(l => l.cat === c);
-        if (!items.length) return null;
-        return (
-          React.createElement('div', { key:c, style:{background:"var(--paper)", border:"1px solid var(--mist)", borderRadius:12, padding:"12px 14px", marginBottom:14},}
-            , React.createElement('div', { style:{fontWeight:700, color:"var(--forest)", marginBottom:6},}, LINK_ICONS[c], " ", c)
-            , items.map(l => (
-              React.createElement('div', { key:l.id, style:{display:"flex", alignItems:"center", gap:10, padding:"10px 0", borderTop:"1px solid var(--mist)"},}
-                , React.createElement('a', { href:l.url, target:"_blank", rel:"noopener noreferrer", style:{flex:1, color:"var(--moss)", fontSize:14, wordBreak:"break-all", textDecoration:"none"},}, l.name, " \u2197")
-                , React.createElement('button', { className:"delete-btn", onClick:()=>setDeleteTarget(l),}, "\u524a\u9664")
-              )
-            ))
-          )
-        );
-      })
-
-      , links.length === 0 && React.createElement('div', { style:{color:"#888", fontSize:13, padding:"20px 0"},}, "\u30ea\u30f3\u30af\u304c\u3042\u308a\u307e\u305b\u3093\u3002\u300c\uff0b \u65b0\u898f\u767b\u9332\u300d\u304b\u3089\u8ffd\u52a0\u3057\u3066\u304f\u3060\u3055\u3044\u3002")
-
-      , React.createElement('button', { className:"btn-cancel", onClick:resetAll, style:{marginTop:6},}, "\u521d\u671f\u72b6\u614b\u306b\u623b\u3059")
-
-      , showForm && (
-        React.createElement('div', { className:"form-overlay", onClick: e=>e.target===e.currentTarget && setShowForm(false),}
-          , React.createElement('div', { className:"form-box",}
-            , React.createElement('div', { className:"form-title",}, "\ud83d\udd17 \u30ea\u30f3\u30af\u3092\u767b\u9332")
-            , React.createElement('div', { className:"form-group",}
-              , React.createElement('label', { className:"form-label",}, "\u7a2e\u985e")
-              , React.createElement('select', { className:"form-select", value:form.cat, onChange:e=>setForm(f=>({...f,cat:e.target.value})),}
-                , LINK_CATS.map(c => React.createElement('option', { key:c, value:c,}, c))
-              )
-            )
-            , React.createElement('div', { className:"form-group",}
-              , React.createElement('label', { className:"form-label",}, "\u540d\u524d")
-              , React.createElement('input', { className:"form-input", value:form.name, placeholder:"\u4f8b\uff1a\u25cb\u25cb\u3055\u3093\u306e\u5c71\u83dc\u30c1\u30e3\u30f3\u30cd\u30eb", onChange:e=>setForm(f=>({...f,name:e.target.value})),})
-            )
-            , React.createElement('div', { className:"form-group",}
-              , React.createElement('label', { className:"form-label",}, "URL")
-              , React.createElement('input', { className:"form-input", value:form.url, placeholder:"https://...", inputMode:"url", onChange:e=>setForm(f=>({...f,url:e.target.value})),})
-            )
-            , err && React.createElement('div', { style:{color:"#c0392b", fontSize:13, marginTop:8},}, err)
-            , React.createElement('div', { className:"form-actions",}
-              , React.createElement('button', { className:"btn-cancel", onClick:()=>setShowForm(false),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
-              , React.createElement('button', { className:"btn-submit", onClick:save,}, "\u767b\u9332")
-            )
-          )
-        )
-      )
-
-      , deleteTarget && (
-        React.createElement('div', { className:"form-overlay", onClick: e=>e.target===e.currentTarget && setDeleteTarget(null),}
-          , React.createElement('div', { className:"form-box",}
-            , React.createElement('div', { className:"form-title",}, "\ud83d\uddd1 \u524a\u9664\u306e\u78ba\u8a8d")
-            , React.createElement('div', { style:{fontSize:14, lineHeight:1.8},}, "\u300c", deleteTarget.name, "\u300d\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f")
-            , React.createElement('div', { className:"form-actions",}
-              , React.createElement('button', { className:"btn-cancel", onClick:()=>setDeleteTarget(null),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
-              , React.createElement('button', { className:"btn-submit", style:{background:"#c0392b"}, onClick:doDelete,}, "\u524a\u9664\u3059\u308b")
-            )
-          )
-        )
-      )
-    )
-  );
-}
-
-// ===== MANUAL / QA =====
-const MANUAL_ITEMS = [
-  { t:"\u306f\u3058\u3081\u306b", i:"\ud83c\udf3f", b:["\u5c71\u83dc\u63a1\u308a\u624b\u5e33\u306f\u3001\u5c71\u83dc\u30fb\u304d\u306e\u3053\u63a1\u308a\u306e\u4ef2\u9593\u3068\u3001\u63a1\u53d6\u306e\u4e88\u5b9a\u30fb\u5834\u6240\u30fb\u8a18\u9332\u3092\u7ba1\u7406\u3059\u308b\u30a2\u30d7\u30ea\u3067\u3059\u3002","\u753b\u9762\u4e0a\u90e8\u306e\u30bf\u30d6\uff08\u6a2a\u306b\u30b9\u30af\u30ed\u30fc\u30eb\u3067\u304d\u307e\u3059\uff09\u3092\u5207\u308a\u66ff\u3048\u3066\u4f7f\u3044\u307e\u3059\u3002","\u5165\u529b\u3057\u305f\u5185\u5bb9\u306f\u304a\u4f7f\u3044\u306e\u30b9\u30de\u30db\u672c\u4f53\u306b\u81ea\u52d5\u4fdd\u5b58\u3055\u308c\u307e\u3059\u3002"] },
-  { t:"\u30ab\u30ec\u30f3\u30c0\u30fc", i:"\ud83c\udf43", b:["\u4e2d\u90e8\u30fb\u5317\u9678\u30a8\u30ea\u30a2\u306e\u5c71\u83dc\u3054\u3068\u306e\u63a1\u53d6\u9069\u671f\u3092\u4e00\u89a7\u3067\u78ba\u8a8d\u3067\u304d\u307e\u3059\u3002","\u5c71\u83dc\u306e\u8ffd\u52a0\u30fb\u524a\u9664\u3082\u3067\u304d\u307e\u3059\u3002\u8ffd\u52a0\u3057\u305f\u5c71\u83dc\u306f\u4ed6\u306e\u30bf\u30d6\u306b\u3082\u53cd\u6620\u3055\u308c\u307e\u3059\u3002"] },
-  { t:"\u63a1\u53d6\u30d7\u30e9\u30f3", i:"\ud83d\udcc5", b:["\u6708\u3092\u9078\u3076\u3068\u3001\u305d\u306e\u6708\u306b\u63a1\u308c\u308b\u5c71\u83dc\u304c\u8868\u793a\u3055\u308c\u307e\u3059\u3002","\u63a1\u53d6\u4e88\u5b9a\u3092\u5165\u529b\u3059\u308b\u3068\u3001Google\u30ab\u30ec\u30f3\u30c0\u30fc\u306e\u767b\u9332\u753b\u9762\u304c\u958b\u304d\u307e\u3059\u3002\u5185\u5bb9\u3092\u78ba\u8a8d\u3057\u3066\u4fdd\u5b58\u3057\u3066\u304f\u3060\u3055\u3044\u3002"] },
-  { t:"\u30b9\u30dd\u30c3\u30c8", i:"\ud83d\udccd", b:["\u3088\u304f\u884c\u304f\u63a1\u53d6\u30dd\u30a4\u30f3\u30c8\u3092\u767b\u9332\u30fb\u7ba1\u7406\u3057\u307e\u3059\u3002","\u63a1\u308c\u308b\u5c71\u83dc\u306e\u7a2e\u985e\u3084\u899a\u3048\u66f8\u304d\u3082\u6b8b\u305b\u307e\u3059\u3002"] },
-  { t:"\u30d6\u30ed\u30b0", i:"\ud83d\udcdd", b:["\u63a1\u53d6\u306e\u8a18\u9332\u3092\u6295\u7a3f\u3057\u3066\u3001\u4ef2\u9593\u3068\u30b7\u30a7\u30a2\u3059\u308b\u305f\u3081\u306e\u5834\u6240\u3067\u3059\u3002","\u5199\u771f\u3092\u4ed8\u3051\u3066\u6295\u7a3f\u3067\u304d\u307e\u3059\u3002\u5199\u771f\u3092\u30bf\u30c3\u30d7\u3059\u308b\u3068\u62e1\u5927\u8868\u793a\u3055\u308c\u307e\u3059\u3002"] },
-  { t:"\u5c71\u83dc\u56f3\u9451", i:"\ud83c\udf3f", b:["\u63a1\u308c\u308b\u5c71\u83dc\u306e\u60c5\u5831\u3068\u3001\u9593\u9055\u3048\u3084\u3059\u3044\u5371\u967a\u306a\u690d\u7269\u3092\u78ba\u8a8d\u3067\u304d\u307e\u3059\u3002","\u63a1\u53d6\u524d\u306b\u5fc5\u305a\u898b\u5206\u3051\u3092\u78ba\u8a8d\u3057\u307e\u3057\u3087\u3046\u3002\u5c11\u3057\u3067\u3082\u8ff7\u3063\u305f\u3089\u63a1\u3089\u306a\u3044\u3067\u304f\u3060\u3055\u3044\u3002"] },
-  { t:"\u30e1\u30f3\u30d0\u30fc", i:"\ud83d\udc65", b:["\u4ef2\u9593\u306e\u8ffd\u52a0\u30fb\u7de8\u96c6\u30fb\u524a\u9664\u304c\u3067\u304d\u307e\u3059\u3002","\u5909\u66f4\u306f\u4ed6\u306e\u30bf\u30d6\uff08\u30d1\u30c8\u30ed\u30fc\u30eb\u30fb\u53ce\u7a6b\u8a18\u9332\u306a\u3069\uff09\u306b\u3082\u53cd\u6620\u3055\u308c\u307e\u3059\u3002"] },
-  { t:"\u30d1\u30c8\u30ed\u30fc\u30eb", i:"\ud83d\udd0d", b:["\u30b9\u30dd\u30c3\u30c8\u306e\u5de1\u56de\u8a18\u9332\u3001\u5c71\u83dc\u306e\u751f\u80b2\u72b6\u6cc1\u3001\u30b9\u30b1\u30b8\u30e5\u30fc\u30eb\u3092\u7ba1\u7406\u3057\u307e\u3059\u3002","\u4f4d\u7f6e\u60c5\u5831\uff08GPS\uff09\u3092\u8a18\u9332\u3057\u3066\u3001\u5834\u6240\u3092\u5730\u56f3\u3067\u958b\u304f\u3053\u3068\u3082\u3067\u304d\u307e\u3059\u3002"] },
-  { t:"\u53ce\u7a6b\u8a18\u9332", i:"\ud83e\uddfa", b:["\u63a1\u308c\u305f\u5c71\u83dc\u306e\u7a2e\u985e\u30fb\u91cf\u30fb\u53c2\u52a0\u30e1\u30f3\u30d0\u30fc\u3092\u8a18\u9332\u3057\u307e\u3059\u3002","\u8a18\u9332\u304c\u8caf\u307e\u308b\u3068\u53ce\u7a6b\u306e\u7d71\u8a08\u3092\u898b\u308b\u3053\u3068\u304c\u3067\u304d\u307e\u3059\u3002"] },
-  { t:"\u5fd8\u5099\u9332", i:"\ud83d\udcd2", b:["\u63a1\u53d6\u5834\u6240\u306e\u9053\u9806\u30fb\u99d0\u8eca\u5834\u30fb\u76ee\u5370\u30fb\u6ce8\u610f\u4e8b\u9805\u306a\u3069\u3092\u8a73\u3057\u304f\u30e1\u30e2\u3057\u307e\u3059\u3002","\u5199\u771f\u3084\u30bf\u30b0\u3001GPS\u4f4d\u7f6e\u3082\u4ed8\u3051\u3089\u308c\u3001\u30bf\u30b0\u3067\u7d5e\u308a\u8fbc\u3081\u307e\u3059\u3002"] },
-  { t:"\u670d\u88c5\u30fb\u9053\u5177", i:"\ud83d\udc55", b:["\u5c71\u83dc\u3054\u3068\u306b\u5fc5\u8981\u306a\u670d\u88c5\u3084\u9053\u5177\u3092\u78ba\u8a8d\u3067\u304d\u307e\u3059\u3002","\u300c\u7ba1\u7406\u300d\u304b\u3089\u3001\u30ea\u30b9\u30c8\u306e\u8ffd\u52a0\u30fb\u7de8\u96c6\u30fb\u524a\u9664\u304c\u3067\u304d\u307e\u3059\u3002"] },
-  { t:"\u30ea\u30f3\u30af\u96c6", i:"\ud83d\udd17", b:["YouTube\u30fbThreads\u30fbX\u30fbInstagram\u306a\u3069\u306e\u304a\u3059\u3059\u3081\u30ea\u30f3\u30af\u3092\u307e\u3068\u3081\u305f\u30bf\u30d6\u3067\u3059\u3002","\u300c\uff0b \u65b0\u898f\u767b\u9332\u300d\u3067\u8ffd\u52a0\u3001\u5404\u30ea\u30f3\u30af\u306e\u300c\u524a\u9664\u300d\u3067\u524a\u9664\u3067\u304d\u307e\u3059\u3002\u300c\u521d\u671f\u72b6\u614b\u306b\u623b\u3059\u300d\u3067\u6700\u521d\u306e\u72b6\u614b\u306b\u623b\u308a\u307e\u3059\u3002"] },
-];
-const QA_ITEMS = [
-  { q:"作成者用の「メモ」タブはどこにありますか？", a:"作成者（中田さん）専用です。ホーム画面の一番下の「山菜採り手帳 v2.0」の文字を7回続けてタップし、合言葉を入力すると、この端末にだけ「メモ」タブが現れます。他のメンバーには表示されません。" },
-  { q:"\u5165\u529b\u3057\u305f\u30c7\u30fc\u30bf\u306f\u3069\u3053\u306b\u4fdd\u5b58\u3055\u308c\u307e\u3059\u304b\uff1f", a:"\u304a\u4f7f\u3044\u306e\u30b9\u30de\u30db\uff08\u30d6\u30e9\u30a6\u30b6\uff09\u306e\u4e2d\u306b\u4fdd\u5b58\u3055\u308c\u307e\u3059\u3002\u30b5\u30fc\u30d0\u30fc\u306b\u306f\u9001\u3089\u308c\u306a\u3044\u306e\u3067\u3001\u4ef2\u9593\u306e\u30b9\u30de\u30db\u306b\u306f\u5171\u6709\u3055\u308c\u307e\u305b\u3093\u3002" },
-  { q:"\u30c7\u30fc\u30bf\u304c\u6d88\u3048\u308b\u3053\u3068\u306f\u3042\u308a\u307e\u3059\u304b\uff1f", a:"\u30d6\u30e9\u30a6\u30b6\u306e\u300c\u95b2\u89a7\u30c7\u30fc\u30bf\u30fb\u30b5\u30a4\u30c8\u30c7\u30fc\u30bf\u306e\u524a\u9664\u300d\u3092\u884c\u3063\u305f\u308a\u3001\u30b7\u30fc\u30af\u30ec\u30c3\u30c8\u30e2\u30fc\u30c9\u3067\u4f7f\u3063\u305f\u308a\u3059\u308b\u3068\u6d88\u3048\u308b\u5834\u5408\u304c\u3042\u308a\u307e\u3059\u3002\u5927\u5207\u306a\u8a18\u9332\u306f\u3001\u753b\u9762\u306e\u30b9\u30af\u30ea\u30fc\u30f3\u30b7\u30e7\u30c3\u30c8\u306a\u3069\u3067\u3082\u6b8b\u3057\u3066\u304a\u304f\u3068\u5b89\u5fc3\u3067\u3059\u3002" },
-  { q:"\u6a5f\u7a2e\u5909\u66f4\u3057\u305f\u3089\u30c7\u30fc\u30bf\u306f\u5f15\u304d\u7d99\u3052\u307e\u3059\u304b\uff1f", a:"\u73fe\u5728\u306f\u81ea\u52d5\u3067\u306f\u5f15\u304d\u7d99\u3052\u307e\u305b\u3093\u3002\u65b0\u3057\u3044\u30b9\u30de\u30db\u3067\u306f\u6700\u521d\u306e\u72b6\u614b\u304b\u3089\u59cb\u307e\u308a\u307e\u3059\u3002" },
-  { q:"\u4ef2\u9593\u3068\u8a18\u9332\u3092\u5171\u6709\u3059\u308b\u306b\u306f\uff1f", a:"\u30d6\u30ed\u30b0\u6295\u7a3f\u306e\u5185\u5bb9\u306a\u3069\u306f\u5404\u81ea\u306e\u30b9\u30de\u30db\u5185\u306e\u4fdd\u5b58\u3067\u3059\u3002\u5171\u6709\u3057\u305f\u3044\u3068\u304d\u306f\u3001LINE\u306a\u3069\u3067\u5199\u771f\u3084\u6587\u7ae0\u3092\u9001\u308a\u5408\u3063\u3066\u304f\u3060\u3055\u3044\u3002" },
-  { q:"\u30a2\u30d7\u30ea\u3092\u66f4\u65b0\u3057\u305f\u306e\u306b\u8868\u793a\u304c\u5909\u308f\u308a\u307e\u305b\u3093", a:"\u53e4\u3044\u8868\u793a\u304c\u6b8b\u3063\u3066\u3044\u308b\u53ef\u80fd\u6027\u304c\u3042\u308a\u307e\u3059\u3002\u30d6\u30e9\u30a6\u30b6\u3092\u4e00\u5ea6\u5b8c\u5168\u306b\u9589\u3058\u3066\u958b\u304d\u76f4\u3059\u304b\u3001\u30db\u30fc\u30e0\u753b\u9762\u306b\u8ffd\u52a0\u3057\u3066\u3044\u308b\u5834\u5408\u306f\u8ffd\u52a0\u3057\u76f4\u3057\u3066\u307f\u3066\u304f\u3060\u3055\u3044\u3002" },
-  { q:"\u30db\u30fc\u30e0\u753b\u9762\u306b\u8ffd\u52a0\u3059\u308b\u306b\u306f\uff1f", a:"iPhone\u306fSafari\u306e\u5171\u6709\u30dc\u30bf\u30f3\u304b\u3089\u300c\u30db\u30fc\u30e0\u753b\u9762\u306b\u8ffd\u52a0\u300d\u3001Android\u306fChrome\u306e\u30e1\u30cb\u30e5\u30fc\u304b\u3089\u300c\u30db\u30fc\u30e0\u753b\u9762\u306b\u8ffd\u52a0\u300d\u307e\u305f\u306f\u300c\u30a2\u30d7\u30ea\u3092\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb\u300d\u3092\u9078\u3073\u307e\u3059\u3002" },
-  { q:"GPS\uff08\u4f4d\u7f6e\u60c5\u5831\uff09\u304c\u53d6\u5f97\u3067\u304d\u307e\u305b\u3093", a:"\u30d6\u30e9\u30a6\u30b6\u306e\u8a2d\u5b9a\u3067\u3001\u3053\u306e\u30a2\u30d7\u30ea\u306b\u4f4d\u7f6e\u60c5\u5831\u306e\u5229\u7528\u3092\u8a31\u53ef\u3057\u3066\u304f\u3060\u3055\u3044\u3002\u96fb\u6ce2\u306e\u5f31\u3044\u5c71\u4e2d\u3067\u306f\u6642\u9593\u304c\u304b\u304b\u3063\u305f\u308a\u3001\u8aa4\u5dee\u304c\u5927\u304d\u304f\u306a\u3063\u305f\u308a\u3057\u307e\u3059\u3002" },
-  { q:"\u5199\u771f\u304c\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u3067\u304d\u307e\u305b\u3093", a:"\u30ab\u30e1\u30e9\u3084\u30d5\u30a9\u30eb\u30c0\u3078\u306e\u30a2\u30af\u30bb\u30b9\u8a31\u53ef\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002\u5bb9\u91cf\u304c\u5927\u304d\u3044\u5199\u771f\u306f\u6642\u9593\u304c\u304b\u304b\u308b\u3053\u3068\u304c\u3042\u308a\u307e\u3059\u3002" },
-  { q:"Google\u30ab\u30ec\u30f3\u30c0\u30fc\u306b\u4e88\u5b9a\u304c\u81ea\u52d5\u3067\u5165\u308a\u307e\u305b\u3093", a:"\u63a1\u53d6\u30d7\u30e9\u30f3\u304b\u3089\u4e88\u5b9a\u3092\u767b\u9332\u3059\u308b\u3068\u3001Google\u30ab\u30ec\u30f3\u30c0\u30fc\u306e\u767b\u9332\u753b\u9762\u304c\u958b\u304d\u307e\u3059\u3002\u305d\u306e\u753b\u9762\u3067\u5185\u5bb9\u3092\u78ba\u8a8d\u3057\u3066\u300c\u4fdd\u5b58\u300d\u3092\u62bc\u3059\u3068\u767b\u9332\u3055\u308c\u307e\u3059\u3002" },
-  { q:"\u30ea\u30f3\u30af\u96c6\u306e\u30ea\u30f3\u30af\u3092\u9593\u9055\u3063\u3066\u524a\u9664\u3057\u307e\u3057\u305f", a:"\u300c\u521d\u671f\u72b6\u614b\u306b\u623b\u3059\u300d\u3067\u6700\u521d\u306e\u304a\u3059\u3059\u3081\u30ea\u30f3\u30af\u306f\u623b\u305b\u307e\u3059\u3002\u305f\u3060\u3057\u3001\u81ea\u5206\u3067\u8ffd\u52a0\u3057\u305f\u30ea\u30f3\u30af\u306f\u6d88\u3048\u308b\u306e\u3067\u3001\u3082\u3046\u4e00\u5ea6\u767b\u9332\u3057\u3066\u304f\u3060\u3055\u3044\u3002" },
-  { q:"\u5c71\u83dc\u3084\u304d\u306e\u3053\u304c\u98df\u3079\u3089\u308c\u308b\u304b\u3001\u30a2\u30d7\u30ea\u3067\u5224\u65ad\u3067\u304d\u307e\u3059\u304b\uff1f", a:"\u3067\u304d\u307e\u305b\u3093\u3002\u56f3\u9451\u306f\u3042\u304f\u307e\u3067\u53c2\u8003\u60c5\u5831\u3067\u3059\u3002\u98df\u7528\u3068\u78ba\u5b9f\u306b\u5224\u65ad\u3067\u304d\u306a\u3044\u3082\u306e\u306f\u300c\u63a1\u3089\u306a\u3044\u3001\u98df\u3079\u306a\u3044\u3001\u4eba\u306b\u3042\u3052\u306a\u3044\u300d\u3092\u5b88\u3063\u3066\u304f\u3060\u3055\u3044\u3002\u6bd2\u8349\u30fb\u6bd2\u304d\u306e\u3053\u306f\u5c71\u83dc\u3068\u3088\u304f\u4f3c\u3066\u3044\u307e\u3059\u3002" },
-  { q:"\u5165\u5c71\u3059\u308b\u3068\u304d\u306e\u6ce8\u610f\u70b9\u306f\uff1f", a:"\u5358\u72ec\u884c\u52d5\u3092\u907f\u3051\u3001\u4e8b\u524d\u306b\u884c\u304d\u5148\u3068\u5e30\u5b85\u4e88\u5b9a\u3092\u5bb6\u65cf\u3084\u4ef2\u9593\u306b\u4f1d\u3048\u307e\u3057\u3087\u3046\u3002\u79c1\u6709\u5730\u30fb\u56fd\u6709\u6797\u30fb\u4fdd\u8b77\u533a\u3067\u306f\u63a1\u53d6\u30eb\u30fc\u30eb\u3092\u78ba\u8a8d\u3057\u3001\u30af\u30de\u306e\u51fa\u6ca1\u60c5\u5831\u306b\u3082\u6ce8\u610f\u3057\u3066\u304f\u3060\u3055\u3044\u3002" },
-];
-
-function ManualView() {
-  const [sub, setSub] = useState("manual");
-  const [openId, setOpenId] = useState(null);
-  const items = sub === "manual" ? MANUAL_ITEMS : QA_ITEMS;
-  const pill = (id, label) => React.createElement('button', {
-    onClick: () => { setSub(id); setOpenId(null); },
-    style: { flex:1, padding:"10px 8px", border:"none", cursor:"pointer", fontFamily:"inherit", fontSize:14,
-      background: sub===id ? "var(--forest)" : "var(--mist)", color: sub===id ? "white" : "var(--forest)",
-      fontWeight: sub===id ? 700 : 400 },
-  }, label);
-
-  return (
-    React.createElement('div', null
-      , React.createElement('div', { className:"section-title",}, "\ud83d\udcd6 \u4f7f\u3044\u65b9\u30fbQ&A")
-      , React.createElement('div', { className:"section-desc", style:{marginBottom:14},}, "\u30bf\u30a4\u30c8\u30eb\u3092\u30bf\u30c3\u30d7\u3059\u308b\u3068\u5185\u5bb9\u304c\u958b\u304d\u307e\u3059")
-      , React.createElement('div', { style:{display:"flex", borderRadius:10, overflow:"hidden", marginBottom:14, border:"1px solid var(--mist)"},}
-        , pill("manual", "\ud83d\udcd8 \u4f7f\u3044\u65b9\u30de\u30cb\u30e5\u30a2\u30eb")
-        , pill("qa", "\u2753 Q&A\u96c6")
-      )
-      , items.map((it, idx) => {
-        const key = sub + idx;
-        const open = openId === key;
-        return (
-          React.createElement('div', { key:key, style:{background:"var(--paper)", border:"1px solid var(--mist)", borderRadius:12, marginBottom:10, overflow:"hidden"},}
-            , React.createElement('button', { onClick:()=>setOpenId(open ? null : key),
-                style:{width:"100%", textAlign:"left", padding:"14px", background:"none", border:"none", cursor:"pointer", fontFamily:"inherit", fontSize:14, fontWeight:700, color:"var(--forest)", display:"flex", justifyContent:"space-between", alignItems:"center", gap:10},}
-              , React.createElement('span', null, sub==="manual" ? (it.i + " " + it.t) : ("Q. " + it.q))
-              , React.createElement('span', { style:{color:"var(--moss)"},}, open ? "\u25b2" : "\u25bc")
-            )
-            , open && React.createElement('div', { style:{padding:"0 14px 14px", fontSize:13, lineHeight:1.9, color:"#444"},}
-              , sub==="manual"
-                ? it.b.map((line, j) => React.createElement('div', { key:j, style:{marginBottom:4},}, "\u30fb", line))
-                : React.createElement('div', null, "A. ", it.a)
-            )
-          )
-        );
-      })
-    )
-  );
-}
-
-
-// ===== 作成者(中田)専用メモ =====
-async function secretHash(str) {
-  try {
-    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("sansai-secret:" + str));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
-  } catch (e) {
-    let h = 5381; const t = "sansai-secret:" + str;
-    for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0;
-    return "f" + (h >>> 0).toString(16);
-  }
-}
-
-function SecretUnlockModal({ onClose, onOk }) {
-  const saved = (() => { try { return localStorage.getItem("sansai_secret_hash"); } catch (e) { return null; } })();
-  const [pw, setPw] = useState("");
-  const [pw2, setPw2] = useState("");
-  const [err, setErr] = useState("");
-  const submit = async () => {
-    if (!saved) {
-      if (pw.length < 4) { setErr("4文字以上で入力してください"); return; }
-      if (pw !== pw2) { setErr("確認用の合言葉が一致しません"); return; }
-      try { localStorage.setItem("sansai_secret_hash", await secretHash(pw)); } catch (e) {}
-      onOk();
-    } else {
-      if ((await secretHash(pw)) === saved) onOk();
-      else setErr("合言葉が違います");
-    }
-  };
-  return (
-    React.createElement('div', { className: "form-overlay", onClick: e => e.target === e.currentTarget && onClose(),}
-      , React.createElement('div', { className: "form-box",}
-        , React.createElement('div', { className: "form-title",}, "🔒 作成者メニュー")
-        , React.createElement('div', { style: {fontSize:13, color:"#666", lineHeight:1.8, marginBottom:10},}, saved ? "合言葉を入力してください。" : "初回です。作成者（中田さん）だけが使う合言葉を決めてください。")
-        , React.createElement('div', { className: "form-group",}
-          , React.createElement('input', { className: "form-input", type: "password", value: pw, placeholder: "合言葉", onChange: e => setPw(e.target.value),})
-        )
-        , !saved && React.createElement('div', { className: "form-group",}
-          , React.createElement('input', { className: "form-input", type: "password", value: pw2, placeholder: "もう一度入力", onChange: e => setPw2(e.target.value),})
-        )
-        , err && React.createElement('div', { style: {color:"#c0392b", fontSize:13, marginTop:6},}, err)
-        , React.createElement('div', { className: "form-actions",}
-          , React.createElement('button', { className: "btn-cancel", onClick: onClose,}, "キャンセル")
-          , React.createElement('button', { className: "btn-submit", onClick: submit,}, saved ? "開く" : "設定して開く")
-        )
-      )
-    )
-  );
-}
-
-function SecretMemoView({ onLock }) {
-  const [notes, setNotes] = useState(() => {
-    try { const s = localStorage.getItem("sansai_secret_notes"); if (s) return JSON.parse(s); } catch (e) {}
-    return [];
-  });
-  useEffect(() => {
-    try { localStorage.setItem("sansai_secret_notes", JSON.stringify(notes)); } catch (e) {}
-  }, [notes]);
-  const [editing, setEditing] = useState(null); // null | {id?, title, body}
-  const [delTarget, setDelTarget] = useState(null);
-  const today = () => new Date().toISOString().split("T")[0];
-  const save = () => {
-    if (!editing.title.trim() && !editing.body.trim()) { setEditing(null); return; }
-    if (editing.id) setNotes(prev => prev.map(n => n.id === editing.id ? { ...n, title: editing.title, body: editing.body, date: today() } : n));
-    else setNotes(prev => [{ id: Date.now(), title: editing.title, body: editing.body, date: today() }, ...prev]);
-    setEditing(null);
-  };
-  return (
-    React.createElement('div', null
-      , React.createElement('div', { style: {display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, flexWrap:"wrap", marginBottom:12},}
-        , React.createElement('div', null
-          , React.createElement('div', { className: "section-title", style: {marginBottom:6},}, "📝 メモ（作成者専用）")
-          , React.createElement('div', { className: "section-desc", style: {marginBottom:0},}, "この端末の中だけに保存され、他のメンバーには表示されません")
-        )
-        , React.createElement('button', { className: "add-btn", onClick: () => setEditing({ title: "", body: "" }),}, "＋ 新規メモ")
-      )
-      , notes.length === 0 && React.createElement('div', { style: {color:"#888", fontSize:13, padding:"20px 0"},}, "メモはまだありません。「＋ 新規メモ」から追加してください。")
-      , notes.map(n => (
-        React.createElement('div', { key: n.id, style: {background:"var(--paper)", border:"1px solid var(--mist)", borderRadius:12, padding:"12px 14px", marginBottom:10},}
-          , React.createElement('div', { style: {display:"flex", justifyContent:"space-between", gap:8},}
-            , React.createElement('div', { style: {fontWeight:700, color:"var(--forest)", fontSize:15},}, n.title || "（無題）")
-            , React.createElement('div', { style: {fontSize:11, color:"#999", whiteSpace:"nowrap"},}, n.date)
-          )
-          , n.body && React.createElement('div', { style: {fontSize:13, color:"#444", lineHeight:1.8, whiteSpace:"pre-wrap", marginTop:6},}, n.body)
-          , React.createElement('div', { style: {display:"flex", gap:8, marginTop:10},}
-            , React.createElement('button', { className: "btn-cancel", onClick: () => setEditing({ id: n.id, title: n.title, body: n.body }),}, "編集")
-            , React.createElement('button', { className: "delete-btn", onClick: () => setDelTarget(n),}, "削除")
-          )
-        )
-      ))
-      , React.createElement('button', { className: "btn-cancel", style: {marginTop:10}, onClick: onLock,}, "🔒 ロックしてタブを隠す")
-
-      , editing && (
-        React.createElement('div', { className: "form-overlay", onClick: e => e.target === e.currentTarget && setEditing(null),}
-          , React.createElement('div', { className: "form-box",}
-            , React.createElement('div', { className: "form-title",}, editing.id ? "メモを編集" : "新規メモ")
-            , React.createElement('div', { className: "form-group",}
-              , React.createElement('label', { className: "form-label",}, "タイトル")
-              , React.createElement('input', { className: "form-input", value: editing.title, onChange: e => setEditing(x => ({ ...x, title: e.target.value })),})
-            )
-            , React.createElement('div', { className: "form-group",}
-              , React.createElement('label', { className: "form-label",}, "内容")
-              , React.createElement('textarea', { className: "form-textarea", style: {minHeight:160}, value: editing.body, onChange: e => setEditing(x => ({ ...x, body: e.target.value })),})
-            )
-            , React.createElement('div', { className: "form-actions",}
-              , React.createElement('button', { className: "btn-cancel", onClick: () => setEditing(null),}, "キャンセル")
-              , React.createElement('button', { className: "btn-submit", onClick: save,}, "保存")
-            )
-          )
-        )
-      )
-      , delTarget && (
-        React.createElement('div', { className: "form-overlay", onClick: e => e.target === e.currentTarget && setDelTarget(null),}
-          , React.createElement('div', { className: "form-box",}
-            , React.createElement('div', { className: "form-title",}, "🗑 削除の確認")
-            , React.createElement('div', { style: {fontSize:14, lineHeight:1.8},}, "「", delTarget.title || "（無題）", "」を削除しますか？")
-            , React.createElement('div', { className: "form-actions",}
-              , React.createElement('button', { className: "btn-cancel", onClick: () => setDelTarget(null),}, "キャンセル")
-              , React.createElement('button', { className: "btn-submit", style: {background:"#c0392b"}, onClick: () => { setNotes(prev => prev.filter(n => n.id !== delTarget.id)); setDelTarget(null); },}, "削除する")
-            )
-          )
-        )
-      )
-    )
-  );
-}
-
 // ===== APP =====
 function App() {
   const [tab, setTab] = useState("home");
-  const [secretOn, setSecretOn] = useState(() => { try { return localStorage.getItem("sansai_secret_on") === "1"; } catch (e) { return false; } });
-  const [showUnlock, setShowUnlock] = useState(false);
-  const unlockSecret = () => { try { localStorage.setItem("sansai_secret_on", "1"); } catch (e) {} setSecretOn(true); setShowUnlock(false); setTab("secret"); };
-  const lockSecret = () => { try { localStorage.setItem("sansai_secret_on", "0"); } catch (e) {} setSecretOn(false); setTab("home"); };
   const [spots, setSpots] = useState(() => {
     try {
       const saved = localStorage.getItem("sansai_spots");
@@ -9188,11 +8193,7 @@ function App() {
     { id: "harvest",  label: "\u53ce\u7a6b\u8a18\u9332",   icon: "\ud83e\uddfa" },
     { id: "memo",     label: "\u5fd8\u5099\u9332",     icon: "\ud83d\udcd2" },
     { id: "gear",     label: "\u670d\u88c5\u30fb\u9053\u5177", icon: "\ud83d\udc55" },
-    { id: "links",    label: "\u30ea\u30f3\u30af\u96c6",   icon: "\ud83d\udd17" },
-    { id: "manual",   label: "\u4f7f\u3044\u65b9\u30fbQ&A", icon: "\ud83d\udcd6" },
   ];
-  tabs.push({ id: "backup", label: "バックアップ", icon: "💾" });
-  if (secretOn) tabs.push({ id: "secret", label: "メモ", icon: "📝" });
 
   return (
     React.createElement(React.Fragment, null
@@ -9230,7 +8231,7 @@ function App() {
         )
 
         , React.createElement('main', { className: "main",}
-          , tab === "home"     && React.createElement(HomeView, { onTabChange: setTab, secretOn: secretOn, onSecretTap: () => setShowUnlock(true),} )
+          , tab === "home"     && React.createElement(HomeView, { onTabChange: setTab,} )
           , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList,} )
           , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
           , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots, sansaiList: sansaiList,} )
@@ -9241,11 +8242,6 @@ function App() {
           , tab === "harvest"  && React.createElement(HarvestView, { spots: spots, members: members, sansaiList: sansaiList,} )
           , tab === "memo"     && React.createElement(MemoView, { spots: spots, sansaiList: sansaiList,} )
           , tab === "gear"     && React.createElement(GearView, { sansaiList: sansaiList,} )
-          , tab === "links"    && React.createElement(LinkView, null)
-          , tab === "manual"   && React.createElement(ManualView, null)
-          , tab === "backup"   && React.createElement(BackupView, null)
-          , tab === "secret" && secretOn && React.createElement(SecretMemoView, { onLock: lockSecret,} )
-          , showUnlock && React.createElement(SecretUnlockModal, { onClose: () => setShowUnlock(false), onOk: unlockSecret,} )
         )
       )
     )
