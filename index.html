@@ -2655,6 +2655,8 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
     { id:"links",    icon:"🔗", label:"リンク集",     desc:"SNS・おすすめWeb", color:"#2c7a7b" },
     { id:"manual",   icon:"📖", label:"使い方・Q&A",  desc:"操作説明・よくある質問", color:"#b7791f" },
   ];
+  { let _lb = ""; try { _lb = localStorage.getItem("sansai_last_backup") || ""; } catch (e) {}
+    menuItems.push({ id:"backup", icon:"💾", label:"バックアップ", desc: _lb ? ("最終: " + fmtBackupDate(_lb)) : "まだ未実施・データの保存/復元", color:"#4a5568" }); }
   if (secretOn) menuItems.push({ id:"secret", icon:"📝", label:"メモ", desc:"作成者専用・非公開", color:"#6b46c1" });
 
   return (
@@ -8617,6 +8619,156 @@ function PhotoProvider({ children }) {
   return React.createElement(PhotoContext.Provider, { value: { photos, ready, savePhoto, removePhoto } }, children);
 }
 
+// ===== BACKUP (バックアップ・復元) =====
+const BACKUP_PREFIX = "sansai_";
+const BACKUP_APP_ID = "sansai-techo";
+function _lsKeys() {
+  const ks = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.indexOf(BACKUP_PREFIX) === 0) ks.push(k);
+  }
+  return ks;
+}
+async function buildBackup() {
+  const ls = {};
+  _lsKeys().forEach(k => { ls[k] = localStorage.getItem(k); });
+  const photos = await idbGetAll();
+  return { app: BACKUP_APP_ID, version: 1, createdAt: new Date().toISOString(), localStorage: ls, photos: photos };
+}
+function downloadText(filename, text) {
+  const blob = new Blob([text], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
+}
+function isValidBackup(obj) {
+  return !!obj && obj.app === BACKUP_APP_ID && !!obj.localStorage && typeof obj.localStorage === "object";
+}
+async function restoreBackup(obj) {
+  if (!isValidBackup(obj)) throw new Error("invalid backup");
+  const prev = {};
+  _lsKeys().forEach(k => { prev[k] = localStorage.getItem(k); });
+  try {
+    Object.keys(prev).forEach(k => localStorage.removeItem(k));
+    Object.keys(obj.localStorage).forEach(k => {
+      if (k.indexOf(BACKUP_PREFIX) === 0 && typeof obj.localStorage[k] === "string") localStorage.setItem(k, obj.localStorage[k]);
+    });
+  } catch (e) {
+    // 失敗したら元のデータに戻す
+    try {
+      _lsKeys().forEach(k => localStorage.removeItem(k));
+      Object.keys(prev).forEach(k => localStorage.setItem(k, prev[k]));
+    } catch (e2) {}
+    throw e;
+  }
+  const photos = obj.photos || {};
+  let failed = 0;
+  for (const id of Object.keys(photos)) {
+    const ok = await idbSet(id, photos[id]);
+    if (!ok) failed++;
+  }
+  return { photoCount: Object.keys(photos).length, photoFailed: failed };
+}
+function fmtBackupDate(iso) {
+  if (!iso) return "";
+  try { return new Date(iso).toLocaleString("ja-JP", { year:"numeric", month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit" }); } catch (e) { return ""; }
+}
+
+function BackupView() {
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const [last, setLast] = useState(() => { try { return localStorage.getItem("sansai_last_backup") || ""; } catch (e) { return ""; } });
+
+  const doExport = async () => {
+    setBusy(true); setMsg(null);
+    try {
+      const data = await buildBackup();
+      const d = new Date();
+      const p = (n) => String(n).padStart(2, "0");
+      const name = "sansai-backup-" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + ".json";
+      downloadText(name, JSON.stringify(data));
+      const stamp = d.toISOString();
+      try { localStorage.setItem("sansai_last_backup", stamp); } catch (e) {}
+      setLast(stamp);
+      setMsg({ ok: true, text: "✅ バックアップファイルを保存しました（" + name + "）。端末の「ダウンロード」フォルダを確認してください。写真 " + Object.keys(data.photos || {}).length + " 枚を含みます。" });
+    } catch (e) {
+      setMsg({ ok: false, text: "バックアップに失敗しました：" + (e && e.message ? e.message : e) });
+    }
+    setBusy(false);
+  };
+
+  const onPick = (e) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onerror = () => setMsg({ ok: false, text: "ファイルを読み込めませんでした。" });
+    reader.onload = async () => {
+      let obj = null;
+      try { obj = JSON.parse(reader.result); } catch (err) {}
+      if (!isValidBackup(obj)) {
+        setMsg({ ok: false, text: "このファイルは山菜採り手帳のバックアップではないようです。" });
+        return;
+      }
+      const pc = Object.keys(obj.photos || {}).length;
+      const when = fmtBackupDate(obj.createdAt);
+      if (!window.confirm("バックアップ" + (when ? "（" + when + "）" : "") + "の内容（写真 " + pc + " 枚）で、いまのデータをすべて置き換えます。よろしいですか？")) return;
+      setBusy(true); setMsg(null);
+      try {
+        const r = await restoreBackup(obj);
+        alert("復元しました。アプリを再読み込みします。" + (r.photoFailed ? "\n（写真 " + r.photoFailed + " 枚は復元できませんでした）" : ""));
+        window.location.reload();
+      } catch (err) {
+        setBusy(false);
+        setMsg({ ok: false, text: "復元に失敗しました。元のデータはそのまま残しています。（" + (err && err.message ? err.message : err) + "）" });
+      }
+    };
+    reader.readAsText(f);
+  };
+
+  const card = { background: "white", borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: "0 2px 10px rgba(0,0,0,0.08)" };
+  const btnBase = { display: "block", width: "100%", textAlign: "center", padding: "16px 12px", borderRadius: 12, border: "none", fontSize: 16, fontWeight: 700, fontFamily: "'Noto Serif JP',serif", cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1, boxSizing: "border-box" };
+
+  return (
+    React.createElement("div", { style: { padding: 16, maxWidth: 640, margin: "0 auto" } },
+      React.createElement("div", { style: { fontSize: 20, fontWeight: 700, color: "var(--forest)", margin: "8px 0 16px" } }, "💾 バックアップ・復元"),
+
+      React.createElement("div", { style: card },
+        React.createElement("div", { style: { fontWeight: 700, marginBottom: 6 } }, "データを保存する"),
+        React.createElement("div", { style: { fontSize: 13, color: "#555", lineHeight: 1.7, marginBottom: 12 } },
+          "スポット・ブログ・メンバー・収穫記録・メモ・写真など、このアプリのデータをすべて1つのファイルに保存します。アプリを削除したりブラウザのデータを消すと、端末内のデータは消えてしまうので、定期的に保存しておくと安心です。"),
+        React.createElement("div", { style: { fontSize: 13, color: last ? "var(--moss)" : "#c0392b", marginBottom: 12, fontWeight: 600 } },
+          last ? "最終バックアップ：" + fmtBackupDate(last) : "まだバックアップしていません"),
+        React.createElement("button", { onClick: doExport, disabled: busy, style: Object.assign({}, btnBase, { background: "var(--forest)", color: "white" }) },
+          busy ? "処理中…" : "📥 バックアップファイルを保存")
+      ),
+
+      React.createElement("div", { style: card },
+        React.createElement("div", { style: { fontWeight: 700, marginBottom: 6 } }, "データを復元する"),
+        React.createElement("div", { style: { fontSize: 13, color: "#555", lineHeight: 1.7, marginBottom: 12 } },
+          "保存したバックアップファイルを選ぶと、いまのデータをその内容で置き換えます。復元前に、念のためいまのデータもバックアップしておくのがおすすめです。"),
+        React.createElement("label", { style: Object.assign({}, btnBase, { background: "var(--earth)", color: "white" }) },
+          "📤 バックアップファイルから復元",
+          React.createElement("input", { type: "file", accept: ".json,application/json,text/plain", onChange: onPick, disabled: busy, style: { display: "none" } })
+        )
+      ),
+
+      msg && React.createElement("div", { style: { padding: "12px 14px", borderRadius: 12, fontSize: 13, lineHeight: 1.7, marginBottom: 16,
+        background: msg.ok ? "#e8f5e9" : "#fdecea", color: msg.ok ? "#1b5e20" : "#c0392b" } }, msg.text),
+
+      React.createElement("div", { style: { fontSize: 12, color: "#888", lineHeight: 1.8 } },
+        "・保存したファイルは、Googleドライブに入れたりLINEで自分に送っておくと、スマホを替えたときも安心です。",
+        React.createElement("br"),
+        "・ファイルには作成者専用の非公開メモも含まれます。他の人に渡さないようご注意ください。",
+        React.createElement("br"),
+        "・データは端末ごとに保存されています。友だちのスマホのデータは、それぞれの端末でバックアップしてください。")
+    )
+  );
+}
+
 // ===== LINKS (SNS / WEB) =====
 const LINK_CATS = ["YouTube", "Threads", "X", "Instagram", "Web"];
 const LINK_ICONS = { YouTube:"\u25b6\ufe0f", Threads:"\ud83e\uddf5", X:"\u2716\ufe0f", Instagram:"\ud83d\udcf7", Web:"\ud83c\udf10" };
@@ -9039,6 +9191,7 @@ function App() {
     { id: "links",    label: "\u30ea\u30f3\u30af\u96c6",   icon: "\ud83d\udd17" },
     { id: "manual",   label: "\u4f7f\u3044\u65b9\u30fbQ&A", icon: "\ud83d\udcd6" },
   ];
+  tabs.push({ id: "backup", label: "バックアップ", icon: "💾" });
   if (secretOn) tabs.push({ id: "secret", label: "メモ", icon: "📝" });
 
   return (
@@ -9090,6 +9243,7 @@ function App() {
           , tab === "gear"     && React.createElement(GearView, { sansaiList: sansaiList,} )
           , tab === "links"    && React.createElement(LinkView, null)
           , tab === "manual"   && React.createElement(ManualView, null)
+          , tab === "backup"   && React.createElement(BackupView, null)
           , tab === "secret" && secretOn && React.createElement(SecretMemoView, { onLock: lockSecret,} )
           , showUnlock && React.createElement(SecretUnlockModal, { onClose: () => setShowUnlock(false), onOk: unlockSecret,} )
         )
