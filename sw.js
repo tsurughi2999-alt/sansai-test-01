@@ -7,7 +7,10 @@ const PRECACHE = [
   './manifest.json',
   './icon-96.png',
   './icon-192.png',
+  './icon-180.png',
   './icon-512.png',
+  './icon-maskable-512.png',
+  './logo-badge.png',
 ];
 
 // インストール時：古いキャッシュを削除して新しいファイルをキャッシュ

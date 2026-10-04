@@ -10,6 +10,7 @@
   <title>山菜採り手帳</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon-96.png" type="image/png" />
+  <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
   <link rel="apple-touch-icon" href="icon-180.png" />
   <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -564,7 +565,7 @@ body{margin:0;padding:0;}
 <body>
   <div id="root">
     <div style="text-align:center;padding:60px 20px;font-family:sans-serif;color:#2d4a2d;">
-      <div style="font-size:48px;">🌿</div>
+      <img src="logo-badge.png" alt="" width="140" height="140" style="width:140px;height:140px;border-radius:50%;" />
       <div style="font-size:18px;font-weight:bold;margin:12px 0 8px;">山菜採り手帳</div>
       <div style="font-size:13px;color:#888;">読み込み中...</div>
     </div>
@@ -2660,11 +2661,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
     React.createElement('div', { style: {minHeight:"100vh", background:"linear-gradient(160deg,#1a3a1a 0%,#2d5a2d 40%,#1a3a1a 100%)", padding:"0 0 40px"},}
       /* \u30d8\u30c3\u30c0\u30fc\u30fb\u30ed\u30b4\u30a8\u30ea\u30a2 */
       , React.createElement('div', { style: {textAlign:"center", padding:"48px 20px 32px"},}
-        , React.createElement('div', { style: {fontSize:72, marginBottom:12, filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.3))"},}, "\ud83c\udf3f")
-        , React.createElement('div', { style: {fontSize:32, fontWeight:700, color:"white", fontFamily:"'Noto Serif JP',serif",
-          letterSpacing:2, textShadow:"0 2px 8px rgba(0,0,0,0.4)", marginBottom:8},}, "\u5c71\u83dc\u63a1\u308a\u624b\u5e33"
-
-        )
+        , React.createElement('img', { src: "logo-badge.png", alt: "\u5c71\u83dc\u63a1\u308a\u624b\u5e33", width: 220, height: 220, style: {width:220, height:220, maxWidth:"70vw", maxHeight:"70vw", marginBottom:16, filter:"drop-shadow(0 6px 16px rgba(0,0,0,0.45))"},})
         , React.createElement('div', { style: {fontSize:14, color:"rgba(255,255,255,0.7)", letterSpacing:1},}, "\u4e2d\u90e8\u30fb\u5317\u9678\u30a8\u30ea\u30a2 | \u30b0\u30eb\u30fc\u30d7\u7ba1\u7406"
 
         )
