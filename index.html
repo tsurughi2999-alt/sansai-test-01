@@ -2662,15 +2662,17 @@ function HomeView({ onTabChange }) {
 }
 
 function CalendarView({ sansaiList, setSansaiList }) {
+  const { photos: photoStore, savePhoto, removePhoto } = usePhotos();
   const currentMonth = new Date().getMonth() + 1;
 
   const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState(null); // null=\u65b0\u898f\u3001obj=\u7de8\u96c6\u4e2d\u306e\u5143\u30a8\u30f3\u30c8\u30ea
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const EMOJIS = ["\ud83c\udf3f","\ud83c\udf43","\ud83c\udf31","\ud83c\udf3e","\ud83c\udf00","\ud83e\uddc5","\ud83c\udf40","\ud83e\udeb4","\ud83c\udf47","\ud83c\udf44","\ud83c\udf38","\ud83c\udf8b","\ud83c\udf3a","\ud83e\udd6c","\ud83e\uddc4","\ud83d\udca7","\ud83c\udf3a","\ud83c\udf3f"];
   const COLORS = ["#7cb87a","#a8c86e","#6aab5e","#8dc66b","#5a9e52","#b5d97a","#79c47e","#4e8f5d","#c8d96e","#4caf6e","#2e7d32","#5c8a4e","#4a90c4","#6d8c3e","#e07b8a","#7db84a"];
 
-  const emptyForm = { name:"", emoji:"\ud83c\udf3f", months:[], region:"", color:"#6aab5e", desc:"" };
+  const emptyForm = { name:"", emoji:"\ud83c\udf3f", months:[], region:"", color:"#6aab5e", desc:"", photoId:null };
   const [form, setForm] = useState(emptyForm);
 
   const toggleMonth = (m) => setForm(f => ({
@@ -2678,18 +2680,28 @@ function CalendarView({ sansaiList, setSansaiList }) {
     months: f.months.includes(m) ? f.months.filter(x=>x!==m) : [...f.months, m].sort((a,b)=>a-b)
   }));
 
+  const openAdd = () => { setForm(emptyForm); setEditTarget(null); setShowForm(true); };
+  const openEdit = (entry) => { setForm({ ...emptyForm, ...entry }); setEditTarget(entry); setShowForm(true); };
+
   const handleAdd = () => {
     if (!form.name.trim() || form.months.length === 0) return;
-    const newEntry = { ...form, id: Date.now() };
-    const updated = [...sansaiList, newEntry];
-    setSansaiList(updated);
-    try { localStorage.setItem("sansai_custom", JSON.stringify(updated)); } catch(e) {}
+    if (editTarget) {
+      const updated = sansaiList.map(s => s.id === editTarget.id ? { ...s, ...form } : s);
+      setSansaiList(updated);
+    } else {
+      const newEntry = { ...form, id: Date.now(), isCustom: true };
+      const updated = [...sansaiList, newEntry];
+      setSansaiList(updated);
+      try { localStorage.setItem("sansai_custom", JSON.stringify(updated)); } catch(e) {}
+    }
     setForm(emptyForm);
-    setForm({ name:"", sansai:[], notes:"", photos:[] });
+    setEditTarget(null);
     setShowForm(false);
   };
 
   const handleDelete = (id) => {
+    const target = sansaiList.find(s => s.id === id);
+    if (_optionalChain([target, 'optionalAccess', _2664a => _2664a.photoId])) removePhoto(target.photoId);
     const updated = sansaiList.filter(s => s.id !== id);
     setSansaiList(updated);
     try { localStorage.setItem("sansai_custom", JSON.stringify(updated)); } catch(e) {}
@@ -2716,7 +2728,14 @@ function CalendarView({ sansaiList, setSansaiList }) {
           const peak = s.months[Math.floor(s.months.length / 2)];
           return [
             React.createElement('div', { key: "l"+s.id, className: "cal-label", style: {display:"flex", alignItems:"center", justifyContent:"space-between", paddingRight:4},}
-              , React.createElement('span', null, s.emoji, " " , s.name)
+              , React.createElement('span', { onClick: ()=>openEdit(s), style: {cursor:"pointer", display:"flex", alignItems:"center", gap:4},}
+                , s.photoId && photoStore[s.photoId]
+                  ? React.createElement('span', { style: {width:16, height:16, borderRadius:"50%", overflow:"hidden", display:"inline-block", flexShrink:0},}
+                    , React.createElement('img', { src: photoStore[s.photoId], style: {width:"100%", height:"100%", objectFit:"cover"},} )
+                  )
+                  : s.emoji
+                , s.name
+              )
               , React.createElement('button', { onClick: ()=>setDeleteTarget(s),
                 style: {background:"none", border:"none", cursor:"pointer", color:"#c0392b", fontSize:12, padding:"0 2px", opacity:0.6, flexShrink:0},
                 title: "\u524a\u9664",}, "\u2715")
@@ -2738,15 +2757,47 @@ function CalendarView({ sansaiList, setSansaiList }) {
       )
 
       /* \u8ffd\u52a0\u30dc\u30bf\u30f3 */
-      , React.createElement('button', { className: "add-btn", style: {marginTop:16}, onClick: ()=>{setForm(emptyForm);setShowForm(true);},}, "\uff0b \u5c71\u83dc\u3092\u8ffd\u52a0"
+      , React.createElement('button', { className: "add-btn", style: {marginTop:16}, onClick: openAdd,}, "\uff0b \u5c71\u83dc\u3092\u8ffd\u52a0"
 
       )
 
-      /* \u8ffd\u52a0\u30d5\u30a9\u30fc\u30e0 */
+      /* \u8ffd\u52a0\u30fb\u7de8\u96c6\u30d5\u30a9\u30fc\u30e0 */
       , showForm && (
-        React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setShowForm(false),}
+        React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&(setShowForm(false),setEditTarget(null)),}
           , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},}
-            , React.createElement('div', { className: "form-title",}, "\ud83c\udf3f \u5c71\u83dc\u3092\u30ab\u30ec\u30f3\u30c0\u30fc\u306b\u8ffd\u52a0" )
+            , React.createElement('div', { className: "form-title",}, editTarget ? "\u270f\ufe0f \u5c71\u83dc\u3092\u7de8\u96c6" : "\ud83c\udf3f \u5c71\u83dc\u3092\u30ab\u30ec\u30f3\u30c0\u30fc\u306b\u8ffd\u52a0" )
+
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "\ud83d\udcf7 \u5199\u771f\uff08\u4efb\u610f\uff09"  )
+              , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:14},}
+                , React.createElement('div', { style: {width:56, height:56, borderRadius:"50%", overflow:"hidden",
+                    background:"var(--mist)", display:"flex", alignItems:"center", justifyContent:"center",
+                    fontSize:24, flexShrink:0, border:"2px solid var(--mist)"},}
+                  , form.photoId && photoStore[form.photoId]
+                    ? React.createElement('img', { src: photoStore[form.photoId], style: {width:"100%", height:"100%", objectFit:"cover"},} )
+                    : form.emoji
+                )
+                , React.createElement('label', { style: {display:"flex", flexDirection:"column", alignItems:"center",
+                    justifyContent:"center", gap:4, padding:"8px 12px", borderRadius:10, cursor:"pointer",
+                    background:"var(--soil)", border:"2px dashed var(--fern)", fontSize:11, fontWeight:600, color:"var(--moss)"},}
+                  , React.createElement('input', { type: "file", accept: "image/*", style: {display:"none"},
+                    onChange: e=>{
+                      const file=e.target.files[0]; if(!file || !file.type.startsWith("image/")) return;
+                      compressImageFile(file, 600, 0.82, async (dataUrl) => {
+                        const id = await savePhoto(dataUrl);
+                        setForm(f=>({...f,photoId:id}));
+                      });
+                      e.target.value = "";
+                    },} )
+                  , "\ud83d\uddbc \u5199\u771f\u3092\u9078\u629e"
+                )
+                , form.photoId && React.createElement('button', { type: "button", onClick: ()=>{
+                    const oldId = form.photoId;
+                    setForm(f=>({...f,photoId:null}));
+                    removePhoto(oldId);
+                  }, style: {background:"#fee", border:"none", borderRadius:8, padding:"8px 12px", cursor:"pointer", color:"#c0392b", fontSize:11, fontWeight:600},}, "\u524a\u9664")
+              )
+            )
 
             , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"80px 1fr", gap:12},}
               , React.createElement('div', { className: "form-group",}
@@ -2800,8 +2851,8 @@ function CalendarView({ sansaiList, setSansaiList }) {
             )
 
             , React.createElement('div', { className: "form-actions",}
-              , React.createElement('button', { className: "btn-cancel", onClick: ()=>setShowForm(false),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
-              , React.createElement('button', { className: "btn-submit", onClick: handleAdd,}, "\u8ffd\u52a0\u3059\u308b")
+              , React.createElement('button', { className: "btn-cancel", onClick: ()=>{setShowForm(false);setEditTarget(null);},}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
+              , React.createElement('button', { className: "btn-submit", onClick: handleAdd,}, editTarget ? "\u4fdd\u5b58\u3059\u308b" : "\u8ffd\u52a0\u3059\u308b")
             )
           )
         )
