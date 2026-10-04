@@ -2599,6 +2599,57 @@ function GearView({ sansaiList }) {
 }
 
 function HomeView({ onTabChange }) {
+  const [backupStatus, setBackupStatus] = useState("");
+  const importInputRef = useRef(null);
+  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog"];
+
+  const handleExport = async () => {
+    try {
+      const data = {};
+      BACKUP_KEYS.forEach(k => {
+        const v = localStorage.getItem(k);
+        if (v !== null) data[k] = v;
+      });
+      const photos = await idbGetAll();
+      const backup = { app:"sansai-techo", version:1, exportedAt: new Date().toISOString(), data, photos };
+      const blob = new Blob([JSON.stringify(backup)], { type:"application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().slice(0,10);
+      a.href = url;
+      a.download = `sansai-backup-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setBackupStatus("\u2705 \u30d0\u30c3\u30af\u30a2\u30c3\u30d7\u3092\u4fdd\u5b58\u3057\u307e\u3057\u305f");
+    } catch(e) {
+      setBackupStatus("\u274c \u30d0\u30c3\u30af\u30a2\u30c3\u30d7\u306b\u5931\u6557\u3057\u307e\u3057\u305f");
+    }
+  };
+
+  const handleImportFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const backup = JSON.parse(reader.result);
+        if (!backup || !backup.data) throw new Error("invalid");
+        Object.keys(backup.data).forEach(k => { localStorage.setItem(k, backup.data[k]); });
+        if (backup.photos) {
+          for (const id of Object.keys(backup.photos)) { await idbSet(id, backup.photos[id]); }
+        }
+        setBackupStatus("\u2705 \u5fa9\u5143\u3057\u307e\u3057\u305f\u3002\u30a2\u30d7\u30ea\u3092\u518d\u8aad\u307f\u8fbc\u307f\u3057\u307e\u3059...");
+        setTimeout(()=>location.reload(), 1200);
+      } catch(err) {
+        setBackupStatus("\u274c \u5fa9\u5143\u306b\u5931\u6557\u3057\u307e\u3057\u305f\uff08\u30d5\u30a1\u30a4\u30eb\u3092\u3054\u78ba\u8a8d\u304f\u3060\u3055\u3044\uff09");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
   const menuItems = [
     { id:"calendar", icon:"\ud83c\udf43", label:"\u5c71\u83dc\u30ab\u30ec\u30f3\u30c0\u30fc", desc:"\u63a1\u53d6\u9069\u671f\u4e00\u89a7", color:"#2d4a2d" },
     { id:"plan",     icon:"\ud83d\udcc5", label:"\u63a1\u53d6\u30d7\u30e9\u30f3",   desc:"\u5929\u6c17\u30fb\u30ab\u30ec\u30f3\u30c0\u30fc\u9023\u643a", color:"#27ae60" },
@@ -2616,7 +2667,8 @@ function HomeView({ onTabChange }) {
     React.createElement('div', { style: {minHeight:"100vh", background:"linear-gradient(160deg,#1a3a1a 0%,#2d5a2d 40%,#1a3a1a 100%)", padding:"0 0 40px"},}
       /* \u30d8\u30c3\u30c0\u30fc\u30fb\u30ed\u30b4\u30a8\u30ea\u30a2 */
       , React.createElement('div', { style: {textAlign:"center", padding:"48px 20px 32px"},}
-        , React.createElement('div', { style: {fontSize:72, marginBottom:12, filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.3))"},}, "\ud83c\udf3f")
+        , React.createElement('img', { src: APP_LOGO, alt: "\u5c71\u83dc\u624b\u5e33", style: {width:96, height:96, borderRadius:"50%",
+          marginBottom:12, boxShadow:"0 4px 16px rgba(0,0,0,0.35)"},} )
         , React.createElement('div', { style: {fontSize:32, fontWeight:700, color:"white", fontFamily:"'Noto Serif JP',serif",
           letterSpacing:2, textShadow:"0 2px 8px rgba(0,0,0,0.4)", marginBottom:8},}, "\u5c71\u83dc\u63a1\u308a\u624b\u5e33"
 
@@ -2651,6 +2703,25 @@ function HomeView({ onTabChange }) {
               )
             )
           ))
+        )
+      )
+
+      /* \u30d0\u30c3\u30af\u30a2\u30c3\u30d7\u30fb\u5fa9\u5143 */
+      , React.createElement('div', { style: {padding:"24px 16px 0"},}
+        , React.createElement('div', { style: {background:"rgba(255,255,255,0.1)", backdropFilter:"blur(10px)",
+            border:"1px solid rgba(255,255,255,0.2)", borderRadius:16, padding:"16px"},}
+          , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"white", marginBottom:4},}, "\ud83d\udcbe \u30c7\u30fc\u30bf\u306e\u30d0\u30c3\u30af\u30a2\u30c3\u30d7")
+          , React.createElement('div', { style: {fontSize:11, color:"rgba(255,255,255,0.6)", marginBottom:12, lineHeight:1.6},}, "\u30a2\u30a4\u30b3\u30f3\u306e\u5165\u308c\u66ff\u3048\u3084\u30a2\u30d7\u30ea\u306e\u518d\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb\u524d\u306b\u306f\u5fc5\u305a\u30d0\u30c3\u30af\u30a2\u30c3\u30d7\u3092\u4fdd\u5b58\u3057\u3066\u304f\u3060\u3055\u3044\u3002")
+          , React.createElement('div', { style: {display:"flex", gap:10},}
+            , React.createElement('button', { onClick: handleExport, style: {flex:1, background:"rgba(255,255,255,0.15)",
+                border:"1px solid rgba(255,255,255,0.3)", borderRadius:10, padding:"10px", color:"white",
+                fontSize:12, fontWeight:700, cursor:"pointer"},}, "\ud83d\udcbe \u30d0\u30c3\u30af\u30a2\u30c3\u30d7")
+            , React.createElement('button', { onClick: ()=>_optionalChain([importInputRef, 'access', _2601a => _2601a.current, 'optionalAccess', _2601b => _2601b.click, 'call', _2601c => _2601c()]), style: {flex:1, background:"rgba(255,255,255,0.15)",
+                border:"1px solid rgba(255,255,255,0.3)", borderRadius:10, padding:"10px", color:"white",
+                fontSize:12, fontWeight:700, cursor:"pointer"},}, "\ud83d\udce4 \u5fa9\u5143")
+            , React.createElement('input', { ref: importInputRef, type: "file", accept: "application/json", style: {display:"none"}, onChange: handleImportFile,} )
+          )
+          , backupStatus && React.createElement('div', { style: {fontSize:11, color:"white", marginTop:10, textAlign:"center"},}, backupStatus)
         )
       )
 
