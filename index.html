@@ -6010,6 +6010,7 @@ function DangerPlantsView() {
 }
 
 function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
+  const { photos: photoStore, savePhoto, removePhoto } = usePhotos();
   const [entries, setEntries] = useState((sansaiList||(sansaiList||(sansaiList||SANSAI_DATA))).map(s => ({
     ...s,
     customSpots: s.customSpots || [], // \u304a\u3059\u3059\u3081\u30b9\u30dd\u30c3\u30c8\uff08\u8ffd\u52a0\u53ef\u80fd\uff09
@@ -6033,7 +6034,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
     }
   }, []);
 
-  const emptyForm = { name:"", emoji:"\ud83c\udf3f", months:[], region:"", color:"#6aab5e", desc:"", customSpots:[], notes:"" };
+  const emptyForm = { name:"", emoji:"\ud83c\udf3f", months:[], region:"", color:"#6aab5e", desc:"", customSpots:[], notes:"", photoId:null };
   const [form, setForm] = useState(emptyForm);
 
   const EMOJIS = ["\ud83c\udf3f","\ud83c\udf43","\ud83c\udf31","\ud83c\udf3e","\ud83c\udf00","\ud83e\uddc5","\ud83c\udf40","\ud83e\udeb4","\ud83c\udf47","\ud83c\udf44","\ud83c\udf38","\ud83c\udf8b","\ud83c\udf3a","\ud83e\udd6c","\ud83c\udf32"];
@@ -6048,7 +6049,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
     if (!form.name.trim() || form.months.length === 0) return;
     const newEntry = { ...form, id: Date.now(), isCustom: true };
     setEntries(prev => [...prev, newEntry]);
-    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", isCustom:true}]);
+    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", photoId:newEntry.photoId||null, isCustom:true}]);
     setForm(emptyForm);
     setShowAddForm(false);
   };
@@ -6068,6 +6069,8 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
   };
 
   const handleDelete = (id) => {
+    const target = entries.find(e => e.id === id);
+    if (_optionalChain([target, 'optionalAccess', _95b => _95b.photoId])) removePhoto(target.photoId);
     setEntries(prev => prev.filter(e => e.id !== id));
     setSansaiList(prev => prev.filter(e => e.id !== id));
     setSelected(null);
@@ -6124,6 +6127,38 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
         , React.createElement('div', { className: "form-group",}
           , React.createElement('label', { className: "form-label",}, "\u5c71\u83dc\u540d *" )
           , React.createElement('input', { className: "form-input", value: form.name, onChange: e=>setForm(f=>({...f,name:e.target.value})), placeholder: "\u4f8b\uff1a\u30e8\u30e2\u30ae",} )
+        )
+      )
+
+      , React.createElement('div', { className: "form-group",}
+        , React.createElement('label', { className: "form-label",}, "\ud83d\udcf7 \u5199\u771f\uff08\u4efb\u610f\uff09"  )
+        , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:14},}
+          , React.createElement('div', { style: {width:64, height:64, borderRadius:"50%", overflow:"hidden",
+              background:"var(--mist)", display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:28, flexShrink:0, border:"2px solid var(--mist)"},}
+            , form.photoId && photoStore[form.photoId]
+              ? React.createElement('img', { src: photoStore[form.photoId], style: {width:"100%", height:"100%", objectFit:"cover"},} )
+              : form.emoji
+          )
+          , React.createElement('label', { style: {display:"flex", flexDirection:"column", alignItems:"center",
+              justifyContent:"center", gap:4, padding:"10px 14px", borderRadius:10, cursor:"pointer",
+              background:"var(--soil)", border:"2px dashed var(--fern)", fontSize:11, fontWeight:600, color:"var(--moss)"},}
+            , React.createElement('input', { type: "file", accept: "image/*", style: {display:"none"},
+              onChange: e=>{
+                const file=e.target.files[0]; if(!file || !file.type.startsWith("image/")) return;
+                compressImageFile(file, 600, 0.82, async (dataUrl) => {
+                  const id = await savePhoto(dataUrl);
+                  setForm(f=>({...f,photoId:id}));
+                });
+                e.target.value = "";
+              },} )
+            , "\ud83d\uddbc \u5199\u771f\u3092\u9078\u629e"
+          )
+          , form.photoId && React.createElement('button', { type: "button", onClick: ()=>{
+              const oldId = form.photoId;
+              setForm(f=>({...f,photoId:null}));
+              removePhoto(oldId);
+            }, style: {background:"#fee", border:"none", borderRadius:8, padding:"8px 12px", cursor:"pointer", color:"#c0392b", fontSize:11, fontWeight:600},}, "\u524a\u9664")
         )
       )
 
@@ -6241,7 +6276,11 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
         , entries.map(s => (
           React.createElement('div', { key: s.id, className: "sansai-card", style: {borderTopColor: s.color, position:"relative"}, onClick: ()=>{ setSelected(s); setDetailSpotInput(""); },}
             , s.isCustom && React.createElement('div', { style: {position:"absolute", top:8, right:8, background:"var(--fern)", color:"white", fontSize:9, padding:"2px 6px", borderRadius:8, fontWeight:700},}, "\u8ffd\u52a0")
-            , React.createElement('div', { className: "sansai-emoji",}, s.emoji)
+            , s.photoId && photoStore[s.photoId]
+              ? React.createElement('div', { style: {width:72, height:72, borderRadius:"50%", overflow:"hidden", margin:"0 auto 8px", border:`2px solid ${s.color}`},}
+                , React.createElement('img', { src: photoStore[s.photoId], style: {width:"100%", height:"100%", objectFit:"cover"},} )
+              )
+              : React.createElement('div', { className: "sansai-emoji",}, s.emoji)
             , React.createElement('div', { className: "sansai-name",}, s.name)
             , React.createElement('div', { className: "sansai-months",}, "\ud83d\uddd3 " , s.months.map(m=>MONTHS[m-1]).join("\u30fb"))
             , React.createElement('div', { className: "sansai-region",}, "\ud83d\udccd " , s.region)
@@ -6262,7 +6301,11 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
         React.createElement('div', { className: "form-overlay", onClick: ()=>setSelected(null),}
           , React.createElement('div', { className: "form-box", onClick: e=>e.stopPropagation(), style: {maxHeight:"88vh", overflowY:"auto"},}
             , React.createElement('div', { style: {textAlign:"center", marginBottom:16},}
-              , React.createElement('div', { style: {fontSize:56},}, selected.emoji)
+              , selected.photoId && photoStore[selected.photoId]
+                ? React.createElement('div', { style: {width:96, height:96, borderRadius:"50%", overflow:"hidden", margin:"0 auto", border:`3px solid ${selected.color}`},}
+                  , React.createElement('img', { src: photoStore[selected.photoId], style: {width:"100%", height:"100%", objectFit:"cover"},} )
+                )
+                : React.createElement('div', { style: {fontSize:56},}, selected.emoji)
               , React.createElement('div', { style: {fontSize:24, fontWeight:700, color:"var(--forest)", fontFamily:"'Shippori Mincho',serif"},}, selected.name)
               , selected.isCustom && React.createElement('div', { style: {fontSize:11, color:"var(--moss)", marginTop:4},}, "\u270f\ufe0f \u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0" )
             )
