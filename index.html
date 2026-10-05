@@ -2605,6 +2605,18 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
   const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_secret_notes","sansai_secret_hash"];
 
   const handleExport = async () => {
+    const FOLDER_NAME = "\u5c71\u83dc\u624b\u5e33\u30d0\u30c3\u30af\u30a2\u30c3\u30d7";
+    /* \u30d5\u30a9\u30eb\u30c0\u9078\u629e\u306f\u30e6\u30fc\u30b6\u30fc\u64cd\u4f5c\u76f4\u5f8c\u3067\u306a\u3044\u3068\u958b\u3051\u306a\u3044\u306e\u3067\u6700\u521d\u306b\u547c\u3076 */
+    let dirHandle = null;
+    if (typeof window.showDirectoryPicker === "function") {
+      try {
+        const root = await window.showDirectoryPicker({ mode: "readwrite" });
+        dirHandle = await root.getDirectoryHandle(FOLDER_NAME, { create: true });
+      } catch (e) {
+        if (e && e.name === "AbortError") { setBackupStatus("\u30d0\u30c3\u30af\u30a2\u30c3\u30d7\u3092\u30ad\u30e3\u30f3\u30bb\u30eb\u3057\u307e\u3057\u305f"); return; }
+        dirHandle = null;
+      }
+    }
     try {
       const data = {};
       BACKUP_KEYS.forEach(k => {
@@ -2612,18 +2624,30 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
         if (v !== null) data[k] = v;
       });
       const photos = await idbGetAll();
-      const backup = { app:"sansai-techo", version:1, exportedAt: new Date().toISOString(), data, photos };
+      const now = new Date();
+      const backup = { app:"sansai-techo", version:1, exportedAt: now.toISOString(), data, photos };
       const blob = new Blob([JSON.stringify(backup)], { type:"application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      const stamp = new Date().toISOString().slice(0,10);
-      a.href = url;
-      a.download = `sansai-backup-${stamp}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      setBackupStatus("\u2705 \u30d0\u30c3\u30af\u30a2\u30c3\u30d7\u3092\u4fdd\u5b58\u3057\u307e\u3057\u305f");
+      const p2 = n => String(n).padStart(2, "0");
+      const stamp = now.getFullYear() + "-" + p2(now.getMonth()+1) + "-" + p2(now.getDate())
+        + "_" + p2(now.getHours()) + "-" + p2(now.getMinutes()) + "-" + p2(now.getSeconds());
+      const fileName = FOLDER_NAME + "_" + stamp + ".json";
+      if (dirHandle) {
+        const fh = await dirHandle.getFileHandle(fileName, { create: true });
+        const w = await fh.createWritable();
+        await w.write(blob);
+        await w.close();
+        setBackupStatus("\u2705 \u300c" + FOLDER_NAME + "\u300d\u30d5\u30a9\u30eb\u30c0\u306b\u4fdd\u5b58\u3057\u307e\u3057\u305f\n" + fileName);
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        setBackupStatus("\u2705 \u30d0\u30c3\u30af\u30a2\u30c3\u30d7\u3092\u4fdd\u5b58\u3057\u307e\u3057\u305f\n" + fileName);
+      }
     } catch(e) {
       setBackupStatus("\u274c \u30d0\u30c3\u30af\u30a2\u30c3\u30d7\u306b\u5931\u6557\u3057\u307e\u3057\u305f");
     }
@@ -2725,7 +2749,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
                 fontSize:12, fontWeight:700, cursor:"pointer"},}, "\ud83d\udce4 \u5fa9\u5143")
             , React.createElement('input', { ref: importInputRef, type: "file", accept: "application/json", style: {display:"none"}, onChange: handleImportFile,} )
           )
-          , backupStatus && React.createElement('div', { style: {fontSize:11, color:"white", marginTop:10, textAlign:"center"},}, backupStatus)
+          , backupStatus && React.createElement('div', { style: {fontSize:11, color:"white", marginTop:10, textAlign:"center", whiteSpace:"pre-line", wordBreak:"break-all"},}, backupStatus)
         )
       )
 
@@ -8586,6 +8610,20 @@ function SecretMemoView({ onLock }) {
 // ===== APP =====
 function App() {
   const [tab, setTab] = useState("home");
+  /* \u8868\u7d19(home)\u306b\u623b\u308b\uff1a\u753b\u9762\u306e\u623b\u308b\u30dc\u30bf\u30f3\u3068\u7aef\u672b\u306e\u6a19\u6e96\u300c\u623b\u308b\u300d\u30dc\u30bf\u30f3\u3069\u3061\u3089\u3082\u8868\u7d19\u3078 */
+  useEffect(() => {
+    const onPop = () => setTab("home");
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  useEffect(() => {
+    try {
+      const marked = window.history.state && window.history.state.sansaiTab;
+      if (tab !== "home" && !marked) window.history.pushState({ sansaiTab: true }, "");
+      else if (tab === "home" && marked) window.history.back();
+    } catch (e) {}
+    window.scrollTo(0, 0);
+  }, [tab]);
   const [secretOn, setSecretOn] = useState(() => { try { localStorage.removeItem("sansai_secret_on"); return sessionStorage.getItem("sansai_secret_on") === "1"; } catch (e) { return false; } });
   const [showUnlock, setShowUnlock] = useState(false);
   const unlockSecret = () => { try { sessionStorage.setItem("sansai_secret_on", "1"); } catch (e) {} setSecretOn(true); setShowUnlock(false); setTab("secret"); };
@@ -8739,6 +8777,11 @@ function App() {
         )
 
         , React.createElement('main', { className: "main",}
+          , tab !== "home" && React.createElement('button', { onClick: () => setTab("home"),
+              style: {display:"inline-flex", alignItems:"center", gap:6, margin:"0 0 12px", padding:"9px 16px",
+                background:"var(--forest)", color:"white", border:"none", borderRadius:20,
+                fontSize:13, fontWeight:700, cursor:"pointer", boxShadow:"0 2px 6px rgba(0,0,0,0.2)"},}
+              , "\u25c0 \u8868\u7d19\u306b\u623b\u308b")
           , tab === "home"     && React.createElement(HomeView, { onTabChange: setTab, secretOn: secretOn, onSecretTap: () => setShowUnlock(true),} )
           , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList,} )
           , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
