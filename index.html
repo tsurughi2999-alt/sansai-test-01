@@ -4855,8 +4855,8 @@ function MembersView({ members, setMembers }) {
               , React.createElement('div', { style: {fontSize:11, color:"#999", marginBottom:8},}, "\u81ea\u5df1\u7d39\u4ecb\u30e2\u30fc\u30c0\u30eb\u3067\u5927\u304d\u304f\u8868\u793a\u3055\u308c\u307e\u3059\uff08\u4e38\u30a2\u30a4\u30b3\u30f3\u3068\u306f\u5225\uff09")
               , formBigPhoto && (
                 React.createElement('div', { style: {marginBottom:10},}
-                  , React.createElement('img', { src: formBigPhoto, style: {width:"100%", maxHeight:220, objectFit:"cover",
-                      borderRadius:12, border:"3px solid var(--fern)", display:"block"},} )
+                  , React.createElement('img', { src: formBigPhoto, style: {width:"100%", height:"auto", maxHeight:"50vh", objectFit:"contain",
+                      background:"var(--soil)", borderRadius:12, border:"3px solid var(--fern)", display:"block"},} )
                 )
               )
               , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8},}
@@ -4909,8 +4909,8 @@ function MembersView({ members, setMembers }) {
           , React.createElement('div', { className: "form-box", style: {maxHeight:"90vh", overflowY:"auto", padding:0},}
             , dmImg && (
               React.createElement('img', { src: dmImg,
-                style: {width:"100%", maxHeight:260, objectFit:"cover", display:"block",
-                  borderTopLeftRadius:16, borderTopRightRadius:16},} )
+                style: {width:"100%", height:"auto", maxHeight:"55vh", objectFit:"contain", display:"block",
+                  background:"var(--soil)", borderTopLeftRadius:16, borderTopRightRadius:16},} )
             )
             , React.createElement('div', { style: {padding:20},}
               , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:10, marginBottom:4},}
