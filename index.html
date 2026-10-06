@@ -2662,6 +2662,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
         const backup = JSON.parse(reader.result);
         if (!backup || !backup.data) throw new Error("invalid");
         Object.keys(backup.data).forEach(k => { localStorage.setItem(k, backup.data[k]); });
+        try { localStorage.removeItem("sansai_zukan_ver"); } catch (e) {}
         if (backup.photos) {
           for (const id of Object.keys(backup.photos)) { await idbSet(id, backup.photos[id]); }
         }
@@ -2761,7 +2762,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
   );
 }
 
-function CalendarView({ sansaiList, setSansaiList }) {
+function CalendarView({ sansaiList, setSansaiList, isAdmin }) {
   const { photos: photoStore, savePhoto, removePhoto } = usePhotos();
   const currentMonth = new Date().getMonth() + 1;
 
@@ -2811,7 +2812,7 @@ function CalendarView({ sansaiList, setSansaiList }) {
   return (
     React.createElement('div', null
       , React.createElement('div', { className: "section-title",}, "\ud83c\udf43 \u5c71\u83dc\u30ab\u30ec\u30f3\u30c0\u30fc" )
-      , React.createElement('div', { className: "section-desc",}, "\u4e2d\u90e8\u30fb\u5317\u9678\u30a8\u30ea\u30a2\u306e\u63a1\u53d6\u9069\u671f\u4e00\u89a7\u3002\u5c71\u83dc\u306e\u8ffd\u52a0\u30fb\u524a\u9664\u304c\u3067\u304d\u307e\u3059\u3002")
+      , React.createElement('div', { className: "section-desc",}, (isAdmin ? "中部・北陸エリアの採取適期一覧。【管理者モード】追加・編集・削除ができます。" : "中部・北陸エリアの採取適期一覧。内容は管理者が更新します。"))
 
       , React.createElement('div', { className: "legend",}
         , React.createElement('div', { className: "legend-item",}, React.createElement('div', { className: "legend-dot", style: {background:"#2d4a2d"},}), "\u65ec\u30fb\u30d4\u30fc\u30af")
@@ -2828,7 +2829,7 @@ function CalendarView({ sansaiList, setSansaiList }) {
           const peak = s.months[Math.floor(s.months.length / 2)];
           return [
             React.createElement('div', { key: "l"+s.id, className: "cal-label", style: {display:"flex", alignItems:"center", justifyContent:"space-between", paddingRight:4},}
-              , React.createElement('span', { onClick: ()=>openEdit(s), style: {cursor:"pointer", display:"flex", alignItems:"center", gap:4},}
+              , React.createElement('span', { onClick: isAdmin ? ()=>openEdit(s) : undefined, style: {cursor: isAdmin ? "pointer" : "default", display:"flex", alignItems:"center", gap:4},}
                 , s.photoId && photoStore[s.photoId]
                   ? React.createElement('span', { style: {width:16, height:16, borderRadius:"50%", overflow:"hidden", display:"inline-block", flexShrink:0},}
                     , React.createElement('img', { src: photoStore[s.photoId], style: {width:"100%", height:"100%", objectFit:"cover"},} )
@@ -2836,7 +2837,7 @@ function CalendarView({ sansaiList, setSansaiList }) {
                   : s.emoji
                 , s.name
               )
-              , React.createElement('button', { onClick: ()=>setDeleteTarget(s),
+              , isAdmin && React.createElement('button', { onClick: ()=>setDeleteTarget(s),
                 style: {background:"none", border:"none", cursor:"pointer", color:"#c0392b", fontSize:12, padding:"0 2px", opacity:0.6, flexShrink:0},
                 title: "\u524a\u9664",}, "\u2715")
             ),
@@ -2857,7 +2858,7 @@ function CalendarView({ sansaiList, setSansaiList }) {
       )
 
       /* \u8ffd\u52a0\u30dc\u30bf\u30f3 */
-      , React.createElement('button', { className: "add-btn", style: {marginTop:16}, onClick: openAdd,}, "\uff0b \u5c71\u83dc\u3092\u8ffd\u52a0"
+      , isAdmin && React.createElement('button', { className: "add-btn", style: {marginTop:16}, onClick: openAdd,}, "\uff0b \u5c71\u83dc\u3092\u8ffd\u52a0"
 
       )
 
@@ -6160,7 +6161,7 @@ function DangerPlantsView() {
   );
 }
 
-function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
+function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
   const { photos: photoStore, savePhoto, removePhoto } = usePhotos();
   const [entries, setEntries] = useState((sansaiList||(sansaiList||(sansaiList||SANSAI_DATA))).map(s => ({
     ...s,
@@ -6443,7 +6444,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
         ))
       )
 
-      , React.createElement('button', { className: "add-btn", style: {marginTop:8}, onClick: ()=>{ setForm(emptyForm); setShowAddForm(true); },}, "\uff0b \u5c71\u83dc\u3092\u8ffd\u52a0"
+      , isAdmin && React.createElement('button', { className: "add-btn", style: {marginTop:8}, onClick: ()=>{ setForm(emptyForm); setShowAddForm(true); },}, "\uff0b \u5c71\u83dc\u3092\u8ffd\u52a0"
 
       )
 
@@ -6532,11 +6533,11 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList }) {
 
             , React.createElement('div', { className: "form-actions", style: {marginTop:16, justifyContent:"space-between"},}
               , React.createElement('div', { style: {display:"flex", gap:8},}
-                , React.createElement('button', { onClick: ()=>openEdit(entries.find(e=>e.id===selected.id)),
+                , isAdmin && React.createElement('button', { onClick: ()=>openEdit(entries.find(e=>e.id===selected.id)),
                   style: {padding:"10px 16px", background:"var(--mist)", border:"none", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600, color:"var(--forest)"},}, "\u270f\ufe0f \u7de8\u96c6"
 
                 )
-                , React.createElement('button', { onClick: ()=>setDeleteConfirm(selected),
+                , isAdmin && React.createElement('button', { onClick: ()=>setDeleteConfirm(selected),
                   style: {padding:"10px 16px", background:"#fee", border:"none", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600, color:"#c0392b"},}, "\ud83d\uddd1\ufe0f \u524a\u9664"
 
                 )
@@ -8266,13 +8267,13 @@ function safeLocalSave(key, data) {
   }
 }
 
-const PhotoContext = React.createContext({ photos: {}, ready: false, savePhoto: async()=>null, removePhoto: async()=>{} });
+const PhotoContext = React.createContext({ photos: {}, ready: false, savePhoto: async()=>null, removePhoto: async()=>{}, importPhotos: async()=>{} });
 function usePhotos() { return React.useContext(PhotoContext); }
 function PhotoProvider({ children }) {
   const [photos, setPhotos] = useState({});
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    idbGetAll().then(all => { setPhotos(all); setReady(true); }).catch(() => setReady(true));
+    idbGetAll().then(all => { setPhotos(prev => ({ ...all, ...prev })); setReady(true); }).catch(() => setReady(true));
   }, []);
   const savePhoto = async (dataUrl) => {
     if (!dataUrl) return null;
@@ -8286,7 +8287,111 @@ function PhotoProvider({ children }) {
     setPhotos(prev => { const next = { ...prev }; delete next[id]; return next; });
     idbDelete(id);
   };
-  return React.createElement(PhotoContext.Provider, { value: { photos, ready, savePhoto, removePhoto } }, children);
+  const importPhotos = async (map) => {
+    if (!map) return;
+    const ids = Object.keys(map);
+    if (!ids.length) return;
+    setPhotos(prev => ({ ...prev, ...map }));
+    for (const id of ids) { await idbSet(id, map[id]); }
+  };
+  return React.createElement(PhotoContext.Provider, { value: { photos, ready, savePhoto, removePhoto, importPhotos } }, children);
+}
+
+// ===== 図鑑・山菜カレンダーの配信（管理者が書き出した zukan.json を全員の端末へ反映） =====
+const ZUKAN_URL = "./zukan.json";
+const ZUKAN_VER_KEY = "sansai_zukan_ver";
+const ZUKAN_ADMIN_KEY = "sansai_zukan_admin";
+function zukanLocalVer() { try { return Number(localStorage.getItem(ZUKAN_VER_KEY)) || 0; } catch (e) { return 0; } }
+function zukanIsAdminDevice() { try { return localStorage.getItem(ZUKAN_ADMIN_KEY) === "1"; } catch (e) { return false; } }
+async function zukanFetchRemote() {
+  const res = await fetch(ZUKAN_URL + "?t=" + Date.now(), { cache: "no-store" });
+  if (!res.ok) throw new Error("http " + res.status);
+  const data = await res.json();
+  if (!data || data.app !== "sansai-zukan" || !Array.isArray(data.list)) throw new Error("invalid");
+  return data;
+}
+// 配信データを正とし、各端末の個人メモ・おすすめスポット（notes / customSpots）だけは端末側を残す
+function zukanMerge(remoteList, localList) {
+  const localById = {};
+  (localList || []).forEach(s => { localById[s.id] = s; });
+  return remoteList.map(r => {
+    const l = localById[r.id];
+    if (!l) return r;
+    return {
+      ...r,
+      customSpots: (l.customSpots && l.customSpots.length) ? l.customSpots : (r.customSpots || []),
+      notes: l.notes ? l.notes : (r.notes || ""),
+    };
+  });
+}
+// 配信ファイルが重くならないよう、写真を長辺720pxのJPEGに縮小
+function zukanShrink(dataUrl, maxPx, quality) {
+  return new Promise(resolve => {
+    try {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+          const w = Math.max(1, Math.round(img.width * scale));
+          const h = Math.max(1, Math.round(img.height * scale));
+          const c = document.createElement("canvas");
+          c.width = w; c.height = h;
+          const ctx = c.getContext("2d");
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          const out = c.toDataURL("image/jpeg", quality);
+          resolve(out.length < dataUrl.length ? out : dataUrl);
+        } catch (e) { resolve(dataUrl); }
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    } catch (e) { resolve(dataUrl); }
+  });
+}
+
+function ZukanAdminPanel({ sansaiList, onSync }) {
+  const { photos } = usePhotos();
+  const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
+  const handleExport = async () => {
+    setBusy(true);
+    setStatus("書き出し中です（写真を縮小しています）…");
+    try {
+      const outPhotos = {};
+      for (const s of sansaiList) {
+        if (s.photoId && photos[s.photoId]) outPhotos[s.photoId] = await zukanShrink(photos[s.photoId], 720, 0.72);
+      }
+      const version = Date.now();
+      const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, photos: outPhotos });
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "zukan.json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      try { localStorage.setItem(ZUKAN_VER_KEY, String(version)); localStorage.setItem(ZUKAN_ADMIN_KEY, "1"); } catch (e) {}
+      setStatus("✅ zukan.json を保存しました（" + sansaiList.length + "件・約" + (json.length / 1048576).toFixed(1) + "MB）\nGitHubの同じ場所にアップロードして上書きしてください");
+    } catch (e) {
+      setStatus("❌ 書き出しに失敗しました");
+    }
+    setBusy(false);
+  };
+  const handleImport = () => {
+    if (!window.confirm("この端末の図鑑・カレンダーを、GitHub上の配信データで上書きします。よろしいですか？\n（上書き前の内容は端末内に退避されます）")) return;
+    onSync(true);
+  };
+  const btn = { display: "block", width: "100%", padding: "12px 14px", marginTop: 10, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" };
+  return (
+    React.createElement('div', { style: { marginTop: 20, padding: 16, background: "white", border: "2px solid var(--mist)", borderRadius: 14 } }
+      , React.createElement('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 15 } }, "🌿 図鑑・カレンダーの配信（管理者用）")
+      , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } },
+          "図鑑とカレンダーを編集したら「書き出す」で zukan.json を作り、GitHubのリポジトリに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。")
+      , React.createElement('button', { onClick: handleExport, disabled: busy, style: { ...btn, background: "var(--forest)", color: "white", opacity: busy ? 0.6 : 1 } }, "📤 配信用に書き出す（zukan.json）")
+      , React.createElement('button', { onClick: handleImport, style: { ...btn, background: "var(--mist)", color: "var(--forest)" } }, "📥 配信データを今すぐ取り込む")
+      , status && React.createElement('div', { style: { marginTop: 10, fontSize: 12, color: "#444", whiteSpace: "pre-wrap", lineHeight: 1.7 } }, status)
+    )
+  );
 }
 
 // ===== LINKS (SNS / WEB) =====
@@ -8639,7 +8744,7 @@ function App() {
   }, [tab]);
   const [secretOn, setSecretOn] = useState(() => { try { localStorage.removeItem("sansai_secret_on"); return sessionStorage.getItem("sansai_secret_on") === "1"; } catch (e) { return false; } });
   const [showUnlock, setShowUnlock] = useState(false);
-  const unlockSecret = () => { try { sessionStorage.setItem("sansai_secret_on", "1"); } catch (e) {} setSecretOn(true); setShowUnlock(false); setTab("secret"); };
+  const unlockSecret = () => { try { sessionStorage.setItem("sansai_secret_on", "1"); localStorage.setItem(ZUKAN_ADMIN_KEY, "1"); } catch (e) {} setSecretOn(true); setShowUnlock(false); setTab("secret"); };
   const lockSecret = () => { try { sessionStorage.removeItem("sansai_secret_on"); } catch (e) {} setSecretOn(false); setTab(t => t === "secret" ? "home" : t); };
   // 5分以上バックグラウンドにあった場合は自動ロック
   useEffect(() => {
@@ -8703,6 +8808,25 @@ function App() {
     setToast({msg, type});
     setTimeout(() => setToast(null), 3500);
   };
+
+  // 図鑑・カレンダーの配信データを取り込む（管理者端末は自動更新しない）
+  const { importPhotos } = usePhotos();
+  const syncZukan = async (force) => {
+    try {
+      const remote = await zukanFetchRemote();
+      if (!force && !(remote.version > zukanLocalVer())) return false;
+      try { localStorage.setItem("sansai_list_v2_prev", localStorage.getItem("sansai_list_v2") || ""); } catch (e) {}
+      await importPhotos(remote.photos || {});
+      setSansaiList(prev => zukanMerge(remote.list, prev));
+      try { localStorage.setItem(ZUKAN_VER_KEY, String(remote.version)); } catch (e) {}
+      showToast("🌿 図鑑・カレンダーを最新版に更新しました");
+      return true;
+    } catch (e) {
+      if (force) showToast("❌ 配信データを取得できませんでした", "err");
+      return false;
+    }
+  };
+  useEffect(() => { if (!zukanIsAdminDevice()) syncZukan(false); }, []);
 
   // Google Calendar URL\u65b9\u5f0f\u3067\u81ea\u52d5\u767b\u9332
   // OAuth\u4e0d\u8981\u30fb\u30a2\u30d7\u30ea\u304b\u3089\u76f4\u63a5Google\u30ab\u30ec\u30f3\u30c0\u30fc\u767b\u9332\u753b\u9762\u3078\u9077\u79fb
@@ -8796,11 +8920,11 @@ function App() {
                 fontSize:13, fontWeight:700, cursor:"pointer", boxShadow:"0 2px 6px rgba(0,0,0,0.2)"},}
               , "\u25c0 \u8868\u7d19\u306b\u623b\u308b")
           , tab === "home"     && React.createElement(HomeView, { onTabChange: setTab, secretOn: secretOn, onSecretTap: () => setShowUnlock(true),} )
-          , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList,} )
+          , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: secretOn,} )
           , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
           , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots, sansaiList: sansaiList,} )
           , tab === "blog"     && React.createElement(BlogView, { posts: posts, setPosts: setPosts, spots: spots, members: members, sansaiList: sansaiList,} )
-          , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots, sansaiList: sansaiList, setSansaiList: setSansaiList,} )
+          , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots, sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: secretOn,} )
           , tab === "members"  && React.createElement(MembersView, { members: members, setMembers: setMembers,} )
           , tab === "patrol"   && React.createElement(PatrolView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
           , tab === "harvest"  && React.createElement(HarvestView, { spots: spots, members: members, sansaiList: sansaiList,} )
@@ -8808,7 +8932,7 @@ function App() {
           , tab === "gear"     && React.createElement(GearView, { sansaiList: sansaiList,} )
           , tab === "links"    && React.createElement(LinkView, null)
           , tab === "manual"   && React.createElement(ManualView, null)
-          , tab === "secret" && secretOn && React.createElement(SecretMemoView, { onLock: lockSecret,} )
+          , tab === "secret" && secretOn && React.createElement(React.Fragment, null, React.createElement(SecretMemoView, { onLock: lockSecret,} ), React.createElement(ZukanAdminPanel, { sansaiList: sansaiList, onSync: syncZukan,} ))
           , showUnlock && React.createElement(SecretUnlockModal, { onClose: () => setShowUnlock(false), onOk: unlockSecret,} )
         )
       )
