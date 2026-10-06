@@ -8920,11 +8920,11 @@ function App() {
                 fontSize:13, fontWeight:700, cursor:"pointer", boxShadow:"0 2px 6px rgba(0,0,0,0.2)"},}
               , "\u25c0 \u8868\u7d19\u306b\u623b\u308b")
           , tab === "home"     && React.createElement(HomeView, { onTabChange: setTab, secretOn: secretOn, onSecretTap: () => setShowUnlock(true),} )
-          , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: secretOn,} )
+          , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: (secretOn || zukanIsAdminDevice()),} )
           , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
           , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots, sansaiList: sansaiList,} )
           , tab === "blog"     && React.createElement(BlogView, { posts: posts, setPosts: setPosts, spots: spots, members: members, sansaiList: sansaiList,} )
-          , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots, sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: secretOn,} )
+          , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots, sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: (secretOn || zukanIsAdminDevice()),} )
           , tab === "members"  && React.createElement(MembersView, { members: members, setMembers: setMembers,} )
           , tab === "patrol"   && React.createElement(PatrolView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
           , tab === "harvest"  && React.createElement(HarvestView, { spots: spots, members: members, sansaiList: sansaiList,} )
