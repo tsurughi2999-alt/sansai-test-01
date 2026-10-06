@@ -2295,6 +2295,27 @@ const INITIAL_TOOLS = [
 ];
 
 
+// ===== 服装・道具のアイコン（名前・カテゴリから自動で選ぶ） =====
+const GEAR_NAME_ICONS = [
+  ["ヘルメット","⛑️"],["ヘッドランプ","🔦"],["ライト","🔦"],["ファーストエイド","🩹"],["救急","🩹"],["熊鈴","🔔"],["熊撃退","🧴"],["スプレー","🧴"],
+  ["長袖","👕"],["シャツ","👕"],["長ズボン","👖"],["ズボン","👖"],["パンツ","👖"],["長靴","👢"],["登山靴","🥾"],["靴","🥾"],
+  ["軍手","🧤"],["手袋","🧤"],["帽子","🧢"],["レインウェア","☔"],["雨具","☔"],["ヤッケ","🧥"],["防風","🧥"],["ジャケット","🧥"],["スパッツ","🧦"],["ゲイター","🧦"],["靴下","🧦"],
+  ["ナイフ","🔪"],["鎌","🔪"],["ハサミ","✂️"],["スコップ","⛏️"],["移植ゴテ","⛏️"],["ザル","🧺"],["カゴ","🧺"],["籠","🧺"],["ビニール","🛍️"],["新聞","📰"],
+  ["GPS","📱"],["スマートフォン","📱"],["スマホ","📱"],["コンパス","🧭"],["地図","🗺️"],["水筒","🥤"],["飲み水","🥤"],["タオル","🧣"],["虫除け","🦟"],["日焼け","🧴"],["食","🍙"]
+];
+const GEAR_CAT_ICONS = {
+  "上着":"🧥","ズボン":"👖","靴":"🥾","手袋":"🧤","帽子":"🧢","雨具":"☔","脚":"🧦","頭":"⛑️",
+  "採取道具":"🔪","収納":"🧺","安全":"🦺","照明":"🔦","救急":"🩹","ナビ":"🧭","携行食":"🍙","その他":"🎒"
+};
+function gearIcon(item, isClothing) {
+  if (item && item.icon) return item.icon;
+  const name = (item && item.name) || "";
+  for (let i = 0; i < GEAR_NAME_ICONS.length; i++) { if (name.indexOf(GEAR_NAME_ICONS[i][0]) >= 0) return GEAR_NAME_ICONS[i][1]; }
+  if (item && GEAR_CAT_ICONS[item.category]) return GEAR_CAT_ICONS[item.category];
+  return isClothing ? "👕" : "🎒";
+}
+function gearCatIcon(cat, isClothing) { return GEAR_CAT_ICONS[cat] || (isClothing ? "👕" : "🎒"); }
+
 function GearView({ sansaiList }) {
   const [clothing, setClothing] = useState(() => {
     try { const s = localStorage.getItem("sansai_clothing"); if(s) return JSON.parse(s); } catch(e) {}
@@ -2406,6 +2427,7 @@ function GearView({ sansaiList }) {
           React.createElement('div', { key: item.id, style: {background:"white", borderRadius:12, padding:"12px 14px",
             boxShadow:"0 2px 8px rgba(0,0,0,0.07)", border:"1px solid var(--mist)",
             display:"flex", alignItems:"center", gap:10},}
+            , React.createElement('div', { style: {fontSize:22, flexShrink:0},}, gearIcon(item, mainTab==="clothing"))
             , React.createElement('div', { style: {flex:1},}
               , React.createElement('div', { style: {fontSize:14, fontWeight:700, color:"var(--forest)"},}, item.name)
               , React.createElement('div', { style: {fontSize:11, color:"#888"},}, "\u3010"
@@ -2559,7 +2581,7 @@ function GearView({ sansaiList }) {
           React.createElement('div', { key: cat, style: {marginBottom:20},}
             , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)",
               background:"var(--soil)", padding:"6px 14px", borderRadius:8, marginBottom:8},}
-              , mainTab==="clothing" ? "\ud83d\udc54" : "\ud83d\udd27", " " , cat
+              , gearCatIcon(cat, mainTab==="clothing"), " " , cat
             )
             , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8},}
               , items.map(item => (
@@ -2567,7 +2589,7 @@ function GearView({ sansaiList }) {
                   boxShadow:"0 2px 8px rgba(0,0,0,0.06)", border:"1px solid var(--mist)",
                   display:"flex", alignItems:"flex-start", gap:12},}
                   , React.createElement('div', { style: {fontSize:24, flexShrink:0},}
-                    , mainTab==="clothing" ? "\ud83d\udc55" : "\ud83c\udf92"
+                    , gearIcon(item, mainTab==="clothing")
                   )
                   , React.createElement('div', { style: {flex:1},}
                     , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)", marginBottom:2},}
@@ -2602,7 +2624,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
   const [secretCount, setSecretCount] = useState(0);
   const [backupStatus, setBackupStatus] = useState("");
   const importInputRef = useRef(null);
-  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_secret_notes","sansai_secret_hash"];
+  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash"];
 
   const handleExport = async () => {
     const FOLDER_NAME = "\u5c71\u83dc\u624b\u5e33\u30d0\u30c3\u30af\u30a2\u30c3\u30d7";
@@ -8302,7 +8324,7 @@ const ZUKAN_URL = "./zukan.json";
 const ZUKAN_VER_KEY = "sansai_zukan_ver";
 const ZUKAN_ADMIN_KEY = "sansai_zukan_admin";
 function zukanLocalVer() { try { return Number(localStorage.getItem(ZUKAN_VER_KEY)) || 0; } catch (e) { return 0; } }
-function zukanIsAdminDevice() { try { return localStorage.getItem(ZUKAN_ADMIN_KEY) === "1"; } catch (e) { return false; } }
+function zukanIsAdminDevice() { try { return localStorage.getItem(ZUKAN_ADMIN_KEY) === "1" || !!localStorage.getItem("sansai_secret_hash"); } catch (e) { return false; } }
 async function zukanFetchRemote() {
   const res = await fetch(ZUKAN_URL + "?t=" + Date.now(), { cache: "no-store" });
   if (!res.ok) throw new Error("http " + res.status);
@@ -8556,24 +8578,87 @@ const QA_ITEMS = [
   { q:"\u5165\u5c71\u3059\u308b\u3068\u304d\u306e\u6ce8\u610f\u70b9\u306f\uff1f", a:"\u5358\u72ec\u884c\u52d5\u3092\u907f\u3051\u3001\u4e8b\u524d\u306b\u884c\u304d\u5148\u3068\u5e30\u5b85\u4e88\u5b9a\u3092\u5bb6\u65cf\u3084\u4ef2\u9593\u306b\u4f1d\u3048\u307e\u3057\u3087\u3046\u3002\u79c1\u6709\u5730\u30fb\u56fd\u6709\u6797\u30fb\u4fdd\u8b77\u533a\u3067\u306f\u63a1\u53d6\u30eb\u30fc\u30eb\u3092\u78ba\u8a8d\u3057\u3001\u30af\u30de\u306e\u51fa\u6ca1\u60c5\u5831\u306b\u3082\u6ce8\u610f\u3057\u3066\u304f\u3060\u3055\u3044\u3002" },
 ];
 
-function ManualView() {
+function ManualView({ isAdmin }) {
   const [sub, setSub] = useState("manual");
   const [openId, setOpenId] = useState(null);
-  const items = sub === "manual" ? MANUAL_ITEMS : QA_ITEMS;
+  const loadList = (key, def) => { try { const s = localStorage.getItem(key); if (s) { const p = JSON.parse(s); if (Array.isArray(p)) return p; } } catch (e) {} return def; };
+  const [manualItems, setManualItems] = useState(() => loadList("sansai_manual_v1", MANUAL_ITEMS));
+  const [qaItems, setQaItems] = useState(() => loadList("sansai_qa_v1", QA_ITEMS));
+  useEffect(() => { try { localStorage.setItem("sansai_manual_v1", JSON.stringify(manualItems)); } catch (e) {} }, [manualItems]);
+  useEffect(() => { try { localStorage.setItem("sansai_qa_v1", JSON.stringify(qaItems)); } catch (e) {} }, [qaItems]);
+
+  const [showForm, setShowForm] = useState(false);
+  const [editIdx, setEditIdx] = useState(null);
+  const [form, setForm] = useState({ i:"🌿", t:"", b:"", q:"", a:"" });
+  const [err, setErr] = useState("");
+  const [deleteIdx, setDeleteIdx] = useState(null);
+
+  const isManual = sub === "manual";
+  const items = isManual ? manualItems : qaItems;
+  const setItems = isManual ? setManualItems : setQaItems;
+
+  const openAdd = () => { setEditIdx(null); setForm({ i:"🌿", t:"", b:"", q:"", a:"" }); setErr(""); setShowForm(true); };
+  const openEdit = (idx) => {
+    const it = items[idx];
+    setEditIdx(idx); setErr("");
+    setForm(isManual ? { i: it.i || "🌿", t: it.t || "", b: (it.b || []).join("\n"), q:"", a:"" } : { i:"🌿", t:"", b:"", q: it.q || "", a: it.a || "" });
+    setShowForm(true);
+  };
+  const save = () => {
+    let item;
+    if (isManual) {
+      const lines = form.b.split("\n").map(x => x.trim()).filter(Boolean);
+      if (!form.t.trim()) { setErr("タイトルを入力してください"); return; }
+      if (lines.length === 0) { setErr("本文を入力してください"); return; }
+      item = { t: form.t.trim(), i: form.i.trim() || "🌿", b: lines };
+    } else {
+      if (!form.q.trim()) { setErr("質問を入力してください"); return; }
+      if (!form.a.trim()) { setErr("答えを入力してください"); return; }
+      item = { q: form.q.trim(), a: form.a.trim() };
+    }
+    const idx = editIdx;
+    setItems(prev => idx === null ? [...prev, item] : prev.map((x, k) => k === idx ? item : x));
+    setShowForm(false);
+    setOpenId(sub + (idx === null ? items.length : idx));
+  };
+  const doDelete = () => {
+    const idx = deleteIdx;
+    setItems(prev => prev.filter((_, k) => k !== idx));
+    setDeleteIdx(null); setOpenId(null);
+  };
+  const move = (idx, dir) => {
+    const to = idx + dir;
+    if (to < 0 || to >= items.length) return;
+    setItems(prev => { const a = prev.slice(); const t = a[idx]; a[idx] = a[to]; a[to] = t; return a; });
+    setOpenId(sub + to);
+  };
+  const resetAll = () => {
+    if (window.confirm((isManual ? "使い方マニュアル" : "Q&A集") + "を初期状態に戻しますか？（追加・編集した内容は消えます）")) {
+      setItems(isManual ? MANUAL_ITEMS : QA_ITEMS); setOpenId(null);
+    }
+  };
+
   const pill = (id, label) => React.createElement('button', {
     onClick: () => { setSub(id); setOpenId(null); },
     style: { flex:1, padding:"10px 8px", border:"none", cursor:"pointer", fontFamily:"inherit", fontSize:14,
       background: sub===id ? "var(--forest)" : "var(--mist)", color: sub===id ? "white" : "var(--forest)",
       fontWeight: sub===id ? 700 : 400 },
   }, label);
+  const smallBtn = (label, onClick, extra) => React.createElement('button', {
+    onClick: onClick,
+    style: Object.assign({ padding:"6px 12px", borderRadius:8, border:"1px solid var(--mist)", background:"white", color:"var(--forest)", fontFamily:"inherit", fontSize:13, cursor:"pointer" }, extra || {}),
+  }, label);
 
   return (
     React.createElement('div', null
-      , React.createElement('div', { className:"section-title",}, "\ud83d\udcd6 \u4f7f\u3044\u65b9\u30fbQ&A")
-      , React.createElement('div', { className:"section-desc", style:{marginBottom:14},}, "\u30bf\u30a4\u30c8\u30eb\u3092\u30bf\u30c3\u30d7\u3059\u308b\u3068\u5185\u5bb9\u304c\u958b\u304d\u307e\u3059")
+      , React.createElement('div', { style:{display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, flexWrap:"wrap", marginBottom:6},}
+        , React.createElement('div', { className:"section-title", style:{marginBottom:0},}, "📖 使い方・Q&A")
+        , isAdmin && React.createElement('button', { className:"add-btn", onClick:openAdd,}, "＋ 新規登録")
+      )
+      , React.createElement('div', { className:"section-desc", style:{marginBottom:14},}, isAdmin ? "【管理者モード】追加・編集・削除・並べ替えができます。タイトルをタップして開いてください。" : "タイトルをタップすると内容が開きます")
       , React.createElement('div', { style:{display:"flex", borderRadius:10, overflow:"hidden", marginBottom:14, border:"1px solid var(--mist)"},}
-        , pill("manual", "\ud83d\udcd8 \u4f7f\u3044\u65b9\u30de\u30cb\u30e5\u30a2\u30eb")
-        , pill("qa", "\u2753 Q&A\u96c6")
+        , pill("manual", "📘 使い方マニュアル")
+        , pill("qa", "❓ Q&A集")
       )
       , items.map((it, idx) => {
         const key = sub + idx;
@@ -8581,18 +8666,75 @@ function ManualView() {
         return (
           React.createElement('div', { key:key, style:{background:"var(--paper)", border:"1px solid var(--mist)", borderRadius:12, marginBottom:10, overflow:"hidden"},}
             , React.createElement('button', { onClick:()=>setOpenId(open ? null : key),
-                style:{width:"100%", textAlign:"left", padding:"14px", background:"none", border:"none", cursor:"pointer", fontFamily:"inherit", fontSize:14, fontWeight:700, color:"var(--forest)", display:"flex", justifyContent:"space-between", alignItems:"center", gap:10},}
-              , React.createElement('span', null, sub==="manual" ? (it.i + " " + it.t) : ("Q. " + it.q))
-              , React.createElement('span', { style:{color:"var(--moss)"},}, open ? "\u25b2" : "\u25bc")
+                style:{width:"100%", textAlign:"left", padding:"14px", background:"none", border:"none", cursor:"pointer", fontFamily:"inherit", fontSize:14, fontWeight:700, color:"var(--forest)", display:"flex", justifyContent:"space-between", alignItems:"center", gap:8},}
+              , React.createElement('span', null, isManual ? ((it.i || "") + " " + it.t) : ("Q. " + it.q))
+              , React.createElement('span', { style:{color:"var(--moss)"},}, open ? "▲" : "▼")
             )
             , open && React.createElement('div', { style:{padding:"0 14px 14px", fontSize:13, lineHeight:1.9, color:"#444"},}
-              , sub==="manual"
-                ? it.b.map((line, j) => React.createElement('div', { key:j, style:{marginBottom:4},}, "\u30fb", line))
+              , isManual
+                ? (it.b || []).map((line, j) => React.createElement('div', { key:j, style:{marginBottom:4},}, "・", line))
                 : React.createElement('div', null, "A. ", it.a)
+              , isAdmin && React.createElement('div', { style:{display:"flex", gap:8, flexWrap:"wrap", marginTop:12},}
+                , smallBtn("✏️ 編集", () => openEdit(idx))
+                , smallBtn("↑", () => move(idx, -1), idx === 0 ? { opacity:0.35 } : null)
+                , smallBtn("↓", () => move(idx, 1), idx === items.length - 1 ? { opacity:0.35 } : null)
+                , smallBtn("🗑 削除", () => setDeleteIdx(idx), { color:"#c0392b", borderColor:"#e6b0aa" })
+              )
             )
           )
         );
       })
+      , items.length === 0 && React.createElement('div', { style:{color:"#888", fontSize:13, padding:"20px 0"},}, isAdmin ? "項目がありません。「＋ 新規登録」から追加してください。" : "項目がありません。")
+      , isAdmin && React.createElement('button', { className:"btn-cancel", onClick:resetAll, style:{marginTop:6},}, "初期状態に戻す")
+
+      , showForm && (
+        React.createElement('div', { className:"form-overlay", onClick: e=>e.target===e.currentTarget && setShowForm(false),}
+          , React.createElement('div', { className:"form-box",}
+            , React.createElement('div', { className:"form-title",}, (isManual ? "📘 使い方" : "❓ Q&A") + (editIdx === null ? "を登録" : "を編集"))
+            , isManual ? React.createElement(React.Fragment, null
+              , React.createElement('div', { className:"form-group",}
+                , React.createElement('label', { className:"form-label",}, "アイコン（絵文字）")
+                , React.createElement('input', { className:"form-input", value:form.i, onChange:e=>setForm(f=>({...f,i:e.target.value})),})
+              )
+              , React.createElement('div', { className:"form-group",}
+                , React.createElement('label', { className:"form-label",}, "タイトル")
+                , React.createElement('input', { className:"form-input", value:form.t, onChange:e=>setForm(f=>({...f,t:e.target.value})),})
+              )
+              , React.createElement('div', { className:"form-group",}
+                , React.createElement('label', { className:"form-label",}, "本文（1行が1つの項目になります）")
+                , React.createElement('textarea', { className:"form-input", rows:8, style:{minHeight:160, lineHeight:1.7}, value:form.b, onChange:e=>setForm(f=>({...f,b:e.target.value})),})
+              )
+            ) : React.createElement(React.Fragment, null
+              , React.createElement('div', { className:"form-group",}
+                , React.createElement('label', { className:"form-label",}, "質問")
+                , React.createElement('input', { className:"form-input", value:form.q, onChange:e=>setForm(f=>({...f,q:e.target.value})),})
+              )
+              , React.createElement('div', { className:"form-group",}
+                , React.createElement('label', { className:"form-label",}, "答え")
+                , React.createElement('textarea', { className:"form-input", rows:8, style:{minHeight:160, lineHeight:1.7}, value:form.a, onChange:e=>setForm(f=>({...f,a:e.target.value})),})
+              )
+            )
+            , err && React.createElement('div', { style:{color:"#c0392b", fontSize:13, marginTop:8},}, err)
+            , React.createElement('div', { className:"form-actions",}
+              , React.createElement('button', { className:"btn-cancel", onClick:()=>setShowForm(false),}, "キャンセル")
+              , React.createElement('button', { className:"btn-submit", onClick:save,}, editIdx === null ? "登録" : "保存")
+            )
+          )
+        )
+      )
+
+      , deleteIdx !== null && (
+        React.createElement('div', { className:"form-overlay", onClick: e=>e.target===e.currentTarget && setDeleteIdx(null),}
+          , React.createElement('div', { className:"form-box",}
+            , React.createElement('div', { className:"form-title",}, "🗑 削除の確認")
+            , React.createElement('div', { style:{fontSize:14, lineHeight:1.8},}, "「", items[deleteIdx] ? (isManual ? items[deleteIdx].t : items[deleteIdx].q) : "", "」を削除しますか？")
+            , React.createElement('div', { className:"form-actions",}
+              , React.createElement('button', { className:"btn-cancel", onClick:()=>setDeleteIdx(null),}, "キャンセル")
+              , React.createElement('button', { className:"btn-submit", style:{background:"#c0392b"}, onClick:doDelete,}, "削除する")
+            )
+          )
+        )
+      )
     )
   );
 }
@@ -8931,7 +9073,7 @@ function App() {
           , tab === "memo"     && React.createElement(MemoView, { spots: spots, sansaiList: sansaiList,} )
           , tab === "gear"     && React.createElement(GearView, { sansaiList: sansaiList,} )
           , tab === "links"    && React.createElement(LinkView, null)
-          , tab === "manual"   && React.createElement(ManualView, null)
+          , tab === "manual"   && React.createElement(ManualView, { isAdmin: (secretOn || zukanIsAdminDevice()),})
           , tab === "secret" && secretOn && React.createElement(React.Fragment, null, React.createElement(SecretMemoView, { onLock: lockSecret,} ), React.createElement(ZukanAdminPanel, { sansaiList: sansaiList, onSync: syncZukan,} ))
           , showUnlock && React.createElement(SecretUnlockModal, { onClose: () => setShowUnlock(false), onOk: unlockSecret,} )
         )
