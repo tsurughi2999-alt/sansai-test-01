@@ -9067,7 +9067,7 @@ function App() {
           , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots, sansaiList: sansaiList,} )
           , tab === "blog"     && React.createElement(BlogView, { posts: posts, setPosts: setPosts, spots: spots, members: members, sansaiList: sansaiList,} )
           , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots, sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: (secretOn || zukanIsAdminDevice()),} )
-          , tab === "members"  && React.createElement(MembersView, { members: members, setMembers: setMembers,} )
+          , tab === "members"  && React.createElement(React.Fragment, null, React.createElement(MembersView, { members: members, setMembers: setMembers,} ), React.createElement(AuthPanel, { isAdmin: (secretOn || zukanIsAdminDevice()),} ))
           , tab === "patrol"   && React.createElement(PatrolView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
           , tab === "harvest"  && React.createElement(HarvestView, { spots: spots, members: members, sansaiList: sansaiList,} )
           , tab === "memo"     && React.createElement(MemoView, { spots: spots, sansaiList: sansaiList,} )
@@ -9083,12 +9083,167 @@ function App() {
 }
 
 
+// ===== 入口の共通ID・パスワード認証 =====
+const AUTH_CFG_KEY = "sansai_auth_cfg";
+const AUTH_OK_KEY = "sansai_auth_ok";
+const AUTH_URL = "./auth.json";
+async function authHash(id, pw) {
+  const t = "sansai-auth:" + String(id).trim() + ":" + pw;
+  try {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  } catch (e) {
+    let h = 5381;
+    for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0;
+    return "f" + (h >>> 0).toString(16);
+  }
+}
+function authLoadCfg() { try { const s = localStorage.getItem(AUTH_CFG_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+function authSaveCfg(cfg) { try { localStorage.setItem(AUTH_CFG_KEY, JSON.stringify(cfg)); } catch (e) {} }
+function authIsOk(cfg) {
+  if (!cfg || !cfg.hash) return true;
+  try { return localStorage.getItem(AUTH_OK_KEY) === cfg.hash || sessionStorage.getItem(AUTH_OK_KEY) === cfg.hash; } catch (e) { return false; }
+}
+function authMarkOk(hash, remember) {
+  try {
+    localStorage.removeItem(AUTH_OK_KEY); sessionStorage.removeItem(AUTH_OK_KEY);
+    (remember ? localStorage : sessionStorage).setItem(AUTH_OK_KEY, hash);
+  } catch (e) {}
+}
+function authLogout() {
+  try { localStorage.removeItem(AUTH_OK_KEY); sessionStorage.removeItem(AUTH_OK_KEY); } catch (e) {}
+  window.location.reload();
+}
+async function authFetchRemote() {
+  const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = setTimeout(() => { try { ctl && ctl.abort(); } catch (e) {} }, 4000);
+  try {
+    const res = await fetch(AUTH_URL + "?t=" + Date.now(), { cache: "no-store", signal: ctl ? ctl.signal : undefined });
+    if (!res.ok) throw new Error("http " + res.status);
+    const data = await res.json();
+    if (!data || data.app !== "sansai-auth") throw new Error("invalid");
+    return { app: "sansai-auth", id: data.id || "", hash: data.hash || "", ver: Number(data.ver) || 0 };
+  } finally { clearTimeout(timer); }
+}
+
+function AuthLoginScreen({ cfg, onOk }) {
+  const [id, setId] = useState("");
+  const [pw, setPw] = useState("");
+  const [remember, setRemember] = useState(true);
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submit = async () => {
+    if (busy) return;
+    setBusy(true); setErr("");
+    const h = await authHash(id, pw);
+    if (h === cfg.hash) { authMarkOk(cfg.hash, remember); onOk(); return; }
+    setTimeout(() => { setErr("IDまたはパスワードが違います"); setPw(""); setBusy(false); }, 700);
+  };
+  const input = { width: "100%", boxSizing: "border-box", padding: "13px 14px", fontSize: 16, border: "2px solid #cfe0c6", borderRadius: 12, marginTop: 10, outline: "none", background: "#fbfdf9" };
+  return (
+    React.createElement('div', { style: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, boxSizing: "border-box", background: "linear-gradient(160deg,#eaf3e3,#cfe3c4)", fontFamily: "sans-serif" } }
+      , React.createElement('form', { onSubmit: e => { e.preventDefault(); submit(); }, style: { width: "100%", maxWidth: 360, background: "white", borderRadius: 22, padding: "28px 24px", boxShadow: "0 8px 30px rgba(45,74,45,0.2)", textAlign: "center" } }
+        , React.createElement('img', { src: APP_LOGO, alt: "山菜手帳", style: { width: 96, height: 96, borderRadius: "50%", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" } })
+        , React.createElement('div', { style: { fontSize: 20, fontWeight: 800, color: "#2d4a2d", marginTop: 12 } }, "山菜採り手帳")
+        , React.createElement('div', { style: { fontSize: 13, color: "#666", marginTop: 6, lineHeight: 1.7 } }, "メンバー共通のIDとパスワードを入力してください")
+        , React.createElement('input', { type: "text", value: id, placeholder: "ID", autoComplete: "username", autoCapitalize: "none", autoCorrect: "off", spellCheck: false, onChange: e => setId(e.target.value), style: input })
+        , React.createElement('input', { type: "password", value: pw, placeholder: "パスワード", autoComplete: "current-password", onChange: e => setPw(e.target.value), style: input })
+        , React.createElement('label', { style: { display: "flex", alignItems: "center", gap: 8, marginTop: 12, fontSize: 13, color: "#444", textAlign: "left" } }
+          , React.createElement('input', { type: "checkbox", checked: remember, onChange: e => setRemember(e.target.checked) })
+          , "この端末ではログイン状態を保存する")
+        , err && React.createElement('div', { style: { color: "#c0392b", fontSize: 13, marginTop: 10 } }, err)
+        , React.createElement('button', { type: "submit", disabled: busy, style: { width: "100%", marginTop: 16, padding: "14px", border: "none", borderRadius: 12, background: "#2d4a2d", color: "white", fontSize: 16, fontWeight: 700, cursor: "pointer", opacity: busy ? 0.6 : 1 } }, busy ? "確認中…" : "ログイン")
+      )
+    )
+  );
+}
+
+function AuthGate({ children }) {
+  const [cfg, setCfg] = useState(() => authLoadCfg());
+  const [checking, setChecking] = useState(() => !authLoadCfg());
+  const [authed, setAuthed] = useState(() => authIsOk(authLoadCfg()));
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const remote = await authFetchRemote();
+        const local = authLoadCfg();
+        if (!local || remote.ver >= (local.ver || 0)) {
+          authSaveCfg(remote);
+          if (alive) { setCfg(remote); setAuthed(authIsOk(remote)); }
+        }
+      } catch (e) {}
+      if (alive) setChecking(false);
+    })();
+    return () => { alive = false; };
+  }, []);
+  if (checking) {
+    return React.createElement('div', { style: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#eaf3e3", color: "#2d4a2d", fontFamily: "sans-serif", fontSize: 14 } }, "読み込み中…");
+  }
+  if (authed) return React.createElement(React.Fragment, null, children);
+  return React.createElement(AuthLoginScreen, { cfg: cfg, onOk: () => setAuthed(true) });
+}
+
+// メンバータブ：共通ID・パスワードの設定（管理者用）とログアウト
+function AuthPanel({ isAdmin }) {
+  const [cfg, setCfg] = useState(() => authLoadCfg());
+  const [id, setId] = useState(() => { const c = authLoadCfg(); return c && c.id ? c.id : ""; });
+  const [pw, setPw] = useState("");
+  const [status, setStatus] = useState("");
+  const enabled = !!(cfg && cfg.hash);
+  const download = (obj) => {
+    const blob = new Blob([JSON.stringify(obj)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "auth.json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  };
+  const handleSet = async () => {
+    const i = id.trim();
+    if (!i) { setStatus("❌ IDを入力してください"); return; }
+    if (pw.length < 4) { setStatus("❌ パスワードは4文字以上で入力してください"); return; }
+    const next = { app: "sansai-auth", id: i, hash: await authHash(i, pw), ver: Date.now() };
+    authSaveCfg(next); authMarkOk(next.hash, true);
+    setCfg(next); setPw("");
+    download(next);
+    setStatus("✅ 設定しました。auth.json を保存しました。\nGitHubのリポジトリ（index.html と同じ場所）に上書きアップロードすると、メンバー全員の端末で次回からログインが必要になります。");
+  };
+  const handleClear = () => {
+    if (!window.confirm("共通ID・パスワードを解除して、ログイン不要に戻します。よろしいですか？")) return;
+    const next = { app: "sansai-auth", id: "", hash: "", ver: Date.now() };
+    authSaveCfg(next); setCfg(next); setId("");
+    download(next);
+    setStatus("✅ 解除しました。auth.json をGitHubに上書きアップロードすると全員に反映されます。");
+  };
+  if (!enabled && !isAdmin) return null;
+  const btn = { display: "block", width: "100%", padding: "12px 14px", marginTop: 10, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" };
+  const inp = { width: "100%", boxSizing: "border-box", padding: "11px 12px", fontSize: 16, border: "2px solid #cfe0c6", borderRadius: 10, marginTop: 8 };
+  return (
+    React.createElement('div', { style: { marginTop: 20, padding: 16, background: "white", border: "2px solid #dfe9d8", borderRadius: 14 } }
+      , React.createElement('div', { style: { fontWeight: 700, color: "#2d4a2d", fontSize: 15 } }, "🔑 ログイン")
+      , enabled && React.createElement('button', { onClick: authLogout, style: { ...btn, background: "#eaf3e3", color: "#2d4a2d" } }, "🚪 この端末をログアウト")
+      , isAdmin && React.createElement('div', { style: { marginTop: 14, paddingTop: 12, borderTop: "1px dashed #cfe0c6" } }
+        , React.createElement('div', { style: { fontWeight: 700, color: "#2d4a2d", fontSize: 14 } }, "共通ID・パスワードの設定（管理者用）")
+        , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } }
+          , enabled ? "現在のID：" + cfg.id + "（パスワードは設定済み）" : "現在：未設定（ログイン不要）")
+        , React.createElement('input', { type: "text", value: id, placeholder: "共通ID", autoCapitalize: "none", autoCorrect: "off", spellCheck: false, onChange: e => setId(e.target.value), style: inp })
+        , React.createElement('input', { type: "text", value: pw, placeholder: "共通パスワード（4文字以上）", autoCapitalize: "none", autoCorrect: "off", spellCheck: false, onChange: e => setPw(e.target.value), style: inp })
+        , React.createElement('button', { onClick: handleSet, style: { ...btn, background: "#2d4a2d", color: "white" } }, "💾 設定して配信用に書き出す（auth.json）")
+        , enabled && React.createElement('button', { onClick: handleClear, style: { ...btn, background: "#f6e3e0", color: "#c0392b" } }, "ログイン不要に戻す")
+        , status && React.createElement('div', { style: { marginTop: 10, fontSize: 12, color: "#444", whiteSpace: "pre-wrap", lineHeight: 1.7 } }, status)
+      )
+    )
+  );
+}
+
+
 window.App = App;
 
     try{
       var c=document.getElementById('root');
       var rt=ReactDOM.createRoot(c);
-      rt.render(React.createElement(PhotoProvider, null, React.createElement(window.App)));
+      rt.render(React.createElement(PhotoProvider, null, React.createElement(AuthGate, null, React.createElement(window.App))));
     }catch(e){
       document.getElementById('root').innerHTML=
         '<div style="padding:20px;font-family:sans-serif;color:#c0392b;background:#fdecea;border-radius:12px;margin:20px;">'+
