@@ -8868,6 +8868,317 @@ function SecretMemoView({ onLock }) {
 
 
 // ===== APP =====
+// ===== パトロール・採取記録・メモの共有（管理者が書き出し→GitHubで配信／メンバーは提出ファイルを管理者へ） =====
+const SHARE_KINDS = {
+  patrol:  { label: "パトロール", key: "sansai_patrol",   file: "patrol.json",  noteField: "notes" },
+  harvest: { label: "採取記録",   key: "sansai_harvests", file: "harvest.json", noteField: "memo" },
+  memo:    { label: "メモ",       key: "sansai_memos",    file: "memo.json",    noteField: "landmark" },
+};
+const SHARE_NAME_KEY = "sansai_my_name";
+function shareLoadOwn(kind) {
+  try { const s = localStorage.getItem(SHARE_KINDS[kind].key); const v = s ? JSON.parse(s) : []; return Array.isArray(v) ? v : []; } catch (e) { return []; }
+}
+function shareSaveOwn(kind, list) { return safeLocalSave(SHARE_KINDS[kind].key, list); }
+function shareSpotName(spots, id) {
+  const s = (spots || []).find(x => String(x.id) === String(id));
+  return s ? s.name : "";
+}
+function shareSansaiName(list, id) {
+  const s = (list || SANSAI_DATA).find(x => String(x.id) === String(id));
+  return s ? s.name : "";
+}
+function shareRecLabel(kind, r, spots, sansaiList) {
+  const date = r.date || "";
+  if (kind === "memo") return date + " " + (r.title || "(無題)");
+  const spot = shareSpotName(spots, r.spotId) || "場所未設定";
+  if (kind === "harvest") return date + " " + (shareSansaiName(sansaiList, r.sansaiId) || "") + " " + (r.amount ? r.amount + (r.unit || "") : "") + "（" + spot + "）";
+  return date + " " + spot;
+}
+// 共有用に整える：位置情報・非公開項目を除き、場所名・山菜名を文字で持たせ、写真を縮小する
+async function sharePack(kind, records, photoStore, spots, sansaiList, by) {
+  const out = [];
+  for (const r of records) {
+    const c = { ...r };
+    delete c.gps; delete c.shared; delete c.private; delete c.clothingChecks; delete c.toolsChecks;
+    c._spot = shareSpotName(spots, r.spotId);
+    c._by = r._by || by;
+    c._uid = r._uid || (by + ":" + r.id);
+    if (kind === "patrol") c.sansaiStatus = (r.sansaiStatus || []).map(s => ({ ...s, _name: shareSansaiName(sansaiList, s.sansaiId) }));
+    if (kind === "harvest") c._sansai = shareSansaiName(sansaiList, r.sansaiId);
+    if (kind === "memo") c._sansaiNames = (r.sansai || []).map(id => shareSansaiName(sansaiList, id));
+    const ph = [];
+    for (const p of (r.photos || []).slice(0, 4)) {
+      const src = photoStore[p] || p;
+      if (typeof src === "string" && src.indexOf("data:") === 0) ph.push(await zukanShrink(src, 640, 0.65));
+    }
+    c.photos = ph;
+    out.push(c);
+  }
+  return out;
+}
+function shareBuildJson(kind, list, by) {
+  const version = Date.now();
+  return JSON.stringify({ app: "sansai-shared", kind, version, exportedAt: new Date(version).toISOString(), by, list });
+}
+function shareDownload(name, json) {
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+// 「みんなの記録」の表示用に、記録を見出しと項目の並びに直す
+function shareDescribe(kind, r) {
+  const j = (a) => (Array.isArray(a) ? a.filter(Boolean).join("、") : "");
+  const rows = [];
+  const add = (label, v) => { if (v !== undefined && v !== null && String(v).trim() !== "") rows.push([label, String(v)]); };
+  if (kind === "patrol") {
+    add("巡回者", j((r.patrolledBy || []).concat(r.companions || [])));
+    add("全体の状況", r.overallCondition);
+    (r.sansaiStatus || []).forEach(s => add(s._name || "山菜", [s.status, s.quantity, s.memo].filter(Boolean).join(" / ")));
+    if (r.illegalActivity) add("注意", "不審な行為あり");
+    add("メモ", r.notes);
+    return { title: r._spot || "場所未設定", sub: r.date, rows };
+  }
+  if (kind === "harvest") {
+    add("採取者", j((r.collectors || []).concat(r.companions || [])));
+    add("収穫量", r.amount ? r.amount + (r.unit || "") : "");
+    add("状態", r.condition);
+    add("場所", r._spot);
+    add("メモ", r.memo);
+    return { title: r._sansai || "山菜", sub: r.date, rows };
+  }
+  add("場所", r._spot);
+  add("山菜", j(r._sansaiNames));
+  add("行き方", r.route);
+  add("駐車場", r.parking);
+  add("目印", r.landmark);
+  add("地形", r.terrain);
+  add("時期・時間帯", r.bestTime);
+  add("注意", r.caution);
+  add("タグ", j(r.tags));
+  return { title: r.title || "(無題)", sub: r.date, rows };
+}
+// 提出ファイルの記録を、この端末の場所・山菜の一覧に合わせて取り込める形にする
+function shareAdaptImported(kind, r, spots, sansaiList) {
+  const cfg = SHARE_KINDS[kind];
+  const rec = { ...r };
+  const spot = (spots || []).find(s => s.name === r._spot);
+  if (spot) rec.spotId = spot.id;
+  else {
+    rec.spotId = "";
+    if (r._spot) { const f = cfg.noteField; rec[f] = "【場所】" + r._spot + (rec[f] ? "\n" + rec[f] : ""); }
+  }
+  const sid = (name, fb) => { const s = (sansaiList || []).find(x => x.name === name); return s ? s.id : fb; };
+  if (kind === "patrol") rec.sansaiStatus = (r.sansaiStatus || []).map(s => ({ ...s, sansaiId: sid(s._name, s.sansaiId) }));
+  if (kind === "harvest") rec.sansaiId = sid(r._sansai, r.sansaiId);
+  if (kind === "memo") rec.sansai = (r.sansai || []).map((id, i) => sid((r._sansaiNames || [])[i], id));
+  return rec;
+}
+
+function ShareSharedList({ kind }) {
+  const cfg = SHARE_KINDS[kind];
+  const [list, setList] = useState(null);
+  const [info, setInfo] = useState("");
+  const [open, setOpen] = useState(null);
+  const [lightbox, setLightbox] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch("./" + cfg.file + "?t=" + Date.now(), { cache: "no-store" });
+        if (!res.ok) throw new Error("http " + res.status);
+        const data = await res.json();
+        if (!data || data.app !== "sansai-shared" || data.kind !== kind || !Array.isArray(data.list)) throw new Error("invalid");
+        if (!alive) return;
+        setList(data.list);
+        setInfo(data.exportedAt ? "最終更新：" + new Date(data.exportedAt).toLocaleString("ja-JP") : "");
+        try { localStorage.setItem("sansai_shared_cache_" + kind, JSON.stringify({ ...data, list: data.list.map(r => ({ ...r, photos: [] })) })); } catch (e) {}
+      } catch (e) {
+        if (!alive) return;
+        try {
+          const c = JSON.parse(localStorage.getItem("sansai_shared_cache_" + kind) || "null");
+          if (c && Array.isArray(c.list)) { setList(c.list); setInfo("最新を取得できなかったため、前回取得した内容（写真なし）を表示しています"); return; }
+        } catch (e2) {}
+        setList([]); setInfo("");
+      }
+    })();
+    return () => { alive = false; };
+  }, [kind]);
+  const sorted = (list || []).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+  const card = { background: "white", border: "2px solid var(--mist)", borderRadius: 14, padding: 14, marginBottom: 10 };
+  return (
+    React.createElement('div', null
+      , React.createElement('div', { style: { fontSize: 12, color: "#666", margin: "4px 0 10px", lineHeight: 1.7 } }, "管理者が選んだ" + cfg.label + "が表示されます。見るだけの画面です。" + (info ? "\n" + info : ""))
+      , list === null && React.createElement('div', { style: { color: "#888", fontSize: 13, padding: "20px 0" } }, "読み込み中です…")
+      , list !== null && sorted.length === 0 && React.createElement('div', { style: { color: "#888", fontSize: 13, padding: "20px 0", lineHeight: 1.7 } }, "共有されている" + cfg.label + "はまだありません。")
+      , sorted.map((r, i) => {
+          const d = shareDescribe(kind, r);
+          const key = r._uid || i;
+          const isOpen = open === key;
+          return (
+            React.createElement('div', { key: key, style: card }
+              , React.createElement('div', { onClick: () => setOpen(isOpen ? null : key), style: { cursor: "pointer" } }
+                , React.createElement('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 15 } }, d.title)
+                , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 2 } }, [d.sub, r._by ? "記録：" + r._by : ""].filter(Boolean).join("　"))
+              )
+              , isOpen && React.createElement('div', { style: { marginTop: 10, borderTop: "1px dashed #cfe0c6", paddingTop: 10 } }
+                , d.rows.map((row, k) => React.createElement('div', { key: k, style: { fontSize: 13, lineHeight: 1.7, marginBottom: 4, whiteSpace: "pre-wrap" } }
+                    , React.createElement('b', { style: { color: "var(--forest)" } }, row[0] + "　"), row[1]))
+                , (r.photos || []).length > 0 && React.createElement('div', { style: { display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 } }
+                    , r.photos.map((p, k) => React.createElement('img', { key: k, src: p, alt: "", onClick: () => setLightbox(p), style: { width: 84, height: 84, objectFit: "cover", borderRadius: 8, cursor: "pointer" } })))
+              )
+            )
+          );
+        })
+      , lightbox && React.createElement('div', { onClick: () => setLightbox(null), style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 4000, display: "flex", alignItems: "center", justifyContent: "center", padding: 12 } }
+          , React.createElement('img', { src: lightbox, alt: "", style: { maxWidth: "100%", maxHeight: "100%", borderRadius: 8 } }))
+    )
+  );
+}
+
+function ShareSelectModal({ kind, spots, sansaiList, onClose, onSaved }) {
+  const cfg = SHARE_KINDS[kind];
+  const [items] = useState(() => shareLoadOwn(kind).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))));
+  const [flags, setFlags] = useState(() => { const m = {}; shareLoadOwn(kind).forEach(r => { m[r.id] = !!r.shared; }); return m; });
+  const count = items.filter(r => flags[r.id]).length;
+  const handleSave = () => {
+    const next = shareLoadOwn(kind).map(r => ({ ...r, shared: !!flags[r.id] && !r.private }));
+    if (shareSaveOwn(kind, next)) onSaved();
+  };
+  const btn = { flex: 1, padding: "12px 14px", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" };
+  return (
+    React.createElement('div', { onClick: onClose, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 3000, display: "flex", alignItems: "flex-end", justifyContent: "center" } }
+      , React.createElement('div', { onClick: e => e.stopPropagation(), style: { background: "white", width: "100%", maxWidth: 560, maxHeight: "82vh", overflowY: "auto", borderRadius: "16px 16px 0 0", padding: 16 } }
+        , React.createElement('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 16 } }, "共有する" + cfg.label + "を選ぶ")
+        , React.createElement('div', { style: { fontSize: 12, color: "#666", margin: "6px 0 10px", lineHeight: 1.7 } }, "チェックした記録だけが共有の対象になります。位置情報は共有されません。")
+        , items.length === 0 && React.createElement('div', { style: { color: "#888", fontSize: 13, padding: "16px 0" } }, "まだ記録がありません。")
+        , items.map(r => React.createElement('label', { key: r.id, style: { display: "flex", alignItems: "center", gap: 10, padding: "10px 4px", borderBottom: "1px solid #eee", fontSize: 14, opacity: r.private ? 0.5 : 1 } }
+            , React.createElement('input', { type: "checkbox", disabled: !!r.private, checked: !!flags[r.id] && !r.private, onChange: e => { const v = e.target.checked; setFlags(f => ({ ...f, [r.id]: v })); }, style: { width: 20, height: 20 } })
+            , React.createElement('span', null, shareRecLabel(kind, r, spots, sansaiList), r.private ? "（非公開）" : "")))
+        , React.createElement('div', { style: { display: "flex", gap: 10, marginTop: 14 } }
+          , React.createElement('button', { onClick: onClose, style: { ...btn, background: "var(--mist)", color: "var(--forest)" } }, "閉じる")
+          , React.createElement('button', { onClick: handleSave, style: { ...btn, background: "var(--forest)", color: "white" } }, "選んだ" + count + "件で保存")
+        )
+      )
+    )
+  );
+}
+
+function ShareTab({ kind, isAdmin, spots, sansaiList, renderOwn }) {
+  const cfg = SHARE_KINDS[kind];
+  const { photos: photoStore, importPhotos } = usePhotos();
+  const [view, setView] = useState("own");
+  const [ownKey, setOwnKey] = useState(0);
+  const [showSelect, setShowSelect] = useState(false);
+  const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
+  const fileRef = React.useRef(null);
+  const sharedCount = shareLoadOwn(kind).filter(r => r.shared && !r.private).length;
+
+  const ensureName = () => {
+    let n = "";
+    try { n = localStorage.getItem(SHARE_NAME_KEY) || ""; } catch (e) {}
+    if (!n) {
+      n = (window.prompt("あなたの名前を入力してください（共有する記録に表示されます）", "") || "").trim();
+      if (n) { try { localStorage.setItem(SHARE_NAME_KEY, n); } catch (e) {} }
+    }
+    return n;
+  };
+
+  const handleExport = async (mode) => {
+    const name = ensureName();
+    if (!name) { setStatus("名前を入力すると書き出せます。もう一度押してください。"); return; }
+    const records = shareLoadOwn(kind).filter(r => r.shared && !r.private);
+    if (!records.length) { setStatus("共有する記録が選ばれていません。「共有する記録を選ぶ」で選んでください。"); return; }
+    setBusy(true);
+    setStatus("書き出し中です（写真を縮小しています）…");
+    try {
+      const list = await sharePack(kind, records, photoStore, spots, sansaiList, name);
+      const json = shareBuildJson(kind, list, name);
+      const mb = (json.length / 1048576).toFixed(1);
+      if (mode === "publish") {
+        shareDownload(cfg.file, json);
+        setStatus("✅ " + cfg.file + " を保存しました（" + list.length + "件・約" + mb + "MB）\nGitHubの index.html と同じ場所にアップロードして上書きしてください");
+      } else {
+        const fname = "submit_" + kind + ".json";
+        let shared = false;
+        try {
+          const file = new File([json], fname, { type: "application/json" });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: "山菜手帳 " + cfg.label + "の提出" }); shared = true; }
+        } catch (e) { if (e && e.name === "AbortError") { setStatus("提出をキャンセルしました"); setBusy(false); return; } }
+        if (shared) setStatus("✅ 提出ファイルを共有しました（" + list.length + "件）");
+        else { shareDownload(fname, json); setStatus("✅ 提出ファイル（" + fname + "）を保存しました（" + list.length + "件・約" + mb + "MB）\nLINEなどで管理者に送ってください"); }
+      }
+    } catch (e) {
+      setStatus("❌ 書き出しに失敗しました");
+    }
+    setBusy(false);
+  };
+
+  const handleImportFile = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    setBusy(true);
+    setStatus("取り込み中です…");
+    try {
+      const data = JSON.parse(await file.text());
+      if (!data || data.app !== "sansai-shared" || data.kind !== kind || !Array.isArray(data.list)) throw new Error("kind");
+      const next = shareLoadOwn(kind).slice();
+      const photoMap = {};
+      let added = 0, updated = 0, base = Date.now();
+      for (const r of data.list) {
+        const rec = shareAdaptImported(kind, r, spots, sansaiList);
+        const ids = [];
+        (r.photos || []).forEach(p => { if (typeof p === "string" && p.indexOf("data:") === 0) { const id = genPhotoId(); photoMap[id] = p; ids.push(id); } });
+        rec.photos = ids;
+        rec.shared = true;
+        const idx = r._uid ? next.findIndex(x => x._uid === r._uid) : -1;
+        if (idx >= 0) { rec.id = next[idx].id; next[idx] = rec; updated++; } else { rec.id = base++; next.push(rec); added++; }
+      }
+      await importPhotos(photoMap);
+      if (!shareSaveOwn(kind, next)) throw new Error("save");
+      setOwnKey(k => k + 1);
+      setStatus("✅ " + (data.by ? data.by + "さんの" : "") + cfg.label + "を取り込みました（" + added + "件追加・" + updated + "件更新）\n続けて「配信用に書き出す」でみんなに公開できます");
+    } catch (err) {
+      setStatus("❌ 取り込めませんでした。" + cfg.label + "の提出ファイルを選んでください。");
+    }
+    setBusy(false);
+  };
+
+  const seg = (id, label) => React.createElement('button', { onClick: () => setView(id), style: { flex: 1, padding: "10px 6px", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", background: view === id ? "var(--forest)" : "var(--mist)", color: view === id ? "white" : "var(--forest)" } }, label);
+  const btn = { display: "block", width: "100%", padding: "11px 14px", marginTop: 8, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" };
+  return (
+    React.createElement('div', null
+      , React.createElement('div', { style: { display: "flex", gap: 8, marginBottom: 12 } }
+        , seg("own", "✏️ 自分の" + cfg.label)
+        , seg("shared", "👥 みんなの" + cfg.label)
+      )
+      , view === "own" && React.createElement(React.Fragment, null
+        , React.createElement('div', { style: { padding: 14, background: "white", border: "2px solid var(--mist)", borderRadius: 14, marginBottom: 14 } }
+          , React.createElement('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 14 } }, "🔗 " + cfg.label + "をみんなに共有する")
+          , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } },
+              isAdmin
+                ? "共有に選んだ記録を「配信用に書き出す」でファイルにして、GitHubに上書きアップロードします。メンバーの提出ファイルは「取り込む」で追加できます。"
+                : "共有したい記録を選んで「管理者に提出する」を押すと、提出ファイルができます。LINEなどで管理者に送ると、管理者の確認後に「みんなの" + cfg.label + "」へ表示されます。")
+          , React.createElement('div', { style: { fontSize: 12, color: "#444", marginTop: 6 } }, "共有に選んでいる記録：" + sharedCount + "件")
+          , React.createElement('button', { onClick: () => setShowSelect(true), disabled: busy, style: { ...btn, background: "var(--mist)", color: "var(--forest)" } }, "共有する記録を選ぶ")
+          , !isAdmin && React.createElement('button', { onClick: () => handleExport("submit"), disabled: busy, style: { ...btn, background: "var(--forest)", color: "white", opacity: busy ? 0.6 : 1 } }, "📤 管理者に提出する")
+          , isAdmin && React.createElement('button', { onClick: () => fileRef.current && fileRef.current.click(), disabled: busy, style: { ...btn, background: "var(--mist)", color: "var(--forest)" } }, "📥 メンバーの提出ファイルを取り込む")
+          , isAdmin && React.createElement('button', { onClick: () => handleExport("publish"), disabled: busy, style: { ...btn, background: "var(--forest)", color: "white", opacity: busy ? 0.6 : 1 } }, "🌿 配信用に書き出す（" + cfg.file + "）")
+          , isAdmin && React.createElement('input', { type: "file", accept: ".json,application/json", ref: fileRef, onChange: handleImportFile, style: { display: "none" } })
+          , status && React.createElement('div', { style: { marginTop: 10, fontSize: 12, color: "#444", whiteSpace: "pre-wrap", lineHeight: 1.7 } }, status)
+        )
+        , renderOwn(ownKey)
+      )
+      , view === "shared" && React.createElement(ShareSharedList, { kind: kind })
+      , showSelect && React.createElement(ShareSelectModal, { kind: kind, spots: spots, sansaiList: sansaiList, onClose: () => setShowSelect(false), onSaved: () => { setShowSelect(false); setOwnKey(k => k + 1); setStatus("✅ 共有する記録を保存しました"); } })
+    )
+  );
+}
+
 function App() {
   const [tab, setTab] = useState("home");
   /* \u8868\u7d19(home)\u306b\u623b\u308b\uff1a\u753b\u9762\u306e\u623b\u308b\u30dc\u30bf\u30f3\u3068\u7aef\u672b\u306e\u6a19\u6e96\u300c\u623b\u308b\u300d\u30dc\u30bf\u30f3\u3069\u3061\u3089\u3082\u8868\u7d19\u3078 */
@@ -9068,9 +9379,9 @@ function App() {
           , tab === "blog"     && React.createElement(BlogView, { posts: posts, setPosts: setPosts, spots: spots, members: members, sansaiList: sansaiList,} )
           , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots, sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: (secretOn || zukanIsAdminDevice()),} )
           , tab === "members"  && React.createElement(React.Fragment, null, React.createElement(MembersView, { members: members, setMembers: setMembers,} ), React.createElement(AuthPanel, { isAdmin: (secretOn || zukanIsAdminDevice()),} ))
-          , tab === "patrol"   && React.createElement(PatrolView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
-          , tab === "harvest"  && React.createElement(HarvestView, { spots: spots, members: members, sansaiList: sansaiList,} )
-          , tab === "memo"     && React.createElement(MemoView, { spots: spots, sansaiList: sansaiList,} )
+          , tab === "patrol"   && React.createElement(ShareTab, { kind: "patrol", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(PatrolView, { key: k, spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} ),} )
+          , tab === "harvest"  && React.createElement(ShareTab, { kind: "harvest", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(HarvestView, { key: k, spots: spots, members: members, sansaiList: sansaiList,} ),} )
+          , tab === "memo"     && React.createElement(ShareTab, { kind: "memo", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(MemoView, { key: k, spots: spots, sansaiList: sansaiList,} ),} )
           , tab === "gear"     && React.createElement(GearView, { sansaiList: sansaiList,} )
           , tab === "links"    && React.createElement(LinkView, null)
           , tab === "manual"   && React.createElement(ManualView, { isAdmin: (secretOn || zukanIsAdminDevice()),})
