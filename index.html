@@ -4413,7 +4413,7 @@ function compressImageFile(file, maxDim, quality, callback) {
   reader.readAsDataURL(file);
 }
 
-function MembersView({ members, setMembers }) {
+function MembersView({ members, setMembers, isAdmin }) {
   const todayStr = new Date().toISOString().split("T")[0];
   const { photos, savePhoto, removePhoto } = usePhotos();
   const [notifyModal, setNotifyModal] = useState(null); // \u901a\u77e5\u5bfe\u8c61member or "all"
@@ -4467,6 +4467,23 @@ function MembersView({ members, setMembers }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSvg, setAiSvg] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
+  const [recOpen, setRecOpen] = useState(false);
+  const [recName, setRecName] = useState("");
+  const [recContact, setRecContact] = useState("");
+  const [recReason, setRecReason] = useState("");
+  const [recNote, setRecNote] = useState("");
+  const [myMemberId, setMyMemberId] = useState(() => { try { return localStorage.getItem("sansai_my_member") || ""; } catch (e) { return ""; } });
+  const [pickMe, setPickMe] = useState(false);
+  const [pickVal, setPickVal] = useState("");
+  const meMember = (members || []).find(x => String(x.id) === String(myMemberId)) || null;
+  const canEdit = (m) => !!isAdmin || (!!meMember && String(m.id) === String(meMember.id));
+  const saveMe = () => {
+    if (!pickVal) return;
+    try { localStorage.setItem("sansai_my_member", String(pickVal)); } catch (e) {}
+    const mm = (members || []).find(x => String(x.id) === String(pickVal));
+    try { if (mm && !localStorage.getItem("sansai_my_name")) localStorage.setItem("sansai_my_name", mm.name || ""); } catch (e) {}
+    setMyMemberId(String(pickVal)); setPickMe(false);
+  };
   const camRef = React.useRef(null);
   const bigPhotoFileRef = React.useRef(null);
   const bigPhotoCamRef = React.useRef(null);
@@ -4483,6 +4500,34 @@ function MembersView({ members, setMembers }) {
   };
 
   const getRoles = (m) => Array.isArray(m.role) ? m.role : (m.role ? [m.role] : []);
+
+  // ── 推薦（管理者以外）：文章を作ってLINEの送信画面を開く ──
+  const openRecommend = () => { setRecName(""); setRecContact(""); setRecReason(""); setRecNote(""); setRecOpen(true); };
+  const buildRecommendText = () => {
+    let me = "";
+    try { me = localStorage.getItem("sansai_my_name") || ""; } catch (e) {}
+    if (!me) {
+      me = (window.prompt("あなたの名前を入力してください（推薦者として文章に入ります）", "") || "").trim();
+      if (me) { try { localStorage.setItem("sansai_my_name", me); } catch (e) {} }
+    }
+    if (!recName.trim()) { setRecNote("推薦する方のお名前を入力してください。"); return null; }
+    return "【山菜手帳】メンバー推薦\n推薦者：" + (me || "（未入力）") + "\n推薦する方：" + recName.trim()
+      + (recContact.trim() ? "\n連絡先・関係：" + recContact.trim() : "")
+      + (recReason.trim() ? "\n推薦理由：" + recReason.trim() : "")
+      + "\n\n管理者の方、ご確認をお願いします。";
+  };
+  const sendRecommend = () => {
+    const t = buildRecommendText();
+    if (!t) return;
+    window.open("https://line.me/R/msg/text/?" + encodeURIComponent(t), "_blank");
+    setRecNote("LINEが開かない場合は「コピー」を押して、LINEに貼り付けてください。");
+  };
+  const copyRecommend = async () => {
+    const t = buildRecommendText();
+    if (!t) return;
+    try { await navigator.clipboard.writeText(t); setRecNote("✅ コピーしました。LINEに貼り付けて送ってください。"); }
+    catch (e) { setRecNote("コピーできませんでした。「LINEで送る」を使ってください。"); }
+  };
 
   const openAdd = () => {
     resetForm();
@@ -4644,7 +4689,23 @@ function MembersView({ members, setMembers }) {
   return (
     React.createElement('div', null
       , React.createElement('div', { className: "section-title",}, "\ud83d\udc65 \u30e1\u30f3\u30d0\u30fc\u7ba1\u7406" )
-      , React.createElement('div', { className: "section-desc",}, "\u30e1\u30f3\u30d0\u30fc\u306e\u8ffd\u52a0\u30fb\u7de8\u96c6\u30fb\u524a\u9664\u304c\u3067\u304d\u307e\u3059\u3002\u5909\u66f4\u306f\u5168\u30bf\u30d6\u306b\u53cd\u6620\u3055\u308c\u307e\u3059\u3002")
+      , React.createElement('div', { className: "section-desc",}, isAdmin ? "メンバーの追加・編集・削除ができます。変更は全タブに反映されます。" : "メンバーの一覧です。編集できるのは自分のプロフィールだけです。追加・削除は管理者だけが行えます。仲間に誘いたい方がいれば「推薦する」から管理者にLINEで知らせてください。")
+      , !isAdmin && React.createElement('div', { style: {padding:12, background:"white", border:"2px solid var(--mist)", borderRadius:12, marginBottom:14, fontSize:13, lineHeight:1.7},}
+        , (!meMember || pickMe)
+          ? React.createElement(React.Fragment, null
+              , React.createElement('div', { style: {fontWeight:700, color:"var(--forest)", marginBottom:6},}, "👤 あなたはどのメンバーですか？")
+              , React.createElement('div', { style: {fontSize:12, color:"#666", marginBottom:8},}, "選ぶと、その方のプロフィールだけ編集できます。")
+              , React.createElement('select', { value: pickVal, onChange: e=>setPickVal(e.target.value), style: {width:"100%", padding:10, border:"2px solid var(--mist)", borderRadius:8, fontSize:14, marginBottom:8},}
+                , React.createElement('option', { value: "",}, "選んでください")
+                , (members || []).map(x => React.createElement('option', { key: x.id, value: String(x.id),}, x.name))
+              )
+              , React.createElement('button', { className: "btn-submit", onClick: saveMe, style: {width:"100%"},}, "これが私です")
+            )
+          : React.createElement('div', { style: {display:"flex", alignItems:"center", justifyContent:"space-between", gap:8},}
+              , React.createElement('span', null, "👤 あなたは「" + meMember.name + "」さんです")
+              , React.createElement('button', { onClick: ()=>{ setPickVal(String(meMember.id)); setPickMe(true); }, style: {background:"var(--mist)", border:"none", borderRadius:8, padding:"6px 10px", fontSize:12, fontWeight:600, color:"var(--forest)", cursor:"pointer"},}, "変更")
+            )
+      )
 
       /* \u30b5\u30de\u30ea\u30fc */
       , React.createElement('div', { style: {display:"flex", gap:10, marginBottom:20, flexWrap:"wrap"},}
@@ -4714,13 +4775,13 @@ function MembersView({ members, setMembers }) {
                   color:"#1565c0", whiteSpace:"nowrap"},}, "\ud83d\udce2 \u901a\u77e5"
 
               )
-              , React.createElement('button', { onClick: ()=>openEdit(m),
+              , canEdit(m) && React.createElement('button', { onClick: ()=>openEdit(m),
                   style: {background:"var(--mist)", border:"none", borderRadius:8,
                     padding:"8px 12px", cursor:"pointer", fontSize:12, fontWeight:600,
                     color:"var(--forest)", whiteSpace:"nowrap"},}, "\u270f\ufe0f \u7de8\u96c6"
 
                 )
-                , React.createElement('button', { onClick: ()=>setDeleteTarget(m),
+                , isAdmin && React.createElement('button', { onClick: ()=>setDeleteTarget(m),
                   style: {background:"#fee", border:"none", borderRadius:8,
                     padding:"8px 12px", cursor:"pointer", fontSize:12, fontWeight:600,
                     color:"#c0392b", whiteSpace:"nowrap"},}, "\ud83d\uddd1 \u524a\u9664"
@@ -4733,7 +4794,7 @@ function MembersView({ members, setMembers }) {
       )
 
       /* \u8ffd\u52a0\u30dc\u30bf\u30f3 */
-      , React.createElement('div', { style: {display:"flex", gap:10},}
+      , isAdmin && React.createElement('div', { style: {display:"flex", gap:10},}
         , React.createElement('button', { className: "add-btn", style: {flex:1, justifyContent:"center"}, onClick: openAdd,}, "\uff0b \u30e1\u30f3\u30d0\u30fc\u3092\u8ffd\u52a0"
 
         )
@@ -4742,6 +4803,22 @@ function MembersView({ members, setMembers }) {
             borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600, color:"#2e7d32",
             display:"flex", alignItems:"center", gap:6},}, "\ud83d\udcf8 \u64ae\u5f71\u3057\u3066\u8ffd\u52a0"
 
+        )
+      )
+      , !isAdmin && React.createElement('button', { className: "add-btn", style: {width:"100%", justifyContent:"center"}, onClick: openRecommend,}, "👋 知り合いを推薦する（LINEで管理者に送る）")
+      , recOpen && React.createElement('div', { onClick: ()=>setRecOpen(false), style: {position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:3000, display:"flex", alignItems:"flex-end", justifyContent:"center"},}
+        , React.createElement('div', { onClick: e=>e.stopPropagation(), style: {background:"white", width:"100%", maxWidth:560, maxHeight:"85vh", overflowY:"auto", borderRadius:"16px 16px 0 0", padding:16},}
+          , React.createElement('div', { style: {fontWeight:700, color:"var(--forest)", fontSize:16},}, "👋 メンバーを推薦する")
+          , React.createElement('div', { style: {fontSize:12, color:"#666", margin:"6px 0 10px", lineHeight:1.7},}, "推薦したい方の情報を入れて「LINEで送る」を押すと、LINEが開いて文章が入ります。送り先（管理者やグループ）を選んで送信してください。")
+          , React.createElement('input', { value: recName, onChange: e=>setRecName(e.target.value), placeholder: "推薦する方のお名前（必須）", style: {width:"100%", padding:10, marginBottom:8, border:"2px solid var(--mist)", borderRadius:8, fontSize:14, boxSizing:"border-box"},} )
+          , React.createElement('input', { value: recContact, onChange: e=>setRecContact(e.target.value), placeholder: "連絡先・あなたとの関係（例：職場の同僚）", style: {width:"100%", padding:10, marginBottom:8, border:"2px solid var(--mist)", borderRadius:8, fontSize:14, boxSizing:"border-box"},} )
+          , React.createElement('textarea', { value: recReason, onChange: e=>setRecReason(e.target.value), placeholder: "推薦する理由・山菜の経験など", rows: 3, style: {width:"100%", padding:10, marginBottom:8, border:"2px solid var(--mist)", borderRadius:8, fontSize:14, boxSizing:"border-box"},} )
+          , recNote && React.createElement('div', { style: {fontSize:12, color:"#444", marginBottom:8},}, recNote)
+          , React.createElement('div', { style: {display:"flex", gap:8},}
+            , React.createElement('button', { className: "btn-cancel", onClick: ()=>setRecOpen(false),}, "閉じる")
+            , React.createElement('button', { className: "btn-cancel", onClick: copyRecommend,}, "コピー")
+            , React.createElement('button', { className: "btn-submit", onClick: sendRecommend,}, "LINEで送る")
+          )
         )
       )
       , React.createElement('input', { ref: camRef, type: "file", accept: "image/*", capture: "user",
@@ -4990,7 +5067,7 @@ function MembersView({ members, setMembers }) {
               )
               , React.createElement('div', { className: "form-actions", style: {marginTop:6},}
                 , React.createElement('button', { className: "btn-cancel", onClick: ()=>setSelectedMember(null),}, "\u9589\u3058\u308b")
-                , React.createElement('button', { className: "btn-submit", onClick: ()=>{ openEdit(selectedMember); setSelectedMember(null); },}, "\u270f\ufe0f \u7de8\u96c6\u3059\u308b")
+                , canEdit(selectedMember) && React.createElement('button', { className: "btn-submit", onClick: ()=>{ openEdit(selectedMember); setSelectedMember(null); },}, "\u270f\ufe0f \u7de8\u96c6\u3059\u308b")
               )
             )
           )
@@ -9378,7 +9455,7 @@ function App() {
           , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots, sansaiList: sansaiList,} )
           , tab === "blog"     && React.createElement(BlogView, { posts: posts, setPosts: setPosts, spots: spots, members: members, sansaiList: sansaiList,} )
           , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots, sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: (secretOn || zukanIsAdminDevice()),} )
-          , tab === "members"  && React.createElement(React.Fragment, null, React.createElement(MembersView, { members: members, setMembers: setMembers,} ), React.createElement(AuthPanel, { isAdmin: (secretOn || zukanIsAdminDevice()),} ))
+          , tab === "members"  && React.createElement(React.Fragment, null, React.createElement(MembersView, { members: members, setMembers: setMembers, isAdmin: (secretOn || zukanIsAdminDevice()),} ), React.createElement(AuthPanel, { isAdmin: (secretOn || zukanIsAdminDevice()),} ))
           , tab === "patrol"   && React.createElement(ShareTab, { kind: "patrol", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(PatrolView, { key: k, spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} ),} )
           , tab === "harvest"  && React.createElement(ShareTab, { kind: "harvest", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(HarvestView, { key: k, spots: spots, members: members, sansaiList: sansaiList,} ),} )
           , tab === "memo"     && React.createElement(ShareTab, { kind: "memo", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(MemoView, { key: k, spots: spots, sansaiList: sansaiList,} ),} )
