@@ -1,6 +1,5 @@
-// 山菜採り手帳 - Service Worker v17
-const CACHE_NAME = 'sansai-v17
-';
+// 山菜採り手帳 - Service Worker v16
+const CACHE_NAME = 'sansai-v16';
 
 const PRECACHE = [
   './',
@@ -38,10 +37,10 @@ self.addEventListener('activate', event => {
 
 // フェッチ：ネットワーク優先、失敗時はキャッシュ
 self.addEventListener('fetch', event => {
-  // 天気API・図鑑配信データ(zukan.json)はキャッシュしない（常に最新を直接取得）
-  if (event.request.url.includes('open-meteo.com') ||
-      event.request.url.includes('api.anthropic.com') ||
-      event.request.url.includes('zukan.json')) {
+  // 天気API・配信データ(図鑑・パトロール・採取記録・メモ)はキャッシュしない（常に最新を直接取得）
+  // ※配信データは書き換えても、この sw.js の数字を上げる必要はありません
+  const NO_CACHE = ['open-meteo.com', 'api.anthropic.com', 'zukan.json', 'patrol.json', 'harvest.json', 'memo.json'];
+  if (NO_CACHE.some(p => event.request.url.includes(p))) {
     return;
   }
 
