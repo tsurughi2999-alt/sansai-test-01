@@ -1,5 +1,5 @@
-// 山菜採り手帳 - Service Worker v21
-const CACHE_NAME = 'sansai-v21';
+// 山菜採り手帳 - Service Worker v22
+const CACHE_NAME = 'sansai-v22';
 
 const PRECACHE = [
   './',
