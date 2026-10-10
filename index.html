@@ -785,6 +785,106 @@ const DANGER_LEVEL = {
   "\u6ce8\u610f": { color:"#f39c12", bg:"#fefde2", badge:"\u26a1 \u6ce8\u610f" },
 };
 
+// ===== 図鑑の区分（植物・果実・キノコ）と五十音順 =====
+const SANSAI_CATEGORIES = {
+  plant:    { label: "植物",   icon: "🌿", noun: "山菜",   color: "#2d4a2d" },
+  fruit:    { label: "果実",   icon: "🍇", noun: "果実",   color: "#7b3f8c" },
+  mushroom: { label: "キノコ", icon: "🍄", noun: "キノコ", color: "#8a5a2b" },
+};
+const MUSHROOM_NAME_RE = /(茸|きのこ|キノコ|シメジ|ナメコ|マツタケ|マイタケ|シイタケ|ヒラタケ|ナラタケ|ムキタケ|クリタケ|ハツタケ|エノキタケ|ナメタケ|ショウゲンジ|チチタケ|アミタケ|タモギタケ|カノシタ|コウタケ|ホウキタケ|キクラゲ)/;
+const FRUIT_NAME_RE = /(アケビ|ムベ|ヤマブドウ|山ブドウ|サルナシ|コクワ|キイチゴ|木苺|野イチゴ|ノイチゴ|ヤマモモ|グミ|桑の実|クワの実|ナツハゼ|ガマズミ|ブルーベリー|ヤマボウシ)/;
+const FRUIT_EMOJI_RE = /[🍇🍒🍓🫐🍎🍑🍊🍐🍋🍈🍉]/u;
+// 区分が未設定の旧データは、絵文字と名前から自動で振り分ける
+function sansaiCategory(e) {
+  if (e && SANSAI_CATEGORIES[e.category]) return e.category;
+  const name = (e && e.name) || "";
+  const emoji = (e && e.emoji) || "";
+  if (emoji === "🍄" || MUSHROOM_NAME_RE.test(name)) return "mushroom";
+  if (FRUIT_EMOJI_RE.test(emoji) || FRUIT_NAME_RE.test(name)) return "fruit";
+  return "plant";
+}
+// 漢字の名前の読み（よみがなが未入力のときに使う）
+const YOMI_MAP = {
+  "葉ワサビ": "はわさび", "花ワサビ": "はなわさび", "根曲がり竹": "ねまがりだけ", "行者ニンニク": "ぎょうじゃにんにく",
+  "山ブドウ": "やまぶどう", "木苺": "きいちご", "桑の実": "くわのみ", "野イチゴ": "のいちご",
+};
+function kanaKey(e) {
+  const raw = String((e && (e.yomi || YOMI_MAP[e.name] || e.name)) || "");
+  return raw
+    .replace(/[\u30a1-\u30f6]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60))
+    .replace(/^[\s　（）()「」『』・\-]+/, "");
+}
+const KANA_COLLATOR = (typeof Intl !== "undefined" && Intl.Collator) ? new Intl.Collator("ja") : null;
+function kanaCompare(a, b) {
+  const x = kanaKey(a), y = kanaKey(b);
+  if (KANA_COLLATOR) return KANA_COLLATOR.compare(x, y);
+  return x < y ? -1 : (x > y ? 1 : 0);
+}
+
+// ===== 危険・注意キノコデータ =====
+const DANGER_MUSHROOMS = [
+  {
+    id: 201, name: "ツキヨタケ", emoji: "🍄", danger: "有毒",
+    color: "#e67e22", dangerColor: "#e67e22",
+    similar: ["シイタケ", "ヒラタケ", "ムキタケ"],
+    desc: "日本で最も食中毒が多い毒きのこ。食後30分〜3時間ほどで、激しい嘔吐・下痢・腹痛を起こす。加熱や乾燥をしても毒は消えない。",
+    howToDistinguish: "傘と柄のつけ根のあたりを縦に裂くと、黒っぽいシミがある（シイタケ・ヒラタケ・ムキタケにはない）。柄に短いツバ（輪の跡）があり、ひだは淡い黄白色。暗い所でひだがほのかに光ることもあるが、発光は見分けの決め手にしないこと。",
+    region: "ブナ・ミズナラなど広葉樹の枯れ木・倒木",
+    season: "8月〜10月",
+    warning: "シイタケ・ヒラタケ・ムキタケと同じ場所に生えることがある。1本でも混ざると危険。必ず縦に裂いて確認する。",
+  },
+  {
+    id: 202, name: "カエンタケ", emoji: "🔥", danger: "猛毒",
+    color: "#c0392b", dangerColor: "#c0392b",
+    similar: ["ベニナギナタタケ", "ホウキタケ類"],
+    desc: "触れただけで皮膚がかぶれることがある猛毒きのこ。食べると短時間で消化器症状が出て、その後に脳神経障害や多臓器不全に進み、ごく少量でも死亡例がある。",
+    howToDistinguish: "鮮やかな赤〜橙色で、指や炎のような形。表面はでこぼこしている。ベニナギナタタケはより細く繊細。少しでも似ていたら手を触れないこと。",
+    region: "コナラ・ミズナラなど広葉樹林の地面（枯れ木の近く）",
+    season: "6月〜10月",
+    warning: "触らない・採らない・持ち帰らない。触れてしまったら石けんでよく洗い、体調に異変があればすぐ医療機関へ。",
+  },
+  {
+    id: 203, name: "ドクツルタケ", emoji: "🍄", danger: "猛毒",
+    color: "#c0392b", dangerColor: "#c0392b",
+    similar: ["ハラタケ", "シロオオハラタケ", "ほかの白いきのこ"],
+    desc: "致死性の猛毒きのこ。アマトキシン類を含み、食後6〜24時間たってから嘔吐・下痢が出る。いったん回復したように見えたあと、肝臓や腎臓が壊れて死亡することがある。",
+    howToDistinguish: "全体が純白。柄に白いスカート状のツバがあり、根元はふくらんで袋状のツボに包まれている（土の中なので掘って確認する）。ひだは白いまま（ハラタケはひだがピンク〜黒褐色になる）。",
+    region: "針葉樹・広葉樹の林内の地面",
+    season: "7月〜10月",
+    warning: "白いきのこは根元まで掘り取って確認する。症状が遅れて出るため、食べてしまったら症状がなくてもすぐ受診する。",
+  },
+  {
+    id: 204, name: "クサウラベニタケ", emoji: "🍄", danger: "有毒",
+    color: "#e67e22", dangerColor: "#e67e22",
+    similar: ["ホンシメジ", "ウラベニホテイシメジ", "ハタケシメジ"],
+    desc: "シメジ類と間違えやすい毒きのこ。食後30分〜数時間で、嘔吐・下痢・腹痛などを起こす。中毒の例が多い。",
+    howToDistinguish: "成熟するとひだがピンク色になる（ホンシメジのひだは白〜クリーム色のまま）。傘は灰褐色で、柄は細長く中が空洞になりやすい（ホンシメジは柄が太くしっかり詰まっている）。",
+    region: "広葉樹林・雑木林の地面",
+    season: "8月〜10月",
+    warning: "シメジ類は見た目だけで判断しない。確実でないものは採らない。",
+  },
+  {
+    id: 205, name: "ニガクリタケ", emoji: "🍄", danger: "有毒",
+    color: "#e67e22", dangerColor: "#e67e22",
+    similar: ["クリタケ", "ナラタケ"],
+    desc: "クリタケと間違えやすい毒きのこ。食べると嘔吐・下痢・腹痛を起こし、重症になることもある。",
+    howToDistinguish: "傘が黄色っぽく、ひだは黄〜緑がかった色。クリタケの傘はレンガ色〜赤褐色。名前のとおり強い苦味があるが、味見で確かめてはいけない。",
+    region: "広葉樹・針葉樹の枯れ木や切り株",
+    season: "春〜晩秋",
+    warning: "切り株に群生するクリタケ類は、傘の色を必ず確認する。",
+  },
+  {
+    id: 206, name: "スギヒラタケ", emoji: "🍄", danger: "注意",
+    color: "#f39c12", dangerColor: "#f39c12",
+    similar: ["ヒラタケ"],
+    desc: "かつては北陸・東北で食べられていたが、2004年に急性脳症の発生が相次ぎ、特に腎臓に持病のある人で重症例があった。原因は完全には分かっておらず、現在は食べないよう呼びかけられている。",
+    howToDistinguish: "スギなど針葉樹の倒木・切り株に群生する。白くて薄い扇形〜へら形の傘で、柄はほとんどなく、ひだが細かく密に並ぶ。",
+    region: "スギなど針葉樹の枯れ木",
+    season: "9月〜11月",
+    warning: "食べる習慣があっても採らない・食べない・人にあげない。特に腎臓に持病のある人は絶対に避ける。",
+  },
+];
+
 const INITIAL_MEMBERS = ["\u7530\u4e2d", "\u9234\u6728", "\u4f50\u85e4", "\u4f0a\u85e4", "\u5c71\u672c"];
 
 // ===== STYLES =====
@@ -6138,8 +6238,14 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
   );
 }
 
-function DangerPlantsView() {
+function DangerPlantsView({ items, kind }) {
   const [selected, setSelected] = useState(null);
+  const isMush = kind === "mushroom";
+  const dangerList = [...(items || DANGER_PLANTS)].sort(kanaCompare);
+  const simLabel = isMush ? "⚠️ 間違えやすい食用きのこ" : "⚠️ 間違えやすい山菜";
+  const bannerText = isMush
+    ? "毒きのこは食用きのこにそっくりなものが多く、見た目だけの判断はとても危険です。「縦に裂ける」「虫が食べている」「加熱や塩漬けで毒が抜ける」などの言い伝えは当てになりません。少しでも疑問があれば採取しないでください。"
+    : "山菜と有毒植物は見た目が非常に似ていることがあります。必ず複数の特徴で確認し、少しでも疑問があれば採取しないでください。";
 
   return (
     React.createElement('div', null
@@ -6148,7 +6254,7 @@ function DangerPlantsView() {
         , React.createElement('div', { style: {fontSize:28, flexShrink:0},}, "\u2620\ufe0f")
         , React.createElement('div', null
           , React.createElement('div', { style: {fontWeight:700, fontSize:15, marginBottom:4},}, "\u63a1\u53d6\u524d\u306b\u5fc5\u305a\u78ba\u8a8d\uff01")
-          , React.createElement('div', { style: {fontSize:12, lineHeight:1.7, opacity:0.95},}, "\u5c71\u83dc\u3068\u6709\u6bd2\u690d\u7269\u306f\u898b\u305f\u76ee\u304c\u975e\u5e38\u306b\u4f3c\u3066\u3044\u308b\u3053\u3068\u304c\u3042\u308a\u307e\u3059\u3002\u5fc5\u305a\u8907\u6570\u306e\u7279\u5fb4\u3067\u78ba\u8a8d\u3057\u3001\u5c11\u3057\u3067\u3082\u7591\u554f\u304c\u3042\u308c\u3070\u63a1\u53d6\u3057\u306a\u3044\u3067\u304f\u3060\u3055\u3044\u3002")
+          , React.createElement('div', { style: {fontSize:12, lineHeight:1.7, opacity:0.95},}, bannerText)
         )
       )
 
@@ -6163,7 +6269,7 @@ function DangerPlantsView() {
 
       /* \u690d\u7269\u30ab\u30fc\u30c9\u4e00\u89a7 */
       , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:14, marginBottom:24},}
-        , DANGER_PLANTS.map(plant => {
+        , dangerList.map(plant => {
           const level = _nullishCoalesce(DANGER_LEVEL[plant.danger], () => ( DANGER_LEVEL["\u6ce8\u610f"]));
           return (
             React.createElement('div', { key: plant.id,
@@ -6185,7 +6291,7 @@ function DangerPlantsView() {
                 )
                 /* \u9593\u9055\u3048\u3084\u3059\u3044\u5c71\u83dc */
                 , React.createElement('div', { style: {marginBottom:10},}
-                  , React.createElement('div', { style: {fontSize:11, fontWeight:700, color:level.color, marginBottom:6},}, "\u26a0\ufe0f \u9593\u9055\u3048\u3084\u3059\u3044\u5c71\u83dc" )
+                  , React.createElement('div', { style: {fontSize:11, fontWeight:700, color:level.color, marginBottom:6},}, simLabel )
                   , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6},}
                     , plant.similar.map(s=>(
                       React.createElement('span', { key: s, style: {background:level.bg, border:`1px solid ${level.color}`, color:level.color, fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:20},}, s)
@@ -6222,7 +6328,7 @@ function DangerPlantsView() {
 
                 /* \u9593\u9055\u3048\u3084\u3059\u3044\u5c71\u83dc */
                 , React.createElement('div', null
-                  , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:level.color, marginBottom:8},}, "\u26a0\ufe0f \u9593\u9055\u3048\u3084\u3059\u3044\u5c71\u83dc" )
+                  , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:level.color, marginBottom:8},}, simLabel )
                   , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:8},}
                     , selected.similar.map(s=>(
                       React.createElement('span', { key: s, style: {background:level.bg, border:`2px solid ${level.color}`, color:level.color, fontSize:13, fontWeight:700, padding:"6px 14px", borderRadius:20},}, s)
@@ -6273,6 +6379,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [catTab, setCatTab] = useState("plant"); // plant | fruit | mushroom
 
   // \u65e7\u30c7\u30fc\u30bf\u79fb\u884c\uff1aisCustom\u304c\u672a\u4fdd\u5b58\u306e\u307e\u307e\u4fdd\u5b58\u3055\u308c\u3066\u3044\u305f\u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0\u5c71\u83dc\u3092\u3001sansaiList\u5074\u306b\u3082\u6b63\u3057\u304f\u66f8\u304d\u623b\u3059\uff08\u521d\u56de\u306e\u307f\uff09
   useEffect(() => {
@@ -6285,7 +6392,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
     }
   }, []);
 
-  const emptyForm = { name:"", emoji:"\ud83c\udf3f", months:[], region:"", color:"#6aab5e", desc:"", customSpots:[], notes:"", photoId:null };
+  const emptyForm = { name:"", emoji: SANSAI_CATEGORIES[catTab].icon, months:[], region:"", color:"#6aab5e", desc:"", customSpots:[], notes:"", photoId:null, category: catTab, yomi:"" };
   const [form, setForm] = useState(emptyForm);
 
   const EMOJIS = ["\ud83c\udf3f","\ud83c\udf43","\ud83c\udf31","\ud83c\udf3e","\ud83c\udf00","\ud83e\uddc5","\ud83c\udf40","\ud83e\udeb4","\ud83c\udf47","\ud83c\udf44","\ud83c\udf38","\ud83c\udf8b","\ud83c\udf3a","\ud83e\udd6c","\ud83c\udf32"];
@@ -6300,13 +6407,13 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
     if (!form.name.trim() || form.months.length === 0) return;
     const newEntry = { ...form, id: Date.now(), isCustom: true };
     setEntries(prev => [...prev, newEntry]);
-    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", photoId:newEntry.photoId||null, isCustom:true}]);
+    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", photoId:newEntry.photoId||null, isCustom:true, category:newEntry.category||catTab, yomi:newEntry.yomi||""}]);
     setForm(emptyForm);
     setShowAddForm(false);
   };
 
   const openEdit = (entry) => {
-    setForm({ ...entry });
+    setForm({ ...entry, category: sansaiCategory(entry), yomi: entry.yomi || "" });
     setShowEditForm(true);
     setSelected(null);
   };
@@ -6376,9 +6483,20 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
           )
         )
         , React.createElement('div', { className: "form-group",}
-          , React.createElement('label', { className: "form-label",}, "\u5c71\u83dc\u540d *" )
+          , React.createElement('label', { className: "form-label",}, ({plant:"山菜名", fruit:"果実名", mushroom:"キノコ名"}[form.category || catTab] || "名前") + " *" )
           , React.createElement('input', { className: "form-input", value: form.name, onChange: e=>setForm(f=>({...f,name:e.target.value})), placeholder: "\u4f8b\uff1a\u30e8\u30e2\u30ae",} )
         )
+      )
+      , React.createElement('div', { className: "form-group",}
+        , React.createElement('label', { className: "form-label",}, "区分")
+        , React.createElement('select', { className: "form-select", value: form.category || catTab,
+            onChange: e => { const v = e.target.value; setForm(f => ({ ...f, category: v, emoji: (f.emoji === "🌿" || f.emoji === "🍇" || f.emoji === "🍄") ? SANSAI_CATEGORIES[v].icon : f.emoji })); },}
+          , Object.keys(SANSAI_CATEGORIES).map(k => React.createElement('option', { key: k, value: k,}, SANSAI_CATEGORIES[k].icon + " " + SANSAI_CATEGORIES[k].label))
+        )
+      )
+      , React.createElement('div', { className: "form-group",}
+        , React.createElement('label', { className: "form-label",}, "よみがな（任意）")
+        , React.createElement('input', { className: "form-input", value: form.yomi || "", onChange: e=>setForm(f=>({...f,yomi:e.target.value})), placeholder: "例：ふきのとう（漢字の名前のとき、並び順に使います）",} )
       )
 
       , React.createElement('div', { className: "form-group",}
@@ -6483,37 +6601,55 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
   );
 
   const [infoTab, setInfoTab] = useState("sansai"); // sansai | danger
+  const catInfo = SANSAI_CATEGORIES[catTab];
+  const catNoun = catInfo.noun;
+  const dangerLabel = catTab === "plant" ? "危険植物" : (catTab === "mushroom" ? "危険キノコ" : null);
+  const catEntries = entries.filter(e => sansaiCategory(e) === catTab).sort(kanaCompare);
 
   return (
     React.createElement('div', null
       , React.createElement('div', { className: "section-title",}, "\ud83c\udf3f \u5c71\u83dc\u56f3\u9451" )
-      , React.createElement('div', { className: "section-desc",}, "\u63a1\u308c\u308b\u5c71\u83dc\u306e\u60c5\u5831\u3068\u3001\u9593\u9055\u3048\u3084\u3059\u3044\u5371\u967a\u690d\u7269\u3092\u78ba\u8a8d\u3067\u304d\u307e\u3059\u3002")
+      , React.createElement('div', { className: "section-desc",}, "植物・果実・キノコに分けて、採れるものの情報と間違えやすい危険な種類を確認できます。（五十音順）")
 
-      /* \u30bf\u30d6\u5207\u66ff */
-      , React.createElement('div', { style: {display:"flex", gap:6, marginBottom:20, background:"var(--soil)", borderRadius:10, padding:4},}
-        , React.createElement('button', { onClick: ()=>setInfoTab("sansai"), style: {
-          flex:1, padding:"10px 4px", border:"none", borderRadius:8, cursor:"pointer",
-          fontFamily:"'Noto Serif JP',serif", fontSize:13, fontWeight:600,
-          background: infoTab==="sansai" ? "var(--forest)" : "transparent",
-          color: infoTab==="sansai" ? "white" : "#888", transition:"all 0.2s",
-        },}, "\ud83c\udf3f \u5c71\u83dc\u4e00\u89a7" )
-        , React.createElement('button', { onClick: ()=>setInfoTab("danger"), style: {
-          flex:1, padding:"10px 4px", border:"none", borderRadius:8, cursor:"pointer",
-          fontFamily:"'Noto Serif JP',serif", fontSize:13, fontWeight:600,
-          background: infoTab==="danger" ? "#c0392b" : "transparent",
-          color: infoTab==="danger" ? "white" : "#888", transition:"all 0.2s",
-        },}, "\u2620\ufe0f \u5371\u967a\u690d\u7269" )
+      /* 区分切替（植物・果実・キノコ） */
+      , React.createElement('div', { style: {display:"flex", gap:6, marginBottom: dangerLabel ? 10 : 20, background:"var(--soil)", borderRadius:10, padding:4},}
+        , Object.keys(SANSAI_CATEGORIES).map(k => {
+          const c = SANSAI_CATEGORIES[k];
+          const on = catTab === k;
+          return React.createElement('button', { key: k, onClick: ()=>{ setCatTab(k); setInfoTab("sansai"); }, style: {
+            flex:1, padding:"10px 4px", border:"none", borderRadius:8, cursor:"pointer",
+            fontFamily:"'Noto Serif JP',serif", fontSize:13, fontWeight:600,
+            background: on ? c.color : "transparent",
+            color: on ? "white" : "#888", transition:"all 0.2s",
+          },}, c.icon + " " + c.label);
+        })
       )
 
-      , infoTab === "danger" && React.createElement(DangerPlantsView, null )
+      /* 一覧／危険（植物・キノコのみ） */
+      , dangerLabel && React.createElement('div', { style: {display:"flex", gap:6, marginBottom:20},}
+        , React.createElement('button', { onClick: ()=>setInfoTab("sansai"), style: {
+          flex:1, padding:"8px 4px", border:"none", borderRadius:8, cursor:"pointer",
+          fontFamily:"'Noto Serif JP',serif", fontSize:12, fontWeight:600,
+          background: infoTab==="sansai" ? "var(--forest)" : "var(--mist)",
+          color: infoTab==="sansai" ? "white" : "#888", transition:"all 0.2s",
+        },}, catInfo.icon + " " + catNoun + "一覧")
+        , React.createElement('button', { onClick: ()=>setInfoTab("danger"), style: {
+          flex:1, padding:"8px 4px", border:"none", borderRadius:8, cursor:"pointer",
+          fontFamily:"'Noto Serif JP',serif", fontSize:12, fontWeight:600,
+          background: infoTab==="danger" ? "#c0392b" : "var(--mist)",
+          color: infoTab==="danger" ? "white" : "#888", transition:"all 0.2s",
+        },}, "☠️ " + dangerLabel)
+      )
+
+      , dangerLabel && infoTab === "danger" && React.createElement(DangerPlantsView, { key: catTab, items: catTab === "mushroom" ? DANGER_MUSHROOMS : DANGER_PLANTS, kind: catTab,} )
       , infoTab === "sansai" && React.createElement(React.Fragment, null
 
       /* \u7d71\u8a08\u30d0\u30fc */
       , React.createElement('div', { style: {display:"flex", gap:10, marginBottom:20, flexWrap:"wrap"},}
         , [
-          { label:"\u767b\u9332\u5c71\u83dc", val:`${entries.length}\u7a2e`, icon:"\ud83c\udf3f" },
-          { label:"\u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0", val:`${entries.filter(e=>e.isCustom).length}\u7a2e`, icon:"\u270f\ufe0f" },
-          { label:"\u30b9\u30dd\u30c3\u30c8\u767b\u9332", val:`${entries.reduce((acc,e)=>acc+(_optionalChain([e, 'access', _96 => _96.customSpots, 'optionalAccess', _97 => _97.length])||0),0)}\u7b87\u6240`, icon:"\ud83d\udccd" },
+          { label:`登録${catNoun}`, val:`${catEntries.length}種`, icon:catInfo.icon },
+          { label:"ユーザー追加", val:`${catEntries.filter(e=>e.isCustom).length}種`, icon:"✏️" },
+          { label:"\u30b9\u30dd\u30c3\u30c8\u767b\u9332", val:`${catEntries.reduce((acc,e)=>acc+(_optionalChain([e, 'access', _96 => _96.customSpots, 'optionalAccess', _97 => _97.length])||0),0)}\u7b87\u6240`, icon:"\ud83d\udccd" },
         ].map(item=>(
           React.createElement('div', { key: item.label, style: {flex:1, minWidth:90, background:"white", borderRadius:12, padding:"10px 14px", boxShadow:"0 2px 8px rgba(0,0,0,0.07)", textAlign:"center", border:"1px solid var(--mist)"},}
             , React.createElement('div', { style: {fontSize:20},}, item.icon)
@@ -6524,7 +6660,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
       )
 
       , React.createElement('div', { className: "sansai-grid",}
-        , entries.map(s => (
+        , catEntries.map(s => (
           React.createElement('div', { key: s.id, className: "sansai-card", style: {borderTopColor: s.color, position:"relative"}, onClick: ()=>{ setSelected(s); setDetailSpotInput(""); },}
             , s.isCustom && React.createElement('div', { style: {position:"absolute", top:8, right:8, background:"var(--fern)", color:"white", fontSize:9, padding:"2px 6px", borderRadius:8, fontWeight:700},}, "\u8ffd\u52a0")
             , s.photoId && photoStore[s.photoId]
@@ -6542,8 +6678,9 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
           )
         ))
       )
+      , catEntries.length === 0 && React.createElement('div', { style: {textAlign:"center", color:"#aaa", fontSize:13, padding:"24px 0"},}, "まだ" + catInfo.label + "は登録されていません")
 
-      , isAdmin && React.createElement('button', { className: "add-btn", style: {marginTop:8}, onClick: ()=>{ setForm(emptyForm); setShowAddForm(true); },}, "\uff0b \u5c71\u83dc\u3092\u8ffd\u52a0"
+      , isAdmin && React.createElement('button', { className: "add-btn", style: {marginTop:8}, onClick: ()=>{ setForm(emptyForm); setShowAddForm(true); },}, "＋ " + catNoun + "を追加"
 
       )
 
@@ -6651,7 +6788,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
       , showAddForm && (
         React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setShowAddForm(false),}
           , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},}
-            , React.createElement('div', { className: "form-title",}, "\ud83c\udf3f \u5c71\u83dc\u3092\u8ffd\u52a0" )
+            , React.createElement('div', { className: "form-title",}, catInfo.icon + " " + catNoun + "を追加" )
             , renderFormBody(false)
             , React.createElement('div', { className: "form-actions",}
               , React.createElement('button', { className: "btn-cancel", onClick: ()=>setShowAddForm(false),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
@@ -6665,7 +6802,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
       , showEditForm && (
         React.createElement('div', { className: "form-overlay", onClick: e=>e.target===e.currentTarget&&setShowEditForm(false),}
           , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},}
-            , React.createElement('div', { className: "form-title",}, "\u270f\ufe0f \u5c71\u83dc\u3092\u7de8\u96c6" )
+            , React.createElement('div', { className: "form-title",}, "✏️ " + catNoun + "を編集" )
             , renderFormBody(true)
             , React.createElement('div', { className: "form-actions",}
               , React.createElement('button', { className: "btn-cancel", onClick: ()=>setShowEditForm(false),}, "\u30ad\u30e3\u30f3\u30bb\u30eb")
@@ -8631,7 +8768,7 @@ const MANUAL_ITEMS = [
   { t:"採取プラン", i:"📅", b:["月を選ぶと、その月に採れる山菜が表示されます。","採取予定を入力すると、Googleカレンダーの登録画面が開きます。内容を確認して保存してください。"], v:MANUAL_VER },
   { t:"スポット", i:"📍", b:["よく行く採取ポイントを登録・管理します。","採れる山菜の種類や覚え書きも残せます。"], v:MANUAL_VER },
   { t:"ブログ", i:"📝", b:["採取の記録を投稿する場所です。投稿は自分のスマホの中に保存されます。","写真を付けて投稿できます。写真をタップすると拡大表示されます。","仲間に見せたいときは、LINEなどで写真や文章を送り合ってください（みんなで共有できるのは、パトロール・収穫記録・忘備録です）。"], v:MANUAL_VER },
-  { t:"山菜図鑑", i:"🌿", b:["採れる山菜の情報と、間違えやすい危険な植物を確認できます。","採取前に必ず見分けを確認しましょう。少しでも迷ったら採らないでください。","図鑑の編集ができるのは管理者だけです。管理者が更新した内容は、次に開いたときに自動で最新になります。","山菜ごとに追加した「おすすめスポット」は、更新しても自分の端末に残ります。"], v:MANUAL_VER },
+  { t:"山菜図鑑", i:"🌿", b:["図鑑は「植物」「果実」「キノコ」の3つに分かれていて、それぞれ五十音（あいうえお）順に並びます。植物とキノコには、間違えやすい「危険植物」「危険キノコ」の一覧もあります。","採れる山菜の情報と、間違えやすい危険な植物を確認できます。","採取前に必ず見分けを確認しましょう。少しでも迷ったら採らないでください。","図鑑の編集ができるのは管理者だけです。管理者が更新した内容は、次に開いたときに自動で最新になります。","山菜ごとに追加した「おすすめスポット」は、更新しても自分の端末に残ります。"], v:MANUAL_VER },
   { t:"メンバー", i:"👥", b:["仲間の一覧です。追加・削除は管理者だけが行えます。メンバーが編集できるのは、自分のプロフィールだけです。","知り合いを仲間に誘いたいときは、「👋 知り合いを推薦する」から、LINEで管理者に知らせてください。","メンバータブの下には、ログインの設定とログアウトのボタンがあります。"], v:MANUAL_VER },
   { t:"パトロール", i:"🔍", b:["スポットの巡回記録、山菜の生育状況、スケジュールを管理します。","位置情報（GPS）を記録して、場所を地図で開くこともできます。"], v:MANUAL_VER },
   { t:"収穫記録", i:"🧺", b:["採れた山菜の種類・量・参加メンバーを記録します。","記録が貯まると収穫の統計を見ることができます。"], v:MANUAL_VER },
