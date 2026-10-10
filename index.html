@@ -821,6 +821,49 @@ function kanaCompare(a, b) {
   return x < y ? -1 : (x > y ? 1 : 0);
 }
 
+// ===== Wikipedia へのリンク（名前から自動で作る） =====
+// 記事名が名前と違うものは対応表で補い、それ以外は名前（かっこ内は除く）で探す
+const WIKI_TITLE_MAP = {
+  "フキノトウ": "フキ", "タラノメ": "タラノキ", "葉ワサビ": "ワサビ", "花ワサビ": "ワサビ",
+  "根曲がり竹": "チシマザサ", "コゴミ": "クサソテツ", "ヨシナ（シドケ）": "モミジガサ",
+  "ミズ（ウワバミソウ）": "ウワバミソウ", "行者ニンニク": "ギョウジャニンニク",
+  "ウルイ（オオバギボウシ）": "オオバギボウシ", "イヌサフラン（コルチカム）": "イヌサフラン",
+};
+function wikiQuery(e) {
+  if (e && e.wiki && String(e.wiki).trim()) return String(e.wiki).trim();
+  const name = String((e && e.name) || "").trim();
+  if (WIKI_TITLE_MAP[name]) return WIKI_TITLE_MAP[name];
+  const m = name.match(/^(.*?)[（(](.*?)[）)]\s*$/);
+  if (m && m[1].trim()) return m[1].trim() + (m[2].trim() ? " " + m[2].trim() : "");
+  return name;
+}
+// 記事名が一致すればその記事へ、なければ検索結果へ移る
+function wikiUrl(e) {
+  return "https://ja.wikipedia.org/wiki/Special:Search?go=Go&search=" + encodeURIComponent(wikiQuery(e));
+}
+function wikiLink(e) {
+  return React.createElement('a', { href: wikiUrl(e), target: "_blank", rel: "noopener noreferrer",
+    onClick: ev => ev.stopPropagation(),
+    style: { display:"inline-flex", alignItems:"center", gap:6, padding:"8px 14px", borderRadius:20,
+      background:"#f3f6fb", border:"1px solid #c9d6ea", color:"#2a4d8f", fontSize:13, fontWeight:600, textDecoration:"none" },
+  }, "📖 Wikipediaで見る");
+}
+
+// ===== 写真の拡大表示（ブログ・図鑑・使い方などで共通） =====
+function Lightbox({ images, startIndex, onClose }) {
+  const list = (images || []).filter(Boolean);
+  const [idx, setIdx] = useState(Math.min(Math.max(startIndex || 0, 0), Math.max(list.length - 1, 0)));
+  if (list.length === 0) return null;
+  const go = (d, e) => { if (e) e.stopPropagation(); setIdx(i => (i + d + list.length) % list.length); };
+  return React.createElement('div', { className: "lightbox", onClick: onClose,}
+    , React.createElement('button', { className: "lightbox-close", onClick: e => { e.stopPropagation(); onClose(); },}, "×")
+    , list.length > 1 && React.createElement('button', { className: "lightbox-nav prev", onClick: e => go(-1, e),}, "‹")
+    , React.createElement('img', { src: list[idx], alt: "", onClick: e => e.stopPropagation(),} )
+    , list.length > 1 && React.createElement('button', { className: "lightbox-nav next", onClick: e => go(1, e),}, "›")
+    , list.length > 1 && React.createElement('div', { className: "lightbox-counter",}, (idx + 1) + " / " + list.length)
+  );
+}
+
 // ===== 危険・注意キノコデータ =====
 const DANGER_MUSHROOMS = [
   {
@@ -6342,6 +6385,9 @@ function DangerPlantsView({ items, kind }) {
                   , React.createElement('div', { style: {fontSize:13, color:"#444", lineHeight:1.8},}, selected.desc)
                 )
 
+                /* Wikipedia */
+                , React.createElement('div', null, wikiLink(selected))
+
                 /* \u898b\u5206\u3051\u65b9 */
                 , React.createElement('div', { style: {background:"#e8f4fd", borderRadius:10, padding:"14px 16px", border:"1px solid #90caf9"},}
                   , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"#1565c0", marginBottom:8},}, "\ud83d\udd0d \u898b\u5206\u3051\u65b9\u30fb\u30c1\u30a7\u30c3\u30af\u30dd\u30a4\u30f3\u30c8" )
@@ -6392,7 +6438,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
     }
   }, []);
 
-  const emptyForm = { name:"", emoji: SANSAI_CATEGORIES[catTab].icon, months:[], region:"", color:"#6aab5e", desc:"", customSpots:[], notes:"", photoId:null, category: catTab, yomi:"" };
+  const emptyForm = { name:"", emoji: SANSAI_CATEGORIES[catTab].icon, months:[], region:"", color:"#6aab5e", desc:"", customSpots:[], notes:"", photoId:null, category: catTab, yomi:"", wiki:"" };
   const [form, setForm] = useState(emptyForm);
 
   const EMOJIS = ["\ud83c\udf3f","\ud83c\udf43","\ud83c\udf31","\ud83c\udf3e","\ud83c\udf00","\ud83e\uddc5","\ud83c\udf40","\ud83e\udeb4","\ud83c\udf47","\ud83c\udf44","\ud83c\udf38","\ud83c\udf8b","\ud83c\udf3a","\ud83e\udd6c","\ud83c\udf32"];
@@ -6407,13 +6453,13 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
     if (!form.name.trim() || form.months.length === 0) return;
     const newEntry = { ...form, id: Date.now(), isCustom: true };
     setEntries(prev => [...prev, newEntry]);
-    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", photoId:newEntry.photoId||null, isCustom:true, category:newEntry.category||catTab, yomi:newEntry.yomi||""}]);
+    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", photoId:newEntry.photoId||null, isCustom:true, category:newEntry.category||catTab, yomi:newEntry.yomi||"", wiki:newEntry.wiki||""}]);
     setForm(emptyForm);
     setShowAddForm(false);
   };
 
   const openEdit = (entry) => {
-    setForm({ ...entry, category: sansaiCategory(entry), yomi: entry.yomi || "" });
+    setForm({ ...entry, category: sansaiCategory(entry), yomi: entry.yomi || "", wiki: entry.wiki || "" });
     setShowEditForm(true);
     setSelected(null);
   };
@@ -6497,6 +6543,10 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
       , React.createElement('div', { className: "form-group",}
         , React.createElement('label', { className: "form-label",}, "よみがな（任意）")
         , React.createElement('input', { className: "form-input", value: form.yomi || "", onChange: e=>setForm(f=>({...f,yomi:e.target.value})), placeholder: "例：ふきのとう（漢字の名前のとき、並び順に使います）",} )
+      )
+      , React.createElement('div', { className: "form-group",}
+        , React.createElement('label', { className: "form-label",}, "Wikipediaの記事名（任意）")
+        , React.createElement('input', { className: "form-input", value: form.wiki || "", onChange: e=>setForm(f=>({...f,wiki:e.target.value})), placeholder: "空欄なら名前から自動で探します",} )
       )
 
       , React.createElement('div', { className: "form-group",}
@@ -6722,6 +6772,9 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
                   , React.createElement('div', { style: {lineHeight:1.8, color:"#444"},}, selected.desc)
                 )
               )
+
+              /* Wikipedia */
+              , React.createElement('div', null, wikiLink(selected))
 
               /* \u304a\u3059\u3059\u3081\u30b9\u30dd\u30c3\u30c8 */
               , React.createElement('div', null
@@ -8749,7 +8802,7 @@ function LinkView() {
 }
 
 // ===== MANUAL / QA =====
-const MANUAL_VER = "2026-10-10";
+const MANUAL_VER = "2026-10-11";
 const MANUAL_LEGACY = ["はじめに", "カレンダー", "採取プラン", "スポット", "ブログ", "山菜図鑑", "メンバー", "パトロール", "収穫記録", "忘備録", "服装・道具", "リンク集", "バックアップ・復元"];
 const QA_LEGACY = ["バックアップはどうやって取りますか？", "バックアップファイルはどこに保存されますか？", "バックアップから元に戻すには？", "いつバックアップを取ればいいですか？", "復元するとデータが上書きされますか？", "作成者用の「メモ」タブはどこにありますか？", "入力したデータはどこに保存されますか？", "データが消えることはありますか？", "機種変更したらデータは引き継げますか？", "仲間と記録を共有するには？", "アプリを更新したのに表示が変わりません", "ホーム画面に追加するには？", "GPS（位置情報）が取得できません", "写真がアップロードできません", "Googleカレンダーに予定が自動で入りません", "リンク集のリンクを間違って削除しました", "山菜やきのこが食べられるか、アプリで判断できますか？", "入山するときの注意点は？"];
 // 保存済みの内容に最新版（MANUAL_VER）が入っていなければ、標準の内容を最新にして、
@@ -8768,7 +8821,7 @@ const MANUAL_ITEMS = [
   { t:"採取プラン", i:"📅", b:["月を選ぶと、その月に採れる山菜が表示されます。","採取予定を入力すると、Googleカレンダーの登録画面が開きます。内容を確認して保存してください。"], v:MANUAL_VER },
   { t:"スポット", i:"📍", b:["よく行く採取ポイントを登録・管理します。","採れる山菜の種類や覚え書きも残せます。"], v:MANUAL_VER },
   { t:"ブログ", i:"📝", b:["採取の記録を投稿する場所です。投稿は自分のスマホの中に保存されます。","写真を付けて投稿できます。写真をタップすると拡大表示されます。","仲間に見せたいときは、LINEなどで写真や文章を送り合ってください（みんなで共有できるのは、パトロール・収穫記録・忘備録です）。"], v:MANUAL_VER },
-  { t:"山菜図鑑", i:"🌿", b:["図鑑は「植物」「果実」「キノコ」の3つに分かれていて、それぞれ五十音（あいうえお）順に並びます。植物とキノコには、間違えやすい「危険植物」「危険キノコ」の一覧もあります。","採れる山菜の情報と、間違えやすい危険な植物を確認できます。","採取前に必ず見分けを確認しましょう。少しでも迷ったら採らないでください。","図鑑の編集ができるのは管理者だけです。管理者が更新した内容は、次に開いたときに自動で最新になります。","山菜ごとに追加した「おすすめスポット」は、更新しても自分の端末に残ります。"], v:MANUAL_VER },
+  { t:"山菜図鑑", i:"🌿", b:["図鑑は「植物」「果実」「キノコ」の3つに分かれていて、それぞれ五十音（あいうえお）順に並びます。植物とキノコには、間違えやすい「危険植物」「危険キノコ」の一覧もあります。","採れる山菜の情報と、間違えやすい危険な植物を確認できます。","各項目の詳細画面にある「📖 Wikipediaで見る」から、Wikipediaで詳しい説明を見られます（通信が必要です）。","採取前に必ず見分けを確認しましょう。少しでも迷ったら採らないでください。","図鑑の編集ができるのは管理者だけです。管理者が更新した内容は、次に開いたときに自動で最新になります。","山菜ごとに追加した「おすすめスポット」は、更新しても自分の端末に残ります。"], v:MANUAL_VER },
   { t:"メンバー", i:"👥", b:["仲間の一覧です。追加・削除は管理者だけが行えます。メンバーが編集できるのは、自分のプロフィールだけです。","知り合いを仲間に誘いたいときは、「👋 知り合いを推薦する」から、LINEで管理者に知らせてください。","メンバータブの下には、ログインの設定とログアウトのボタンがあります。"], v:MANUAL_VER },
   { t:"パトロール", i:"🔍", b:["スポットの巡回記録、山菜の生育状況、スケジュールを管理します。","位置情報（GPS）を記録して、場所を地図で開くこともできます。"], v:MANUAL_VER },
   { t:"収穫記録", i:"🧺", b:["採れた山菜の種類・量・参加メンバーを記録します。","記録が貯まると収穫の統計を見ることができます。"], v:MANUAL_VER },
@@ -8791,6 +8844,7 @@ const QA_ITEMS = [
   { q:"毎回ログインを求められます", a:"ログイン画面で「この端末ではログイン状態を保存する」にチェックを入れてから、ログインしてください。ブラウザのサイトデータを消したときは、もう一度ログインが必要です。", v:MANUAL_VER },
   { q:"作成者用の「メモ」タブはどこにありますか？", a:"作成者（中田さん）専用です。ホーム画面の一番下の「山菜採り手帳 v2.0」の文字を7回続けてタップし、合言葉を入力すると、この端末にだけ「メモ」タブが現れます。他のメンバーには表示されません。", v:MANUAL_VER },
   { q:"図鑑やカレンダーを編集できません", a:"図鑑と山菜カレンダーの編集ができるのは、管理者だけです。直してほしいところは、LINEなどで管理者に伝えてください。", v:MANUAL_VER },
+  { q:"図鑑のWikipediaリンクで、違うページが出ます", a:"名前から自動で記事を探しているため、別の記事や検索結果が出ることがあります。管理者は、図鑑の編集画面にある「Wikipediaの記事名」に正しい記事名を入れると直せます。", v:MANUAL_VER },
   { q:"図鑑・カレンダーの内容が古いままです", a:"アプリを一度完全に閉じて、開き直してください。管理者がまだ更新していないときは、前のままです。", v:MANUAL_VER },
   { q:"記録をみんなと共有するには？", a:"パトロール・収穫記録・忘備録のタブで「共有する記録を選ぶ」を押し、みんなに見せたい記録にチェックを入れて「📤 管理者に提出する」を押します。できたファイルをLINEなどで管理者に送ると、管理者の確認後に「👥 みんなの〜」に表示されます。ブログは共有の対象ではないので、LINEなどで送り合ってください。", v:MANUAL_VER },
   { q:"提出したのに「みんなの〜」に出てきません", a:"管理者が提出ファイルを取り込み、配信用に書き出してGitHubにアップロードしたあとに表示されます。少し待ってから、アプリを開き直してください。", v:MANUAL_VER },
@@ -8822,6 +8876,17 @@ function ManualView({ isAdmin }) {
   const [editIdx, setEditIdx] = useState(null);
   const [form, setForm] = useState({ i:"🌿", t:"", b:"", q:"", a:"" });
   const [err, setErr] = useState("");
+  const [lightbox, setLightbox] = useState(null);
+  // 項目に imgs: [{ src, cap }] があれば、説明の下に画像を表示する（タップで拡大）
+  const imgsBlock = (it) => (it.imgs && it.imgs.length > 0) ? React.createElement('div', { style:{display:"flex", flexDirection:"column", gap:14, marginTop:12},}
+    , it.imgs.map((im, k) => React.createElement('figure', { key:k, style:{margin:0},}
+      , React.createElement('img', { src: im.src, alt: im.cap || "", loading: "lazy",
+          onClick: () => setLightbox({ images: it.imgs.map(x => x.src), index: k }),
+          onError: e => { e.target.style.display = "none"; },
+          style:{ width:"100%", maxWidth:420, display:"block", borderRadius:10, border:"1px solid var(--mist)", cursor:"zoom-in" },} )
+      , im.cap && React.createElement('figcaption', { style:{ fontSize:12, color:"#666", marginTop:4, lineHeight:1.6 },}, im.cap)
+    ))
+  ) : null;
   const [deleteIdx, setDeleteIdx] = useState(null);
 
   const isManual = sub === "manual";
@@ -8842,10 +8907,12 @@ function ManualView({ isAdmin }) {
       if (!form.t.trim()) { setErr("タイトルを入力してください"); return; }
       if (lines.length === 0) { setErr("本文を入力してください"); return; }
       item = { t: form.t.trim(), i: form.i.trim() || "🌿", b: lines };
+      if (editIdx !== null && items[editIdx] && items[editIdx].imgs) item.imgs = items[editIdx].imgs;
     } else {
       if (!form.q.trim()) { setErr("質問を入力してください"); return; }
       if (!form.a.trim()) { setErr("答えを入力してください"); return; }
       item = { q: form.q.trim(), a: form.a.trim() };
+      if (editIdx !== null && items[editIdx] && items[editIdx].imgs) item.imgs = items[editIdx].imgs;
     }
     const idx = editIdx;
     setItems(prev => idx === null ? [...prev, item] : prev.map((x, k) => k === idx ? item : x));
@@ -8905,6 +8972,7 @@ function ManualView({ isAdmin }) {
               , isManual
                 ? (it.b || []).map((line, j) => React.createElement('div', { key:j, style:{marginBottom:4},}, "・", line))
                 : React.createElement('div', null, "A. ", it.a)
+              , imgsBlock(it)
               , isAdmin && React.createElement('div', { style:{display:"flex", gap:8, flexWrap:"wrap", marginTop:12},}
                 , smallBtn("✏️ 編集", () => openEdit(idx))
                 , smallBtn("↑", () => move(idx, -1), idx === 0 ? { opacity:0.35 } : null)
@@ -8953,6 +9021,8 @@ function ManualView({ isAdmin }) {
           )
         )
       )
+
+      , lightbox && React.createElement(Lightbox, { images: lightbox.images, startIndex: lightbox.index, onClose: ()=>setLightbox(null),} )
 
       , deleteIdx !== null && (
         React.createElement('div', { className:"form-overlay", onClick: e=>e.target===e.currentTarget && setDeleteIdx(null),}
