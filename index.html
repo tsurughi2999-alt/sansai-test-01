@@ -8588,6 +8588,7 @@ function PhotoProvider({ children }) {
 
 // ===== 図鑑・山菜カレンダーの配信（管理者が書き出した zukan.json を全員の端末へ反映） =====
 const ZUKAN_URL = "./zukan.json";
+const MANUAL_IMGS_KEY = "sansai_manual_imgs_v1"; // 使い方・Q&Aに後から足した画像 { "m:タイトル" | "q:質問": [{pid, cap}] }
 const ZUKAN_VER_KEY = "sansai_zukan_ver";
 const ZUKAN_ADMIN_KEY = "sansai_zukan_admin";
 function zukanLocalVer() { try { return Number(localStorage.getItem(ZUKAN_VER_KEY)) || 0; } catch (e) { return 0; } }
@@ -8651,8 +8652,16 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
       for (const s of sansaiList) {
         if (s.photoId && photos[s.photoId]) outPhotos[s.photoId] = await zukanShrink(photos[s.photoId], 720, 0.72);
       }
+      let manualImgs = {};
+      try { manualImgs = JSON.parse(localStorage.getItem(MANUAL_IMGS_KEY) || "{}") || {}; } catch (e) { manualImgs = {}; }
+      let manualCount = 0;
+      for (const k of Object.keys(manualImgs)) {
+        const arr = (manualImgs[k] || []).filter(x => x && photos[x.pid]);
+        for (const x of arr) { outPhotos[x.pid] = await zukanShrink(photos[x.pid], 900, 0.75); manualCount++; }
+        if (arr.length) manualImgs[k] = arr; else delete manualImgs[k];
+      }
       const version = Date.now();
-      const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, photos: outPhotos });
+      const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, photos: outPhotos, manualImgs: manualImgs });
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -8660,7 +8669,7 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 10000);
       try { localStorage.setItem(ZUKAN_VER_KEY, String(version)); localStorage.setItem(ZUKAN_ADMIN_KEY, "1"); } catch (e) {}
-      setStatus("✅ zukan.json を保存しました（" + sansaiList.length + "件・約" + (json.length / 1048576).toFixed(1) + "MB）\nGitHubの同じ場所にアップロードして上書きしてください");
+      setStatus("✅ zukan.json を保存しました（" + sansaiList.length + "件・使い方の画像" + manualCount + "枚・約" + (json.length / 1048576).toFixed(1) + "MB）\nGitHubの同じ場所にアップロードして上書きしてください");
     } catch (e) {
       setStatus("❌ 書き出しに失敗しました");
     }
@@ -8675,7 +8684,7 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
     React.createElement('div', { style: { marginTop: 20, padding: 16, background: "white", border: "2px solid var(--mist)", borderRadius: 14 } }
       , React.createElement('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 15 } }, "🌿 図鑑・カレンダーの配信（管理者用）")
       , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } },
-          "図鑑とカレンダーを編集したら「書き出す」で zukan.json を作り、GitHubのリポジトリに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。")
+          "図鑑・カレンダー・使い方の画像を編集したら「書き出す」で zukan.json を作り、GitHubのリポジトリに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。")
       , React.createElement('button', { onClick: handleExport, disabled: busy, style: { ...btn, background: "var(--forest)", color: "white", opacity: busy ? 0.6 : 1 } }, "📤 配信用に書き出す（zukan.json）")
       , React.createElement('button', { onClick: handleImport, style: { ...btn, background: "var(--mist)", color: "var(--forest)" } }, "📥 配信データを今すぐ取り込む")
       , status && React.createElement('div', { style: { marginTop: 10, fontSize: 12, color: "#444", whiteSpace: "pre-wrap", lineHeight: 1.7 } }, status)
@@ -8877,16 +8886,69 @@ function ManualView({ isAdmin }) {
   const [form, setForm] = useState({ i:"🌿", t:"", b:"", q:"", a:"" });
   const [err, setErr] = useState("");
   const [lightbox, setLightbox] = useState(null);
-  // 項目に imgs: [{ src, cap }] があれば、説明の下に画像を表示する（タップで拡大）
-  const imgsBlock = (it) => (it.imgs && it.imgs.length > 0) ? React.createElement('div', { style:{display:"flex", flexDirection:"column", gap:14, marginTop:12},}
-    , it.imgs.map((im, k) => React.createElement('figure', { key:k, style:{margin:0},}
-      , React.createElement('img', { src: im.src, alt: im.cap || "", loading: "lazy",
-          onClick: () => setLightbox({ images: it.imgs.map(x => x.src), index: k }),
-          onError: e => { e.target.style.display = "none"; },
-          style:{ width:"100%", maxWidth:420, display:"block", borderRadius:10, border:"1px solid var(--mist)", cursor:"zoom-in" },} )
-      , im.cap && React.createElement('figcaption', { style:{ fontSize:12, color:"#666", marginTop:4, lineHeight:1.6 },}, im.cap)
-    ))
-  ) : null;
+  const { photos, savePhoto, removePhoto } = usePhotos();
+  const loadImgMap = () => { try { const m = JSON.parse(localStorage.getItem(MANUAL_IMGS_KEY) || "{}"); return (m && typeof m === "object" && !Array.isArray(m)) ? m : {}; } catch (e) { return {}; } };
+  const [imgMap, setImgMap] = useState(loadImgMap);
+  useEffect(() => { try { localStorage.setItem(MANUAL_IMGS_KEY, JSON.stringify(imgMap)); } catch (e) {} }, [imgMap]);
+  useEffect(() => {
+    const h = () => setImgMap(loadImgMap());
+    window.addEventListener("sansai-manual-imgs", h);
+    return () => window.removeEventListener("sansai-manual-imgs", h);
+  }, []);
+  const imgKey = (it) => (isManual ? "m:" + it.t : "q:" + it.q);
+  // 画像 = コードに組み込み済みの imgs ＋ 管理者が後から足した画像
+  const imgList = (it) => {
+    const base = (it.imgs || []).map(x => ({ src: x.src, cap: x.cap || "", own: false }));
+    const own = (imgMap[imgKey(it)] || []).map(x => ({ src: photos[x.pid], cap: x.cap || "", pid: x.pid, own: true })).filter(x => x.src);
+    return base.concat(own);
+  };
+  const addImgs = (it, files) => {
+    const key = imgKey(it);
+    Array.from(files || []).forEach(file => {
+      compressImageFile(file, 900, 0.78, async (dataUrl) => {
+        const pid = await savePhoto(dataUrl);
+        if (!pid) return;
+        const cap = window.prompt("この画像の説明（なくてもOK）", "") || "";
+        setImgMap(prev => ({ ...prev, [key]: (prev[key] || []).concat([{ pid: pid, cap: cap.trim() }]) }));
+      });
+    });
+  };
+  const editCap = (it, pid) => {
+    const key = imgKey(it);
+    const cur = ((imgMap[key] || []).find(x => x.pid === pid) || {}).cap || "";
+    const v = window.prompt("画像の説明", cur);
+    if (v === null) return;
+    setImgMap(prev => ({ ...prev, [key]: (prev[key] || []).map(x => x.pid === pid ? { pid: x.pid, cap: v.trim() } : x) }));
+  };
+  const delImg = (it, pid) => {
+    if (!window.confirm("この画像を削除しますか？")) return;
+    const key = imgKey(it);
+    setImgMap(prev => ({ ...prev, [key]: (prev[key] || []).filter(x => x.pid !== pid) }));
+    removePhoto(pid);
+  };
+  const imgsBlock = (it) => {
+    const list = imgList(it);
+    if (list.length === 0) return null;
+    return React.createElement('div', { style:{display:"flex", flexDirection:"column", gap:14, marginTop:12},}
+      , list.map((im, k) => React.createElement('figure', { key:k, style:{margin:0},}
+        , React.createElement('img', { src: im.src, alt: im.cap || "", loading: "lazy",
+            onClick: () => setLightbox({ images: list.map(x => x.src), index: k }),
+            onError: e => { e.target.style.display = "none"; },
+            style:{ width:"100%", maxWidth:420, display:"block", borderRadius:10, border:"1px solid var(--mist)", cursor:"zoom-in" },} )
+        , im.cap && React.createElement('figcaption', { style:{ fontSize:12, color:"#666", marginTop:4, lineHeight:1.6 },}, im.cap)
+        , isAdmin && im.own && React.createElement('div', { style:{display:"flex", gap:8, marginTop:6},}
+          , smallBtn("✏️ 説明", () => editCap(it, im.pid))
+          , smallBtn("🗑 画像を削除", () => delImg(it, im.pid), { color:"#c0392b", borderColor:"#e6b0aa" })
+        )
+      ))
+    );
+  };
+  const addImgBtn = (it) => React.createElement('label', {
+    style:{ padding:"6px 12px", borderRadius:8, border:"1px solid var(--mist)", background:"white", color:"var(--forest)", fontFamily:"inherit", fontSize:13, cursor:"pointer", display:"inline-block" },}
+    , "📷 画像を追加"
+    , React.createElement('input', { type:"file", accept:"image/*", multiple:true, style:{ display:"none" },
+        onChange: e => { addImgs(it, e.target.files); e.target.value = ""; },} )
+  );
   const [deleteIdx, setDeleteIdx] = useState(null);
 
   const isManual = sub === "manual";
@@ -8914,6 +8976,10 @@ function ManualView({ isAdmin }) {
       item = { q: form.q.trim(), a: form.a.trim() };
       if (editIdx !== null && items[editIdx] && items[editIdx].imgs) item.imgs = items[editIdx].imgs;
     }
+    if (editIdx !== null && items[editIdx]) {
+      const ok = imgKey(items[editIdx]), nk = imgKey(item);
+      if (ok !== nk) setImgMap(prev => { if (!prev[ok]) return prev; const n = Object.assign({}, prev); n[nk] = (n[nk] || []).concat(prev[ok]); delete n[ok]; return n; });
+    }
     const idx = editIdx;
     setItems(prev => idx === null ? [...prev, item] : prev.map((x, k) => k === idx ? item : x));
     setShowForm(false);
@@ -8921,6 +8987,12 @@ function ManualView({ isAdmin }) {
   };
   const doDelete = () => {
     const idx = deleteIdx;
+    const gone = items[idx];
+    if (gone) {
+      const gk = imgKey(gone);
+      (imgMap[gk] || []).forEach(x => removePhoto(x.pid));
+      setImgMap(prev => { const n = Object.assign({}, prev); delete n[gk]; return n; });
+    }
     setItems(prev => prev.filter((_, k) => k !== idx));
     setDeleteIdx(null); setOpenId(null);
   };
@@ -8953,7 +9025,7 @@ function ManualView({ isAdmin }) {
         , React.createElement('div', { className:"section-title", style:{marginBottom:0},}, "📖 使い方・Q&A")
         , isAdmin && React.createElement('button', { className:"add-btn", onClick:openAdd,}, "＋ 新規登録")
       )
-      , React.createElement('div', { className:"section-desc", style:{marginBottom:14},}, isAdmin ? "【管理者モード】追加・編集・削除・並べ替えができます。タイトルをタップして開いてください。" : "タイトルをタップすると内容が開きます")
+      , React.createElement('div', { className:"section-desc", style:{marginBottom:14},}, isAdmin ? "【管理者モード】追加・編集・削除・並べ替えができます。項目を開いて「📷 画像を追加」でスクリーンショットも足せます（足したら作成者メニューで「配信用に書き出す」）。" : "タイトルをタップすると内容が開きます")
       , React.createElement('div', { style:{display:"flex", borderRadius:10, overflow:"hidden", marginBottom:14, border:"1px solid var(--mist)"},}
         , pill("manual", "📘 使い方マニュアル")
         , pill("qa", "❓ Q&A集")
@@ -8975,6 +9047,7 @@ function ManualView({ isAdmin }) {
               , imgsBlock(it)
               , isAdmin && React.createElement('div', { style:{display:"flex", gap:8, flexWrap:"wrap", marginTop:12},}
                 , smallBtn("✏️ 編集", () => openEdit(idx))
+                , addImgBtn(it)
                 , smallBtn("↑", () => move(idx, -1), idx === 0 ? { opacity:0.35 } : null)
                 , smallBtn("↓", () => move(idx, 1), idx === items.length - 1 ? { opacity:0.35 } : null)
                 , smallBtn("🗑 削除", () => setDeleteIdx(idx), { color:"#c0392b", borderColor:"#e6b0aa" })
@@ -9571,6 +9644,9 @@ function App() {
       if (!force && !(remote.version > zukanLocalVer())) return false;
       try { localStorage.setItem("sansai_list_v2_prev", localStorage.getItem("sansai_list_v2") || ""); } catch (e) {}
       await importPhotos(remote.photos || {});
+      if (remote.manualImgs && typeof remote.manualImgs === "object") {
+        try { localStorage.setItem(MANUAL_IMGS_KEY, JSON.stringify(remote.manualImgs)); window.dispatchEvent(new Event("sansai-manual-imgs")); } catch (e) {}
+      }
       setSansaiList(prev => zukanMerge(remote.list, prev));
       try { localStorage.setItem(ZUKAN_VER_KEY, String(remote.version)); } catch (e) {}
       showToast("🌿 図鑑・カレンダーを最新版に更新しました");
