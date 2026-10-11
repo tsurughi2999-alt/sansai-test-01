@@ -8602,7 +8602,7 @@ function zukanIsAdminDevice() { try { return localStorage.getItem(ZUKAN_ADMIN_KE
 async function zukanFetchRemote() {
   const res = await fetch(ZUKAN_URL + "?t=" + Date.now(), { cache: "no-store" });
   if (!res.ok) throw new Error("http " + res.status);
-  const data = await res.json();
+  const data = await secureOpen(await res.json());
   if (!data || data.app !== "sansai-zukan" || !Array.isArray(data.list)) throw new Error("invalid");
   return data;
 }
@@ -8669,14 +8669,15 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
       try { localStorage.setItem(MANUAL_SENT_KEY, JSON.stringify(manualImgPids(manualImgs))); } catch (e) {}
       const version = Date.now();
       const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, photos: outPhotos, manualImgs: manualImgs });
-      const blob = new Blob([json], { type: "application/json" });
+      const sealed = await secureSeal(json);
+      const blob = new Blob([sealed.text], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url; a.download = "zukan.json";
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 10000);
       try { localStorage.setItem(ZUKAN_VER_KEY, String(version)); localStorage.setItem(ZUKAN_ADMIN_KEY, "1"); } catch (e) {}
-      setStatus("✅ zukan.json を保存しました（" + sansaiList.length + "件・使い方の画像" + manualCount + "枚・約" + (json.length / 1048576).toFixed(1) + "MB）\nGitHubの同じ場所にアップロードして上書きしてください");
+      setStatus("✅ zukan.json を保存しました（" + sansaiList.length + "件・使い方の画像" + manualCount + "枚・約" + (json.length / 1048576).toFixed(1) + "MB）\n" + (sealed.enc ? "🔒 暗号化済み" : "⚠️ 暗号化されていません（メンバータブでID・パスワードを設定し直してください）") + "\nGitHubの同じ場所にアップロードして上書きしてください");
     } catch (e) {
       setStatus("❌ 書き出しに失敗しました");
     }
@@ -8866,7 +8867,7 @@ const MANUAL_ITEMS = [
   { t:"服装・道具", i:"👕", b:["山菜ごとに必要な服装や道具を確認できます。","「管理」から、リストの追加・編集・削除ができます。"], v:MANUAL_VER },
   { t:"リンク集", i:"🔗", b:["YouTube・Threads・X・Instagramなどのおすすめリンクをまとめたタブです。","「＋ 新規登録」で追加、各リンクの「削除」で削除できます。「初期状態に戻す」で最初の状態に戻ります。"], v:MANUAL_VER },
   { t:"バックアップ・復元", i:"💾", b:["データはスマホの中にだけ保存されています。アイコンの入れ替え・アプリの削除や再インストール・機種変更の前には、必ずバックアップを保存してください。","【バックアップのしかた】表紙（ホーム）画面の一番下にある「💾 バックアップ」ボタンをタップします。ファイル名に保存した日時が入るので、「山菜手帳バックアップ_2026-10-06_14-30-25.json」のように毎回別のファイルになります。","【保存される内容】メンバー・スポット・ブログ・山菜図鑑・パトロール・収穫記録・忘備録・服装道具・リンク集、および写真すべてです。","【保存場所】パソコンでは保存先を選ぶと「山菜手帳バックアップ」フォルダが自動で作られます。スマホ・タブレットでは「ダウンロード」フォルダに保存されます。ファイル管理アプリで「山菜手帳バックアップ」フォルダを作り、移しておくと分かりやすくなります。","【復元のしかた】表紙画面の「📤 復元」をタップし、保存したバックアップファイル（.json）を選びます。復元が終わるとアプリが自動で再読み込みされます。ファイル名の日時を見て、戻したい時点のファイルを選んでください。","【アイコンを入れ替えたいとき】①バックアップを保存する → ②ホーム画面の「山菜手帳」を長押しして削除（アンインストール）する → ③ブラウザでアプリのページを開き直し、「ホーム画面に追加」（または「インストール」）する → ④アプリの「📤 復元」でバックアップを読み込む、の順で進めます。","【注意】ブラウザやアプリ情報の「ストレージを消去」「サイトデータの削除」「データを削除して権限をリセット」を押すと、保存データも消えます。「キャッシュを削除」だけなら記録は消えません。","【おすすめ】山菜シーズンの前後や、大きな記録を入力したあとは、こまめにバックアップしましょう。バックアップファイルは Google ドライブや LINE のKeepメモなどにもコピーしておくと、端末が壊れたときも安心です。"], v:MANUAL_VER },
-  { t:"管理者のしごと", i:"🛠", b:["管理者の端末では、ホーム画面の一番下の「山菜採り手帳 v2.0」の文字を7回続けてタップし、合言葉を入力します。すると、管理者用の「メモ」タブが現れます。","【図鑑・カレンダーの配信】図鑑とカレンダーを編集したら、「メモ」タブの「📤 配信用に書き出す（zukan.json）」でファイルを作り、GitHubに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。","【記録の共有】パトロール・収穫記録・忘備録の各タブで、メンバーの提出ファイルを取り込み、「🌿 配信用に書き出す」で作ったファイル（patrol.json・harvest.json・memo.json）をGitHubに上書きアップロードします。","【ログイン】メンバータブの「共通ID・パスワードの設定」で設定すると、auth.json が作られます。GitHubに上書きアップロードすると、全員に反映されます。"], v:MANUAL_VER },
+  { t:"管理者のしごと", i:"🛠", b:["管理者の端末では、ホーム画面の一番下の「山菜採り手帳 v2.0」の文字を7回続けてタップし、合言葉を入力します。すると、管理者用の「メモ」タブが現れます。","【図鑑・カレンダーの配信】図鑑とカレンダーを編集したら、「メモ」タブの「📤 配信用に書き出す（zukan.json）」でファイルを作り、GitHubに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。","【記録の共有】パトロール・収穫記録・忘備録の各タブで、メンバーの提出ファイルを取り込み、「🌿 配信用に書き出す」で作ったファイル（patrol.json・harvest.json・memo.json）をGitHubに上書きアップロードします。","【ログイン】メンバータブの「共通ID・パスワードの設定」で設定すると、auth.json が作られます。GitHubに上書きアップロードすると、全員に反映されます。","【暗号化】書き出した配信ファイル（zukan.json・patrol.json・harvest.json・memo.json）は、共通パスワードで自動的に暗号化されます。パスワードは10文字以上にしてください。パスワードを変えたら、4つのファイルをすべて書き出し直してGitHubに上書きアップロードしてください。"], v:MANUAL_VER },
 ];
 const QA_ITEMS = [
   { q:"バックアップはどうやって取りますか？", a:"表紙（ホーム）画面の一番下にある「💾 バックアップ」ボタンをタップするだけです。保存したファイル名には日時が入ります（例：山菜手帳バックアップ_2026-10-06_14-30-25.json）。同じ名前で上書きされることはありません。", v:MANUAL_VER },
@@ -9393,7 +9394,7 @@ function ShareSharedList({ kind }) {
       try {
         const res = await fetch("./" + cfg.file + "?t=" + Date.now(), { cache: "no-store" });
         if (!res.ok) throw new Error("http " + res.status);
-        const data = await res.json();
+        const data = await secureOpen(await res.json());
         if (!data || data.app !== "sansai-shared" || data.kind !== kind || !Array.isArray(data.list)) throw new Error("invalid");
         if (!alive) return;
         setList(data.list);
@@ -9401,11 +9402,13 @@ function ShareSharedList({ kind }) {
         try { localStorage.setItem("sansai_shared_cache_" + kind, JSON.stringify({ ...data, list: data.list.map(r => ({ ...r, photos: [] })) })); } catch (e) {}
       } catch (e) {
         if (!alive) return;
+        const decErr = isDecryptError(e);
+        const decMsg = "🔒 配信データを開けませんでした。パスワードが変わった可能性があります。メンバータブからログアウトして、入り直してください";
         try {
           const c = JSON.parse(localStorage.getItem("sansai_shared_cache_" + kind) || "null");
-          if (c && Array.isArray(c.list)) { setList(c.list); setInfo("最新を取得できなかったため、前回取得した内容（写真なし）を表示しています"); return; }
+          if (c && Array.isArray(c.list)) { setList(c.list); setInfo(decErr ? decMsg + "\n（前回取得した内容・写真なしを表示しています）" : "最新を取得できなかったため、前回取得した内容（写真なし）を表示しています"); return; }
         } catch (e2) {}
-        setList([]); setInfo("");
+        setList([]); setInfo(decErr ? decMsg : "");
       }
     })();
     return () => { alive = false; };
@@ -9503,8 +9506,9 @@ function ShareTab({ kind, isAdmin, spots, sansaiList, renderOwn }) {
       const json = shareBuildJson(kind, list, name);
       const mb = (json.length / 1048576).toFixed(1);
       if (mode === "publish") {
-        shareDownload(cfg.file, json);
-        setStatus("✅ " + cfg.file + " を保存しました（" + list.length + "件・約" + mb + "MB）\nGitHubの index.html と同じ場所にアップロードして上書きしてください");
+        const sealed = await secureSeal(json);
+        shareDownload(cfg.file, sealed.text);
+        setStatus("✅ " + cfg.file + " を保存しました（" + list.length + "件・約" + mb + "MB）\n" + (sealed.enc ? "🔒 暗号化済み" : "⚠️ 暗号化されていません（メンバータブでID・パスワードを設定し直してください）") + "\nGitHubの index.html と同じ場所にアップロードして上書きしてください");
       } else {
         const fname = "submit_" + kind + ".json";
         let shared = false;
@@ -9528,7 +9532,7 @@ function ShareTab({ kind, isAdmin, spots, sansaiList, renderOwn }) {
     setBusy(true);
     setStatus("取り込み中です…");
     try {
-      const data = JSON.parse(await file.text());
+      const data = await secureOpen(JSON.parse(await file.text()));
       if (!data || data.app !== "sansai-shared" || data.kind !== kind || !Array.isArray(data.list)) throw new Error("kind");
       const next = shareLoadOwn(kind).slice();
       const photoMap = {};
@@ -9683,7 +9687,8 @@ function App() {
       showToast("🌿 図鑑・カレンダーを最新版に更新しました" + (mc > 0 ? "（使い方の画像" + mc + "枚）" : ""));
       return true;
     } catch (e) {
-      if (force) showToast("❌ 配信データを取得できませんでした", "err");
+      if (isDecryptError(e)) showToast("🔒 配信データを開けませんでした。メンバータブからログアウトして、入り直してください", "err");
+      else if (force) showToast("❌ 配信データを取得できませんでした", "err");
       return false;
     }
   };
@@ -9823,6 +9828,70 @@ function App() {
 const AUTH_CFG_KEY = "sansai_auth_cfg";
 const AUTH_OK_KEY = "sansai_auth_ok";
 const AUTH_URL = "./auth.json";
+
+// ===== 配信ファイルの暗号化（共通ID・パスワードから鍵を作り、AES-GCMで暗号化） =====
+// GitHubに置く zukan.json / patrol.json / harvest.json / memo.json は暗号文になり、パスワードを知らない人には読めません
+const ENC_KEY_STORE = "sansai_enc_key";
+const AUTH_ITER = 600000;
+function b64enc(bytes) {
+  let t = ""; const CH = 0x8000;
+  for (let i = 0; i < bytes.length; i += CH) t += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
+  return btoa(t);
+}
+function b64dec(str) {
+  const bin = atob(str); const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function hexEnc(bytes) { return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join(""); }
+function cryptoReady() { return !!(window.crypto && window.crypto.subtle); }
+// ID・パスワード・salt から、暗号鍵と、ログイン確認用の値（公開してよい）を別々に作る
+async function authDeriveV2(id, pw, saltB64, iter) {
+  const enc = new TextEncoder();
+  const base = await crypto.subtle.importKey("raw", enc.encode("sansai:" + String(id).trim() + ":" + pw), "PBKDF2", false, ["deriveBits"]);
+  const master = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: b64dec(saltB64), iterations: iter }, base, 256));
+  const part = async (label) => {
+    const lb = enc.encode(label); const buf = new Uint8Array(lb.length + master.length);
+    buf.set(lb); buf.set(master, lb.length);
+    return new Uint8Array(await crypto.subtle.digest("SHA-256", buf));
+  };
+  return { key: b64enc(await part("sansai-enc|")), verifier: hexEnc(await part("sansai-ver|")) };
+}
+function encKeyLoad() { try { return localStorage.getItem(ENC_KEY_STORE) || sessionStorage.getItem(ENC_KEY_STORE) || ""; } catch (e) { return ""; } }
+function encKeySave(k, remember) {
+  try { localStorage.removeItem(ENC_KEY_STORE); sessionStorage.removeItem(ENC_KEY_STORE); (remember ? localStorage : sessionStorage).setItem(ENC_KEY_STORE, k); } catch (e) {}
+}
+function encKeyClear() { try { localStorage.removeItem(ENC_KEY_STORE); sessionStorage.removeItem(ENC_KEY_STORE); } catch (e) {} }
+async function encKeyObject() {
+  const k = encKeyLoad();
+  if (!k) throw new Error("nokey");
+  return crypto.subtle.importKey("raw", b64dec(k), { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+}
+// 書き出し用：鍵があれば暗号化、なければそのまま（enc:false）
+async function secureSeal(jsonText) {
+  try {
+    if (!cryptoReady() || !encKeyLoad()) return { text: jsonText, enc: false };
+    const key = await encKeyObject();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(jsonText)));
+    const cfg = authLoadCfg();
+    const env = { app: "sansai-enc", v: 1, kid: (cfg && cfg.hash ? String(cfg.hash).slice(0, 8) : ""), iv: b64enc(iv), data: b64enc(ct) };
+    return { text: JSON.stringify(env), enc: true };
+  } catch (e) { return { text: jsonText, enc: false }; }
+}
+// 読み込み用：暗号化されていれば復号、そうでなければそのまま返す
+async function secureOpen(obj) {
+  if (!obj || obj.app !== "sansai-enc") return obj;
+  if (!cryptoReady()) throw new Error("decrypt");
+  const cfg = authLoadCfg();
+  if (obj.kid && cfg && cfg.hash && obj.kid !== String(cfg.hash).slice(0, 8)) throw new Error("kid");
+  const key = await encKeyObject();
+  try {
+    const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64dec(obj.iv) }, key, b64dec(obj.data));
+    return JSON.parse(new TextDecoder().decode(pt));
+  } catch (e) { throw new Error("decrypt"); }
+}
+function isDecryptError(e) { return !!(e && (e.message === "decrypt" || e.message === "nokey" || e.message === "kid")); }
 async function authHash(id, pw) {
   const t = "sansai-auth:" + String(id).trim() + ":" + pw;
   try {
@@ -9838,6 +9907,7 @@ function authLoadCfg() { try { const s = localStorage.getItem(AUTH_CFG_KEY); ret
 function authSaveCfg(cfg) { try { localStorage.setItem(AUTH_CFG_KEY, JSON.stringify(cfg)); } catch (e) {} }
 function authIsOk(cfg) {
   if (!cfg || !cfg.hash) return true;
+  if (cfg.salt && !encKeyLoad()) return false;
   try { return localStorage.getItem(AUTH_OK_KEY) === cfg.hash || sessionStorage.getItem(AUTH_OK_KEY) === cfg.hash; } catch (e) { return false; }
 }
 function authMarkOk(hash, remember) {
@@ -9848,6 +9918,7 @@ function authMarkOk(hash, remember) {
 }
 function authLogout() {
   try { localStorage.removeItem(AUTH_OK_KEY); sessionStorage.removeItem(AUTH_OK_KEY); } catch (e) {}
+  encKeyClear();
   window.location.reload();
 }
 async function authFetchRemote() {
@@ -9858,7 +9929,7 @@ async function authFetchRemote() {
     if (!res.ok) throw new Error("http " + res.status);
     const data = await res.json();
     if (!data || data.app !== "sansai-auth") throw new Error("invalid");
-    return { app: "sansai-auth", id: data.id || "", hash: data.hash || "", ver: Number(data.ver) || 0 };
+    return { app: "sansai-auth", id: data.id || "", hash: data.hash || "", salt: data.salt || "", iter: Number(data.iter) || 0, ver: Number(data.ver) || 0 };
   } finally { clearTimeout(timer); }
 }
 
@@ -9871,8 +9942,15 @@ function AuthLoginScreen({ cfg, onOk }) {
   const submit = async () => {
     if (busy) return;
     setBusy(true); setErr("");
-    const h = await authHash(id, pw);
-    if (h === cfg.hash) { authMarkOk(cfg.hash, remember); onOk(); return; }
+    if (cfg.salt) {
+      try {
+        const d = await authDeriveV2(id, pw, cfg.salt, cfg.iter || AUTH_ITER);
+        if (d.verifier === cfg.hash) { encKeySave(d.key, remember); authMarkOk(cfg.hash, remember); onOk(); return; }
+      } catch (e) {}
+    } else {
+      const h = await authHash(id, pw);
+      if (h === cfg.hash) { authMarkOk(cfg.hash, remember); onOk(); return; }
+    }
     setTimeout(() => { setErr("IDまたはパスワードが違います"); setPw(""); setBusy(false); }, 700);
   };
   const input = { width: "100%", boxSizing: "border-box", padding: "13px 14px", fontSize: 16, border: "2px solid #cfe0c6", borderRadius: 12, marginTop: 10, outline: "none", background: "#fbfdf9" };
@@ -9938,19 +10016,25 @@ function AuthPanel({ isAdmin }) {
   const handleSet = async () => {
     const i = id.trim();
     if (!i) { setStatus("❌ IDを入力してください"); return; }
-    if (pw.length < 4) { setStatus("❌ パスワードは4文字以上で入力してください"); return; }
-    const next = { app: "sansai-auth", id: i, hash: await authHash(i, pw), ver: Date.now() };
-    authSaveCfg(next); authMarkOk(next.hash, true);
+    if (pw.length < 10) { setStatus("❌ パスワードは10文字以上で入力してください（配信ファイルの暗号化に使うため、長いほど安全です）"); return; }
+    if (!cryptoReady()) { setStatus("❌ この環境では暗号化を使えません（https:// のアドレスで開いてください）"); return; }
+    let next;
+    try {
+      const salt = b64enc(crypto.getRandomValues(new Uint8Array(16)));
+      const d = await authDeriveV2(i, pw, salt, AUTH_ITER);
+      next = { app: "sansai-auth", id: i, hash: d.verifier, salt: salt, iter: AUTH_ITER, ver: Date.now() };
+      authSaveCfg(next); encKeySave(d.key, true); authMarkOk(next.hash, true);
+    } catch (e) { setStatus("❌ 設定に失敗しました"); return; }
     setCfg(next); setPw("");
     download(next);
-    setStatus("✅ 設定しました。auth.json を保存しました。\nGitHubのリポジトリ（index.html と同じ場所）に上書きアップロードすると、メンバー全員の端末で次回からログインが必要になります。");
+    setStatus("✅ 設定しました。auth.json を保存しました。\n【次の手順】\n① auth.json をGitHubに上書きアップロード\n② 図鑑（メモタブ）・パトロール・採取記録・忘備録の4つを「配信用に書き出す」でもう一度書き出し、GitHubに上書きアップロード\n（パスワードを変えると、古いファイルは読めなくなります）");
   };
   const handleClear = () => {
     if (!window.confirm("共通ID・パスワードを解除して、ログイン不要に戻します。よろしいですか？")) return;
     const next = { app: "sansai-auth", id: "", hash: "", ver: Date.now() };
-    authSaveCfg(next); setCfg(next); setId("");
+    authSaveCfg(next); encKeyClear(); setCfg(next); setId("");
     download(next);
-    setStatus("✅ 解除しました。auth.json をGitHubに上書きアップロードすると全員に反映されます。");
+    setStatus("✅ 解除しました。auth.json をGitHubに上書きアップロードすると全員に反映されます。\n⚠️ ログイン不要に戻すと、配信ファイルは暗号化されなくなります。");
   };
   if (!enabled && !isAdmin) return null;
   const btn = { display: "block", width: "100%", padding: "12px 14px", marginTop: 10, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" };
@@ -9964,7 +10048,7 @@ function AuthPanel({ isAdmin }) {
         , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } }
           , enabled ? "現在のID：" + cfg.id + "（パスワードは設定済み）" : "現在：未設定（ログイン不要）")
         , React.createElement('input', { type: "text", value: id, placeholder: "共通ID", autoCapitalize: "none", autoCorrect: "off", spellCheck: false, onChange: e => setId(e.target.value), style: inp })
-        , React.createElement('input', { type: "text", value: pw, placeholder: "共通パスワード（4文字以上）", autoCapitalize: "none", autoCorrect: "off", spellCheck: false, onChange: e => setPw(e.target.value), style: inp })
+        , React.createElement('input', { type: "text", value: pw, placeholder: "共通パスワード（10文字以上・長いほど安全）", autoCapitalize: "none", autoCorrect: "off", spellCheck: false, onChange: e => setPw(e.target.value), style: inp })
         , React.createElement('button', { onClick: handleSet, style: { ...btn, background: "#2d4a2d", color: "white" } }, "💾 設定して配信用に書き出す（auth.json）")
         , enabled && React.createElement('button', { onClick: handleClear, style: { ...btn, background: "#f6e3e0", color: "#c0392b" } }, "ログイン不要に戻す")
         , status && React.createElement('div', { style: { marginTop: 10, fontSize: 12, color: "#444", whiteSpace: "pre-wrap", lineHeight: 1.7 } }, status)
