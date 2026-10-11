@@ -2767,7 +2767,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
   const [secretCount, setSecretCount] = useState(0);
   const [backupStatus, setBackupStatus] = useState("");
   const importInputRef = useRef(null);
-  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash"];
+  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1"];
 
   const handleExport = async () => {
     const FOLDER_NAME = "\u5c71\u83dc\u624b\u5e33\u30d0\u30c3\u30af\u30a2\u30c3\u30d7";
@@ -2920,7 +2920,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
       )
 
       /* \u30d5\u30c3\u30bf\u30fc */
-      , React.createElement('div', { onClick: () => { const n = secretCount + 1; if (n >= 7) { setSecretCount(0); onSecretTap && onSecretTap(); } else setSecretCount(n); }, style: {textAlign:"center", marginTop:32, color:"rgba(255,255,255,0.4)", fontSize:11, userSelect:"none"},}, "\u5c71\u83dc\u63a1\u308a\u624b\u5e33 v2.0 | \u4e2d\u90e8\u30fb\u5317\u9678\u30a8\u30ea\u30a2"
+      , React.createElement('div', { onClick: () => { const n = secretCount + 1; if (n >= 7) { setSecretCount(0); onSecretTap && onSecretTap(); } else setSecretCount(n); }, style: {textAlign:"center", marginTop:32, color:"rgba(255,255,255,0.4)", fontSize:11, userSelect:"none"},}, "山菜採り手帳 v2.0（2026-10-11版） | 中部・北陸エリア"
 
       )
     )
@@ -8588,9 +8588,15 @@ function PhotoProvider({ children }) {
 
 // ===== 図鑑・山菜カレンダーの配信（管理者が書き出した zukan.json を全員の端末へ反映） =====
 const ZUKAN_URL = "./zukan.json";
+const MANUAL_SENT_KEY = "sansai_manual_imgs_sent"; // 最後に「書き出す」「取り込む」をしたときの画像ID
 const MANUAL_IMGS_KEY = "sansai_manual_imgs_v1"; // 使い方・Q&Aに後から足した画像 { "m:タイトル" | "q:質問": [{pid, cap}] }
 const ZUKAN_VER_KEY = "sansai_zukan_ver";
 const ZUKAN_ADMIN_KEY = "sansai_zukan_admin";
+function manualImgPids(o) {
+  const out = [];
+  Object.keys(o || {}).forEach(k => { (o[k] || []).forEach(x => { if (x && x.pid) out.push(x.pid); }); });
+  return out;
+}
 function zukanLocalVer() { try { return Number(localStorage.getItem(ZUKAN_VER_KEY)) || 0; } catch (e) { return 0; } }
 function zukanIsAdminDevice() { try { return localStorage.getItem(ZUKAN_ADMIN_KEY) === "1" || !!localStorage.getItem("sansai_secret_hash"); } catch (e) { return false; } }
 async function zukanFetchRemote() {
@@ -8660,6 +8666,7 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
         for (const x of arr) { outPhotos[x.pid] = await zukanShrink(photos[x.pid], 900, 0.75); manualCount++; }
         if (arr.length) manualImgs[k] = arr; else delete manualImgs[k];
       }
+      try { localStorage.setItem(MANUAL_SENT_KEY, JSON.stringify(manualImgPids(manualImgs))); } catch (e) {}
       const version = Date.now();
       const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, photos: outPhotos, manualImgs: manualImgs });
       const blob = new Blob([json], { type: "application/json" });
@@ -8675,6 +8682,25 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
     }
     setBusy(false);
   };
+  const handleCheck = async () => {
+    setBusy(true);
+    setStatus("確認しています…");
+    try {
+      const remote = await zukanFetchRemote();
+      let local = {};
+      try { local = JSON.parse(localStorage.getItem(MANUAL_IMGS_KEY) || "{}") || {}; } catch (e) { local = {}; }
+      const lp = manualImgPids(local).filter(p => photos[p]);
+      const rp = new Set(manualImgPids(remote.manualImgs));
+      const unsent = lp.filter(p => !rp.has(p)).length;
+      const fmt = v => { try { return new Date(v).toLocaleString("ja-JP"); } catch (e) { return "不明"; } };
+      setStatus("【GitHub上の配信データ】\n書き出し日時：" + fmt(remote.version) + "\n図鑑：" + remote.list.length + "件\n使い方の画像：" + rp.size + "枚"
+        + "\n\n【この端末】\n最後に取り込み・書き出した版：" + (zukanLocalVer() ? fmt(zukanLocalVer()) : "なし") + "\n使い方の画像：" + lp.length + "枚"
+        + (unsent > 0 ? "\n⚠️ うち" + unsent + "枚はGitHub上にありません。「配信用に書き出す」→ zukan.json をアップロードしてください" : "\n✅ この端末の画像はすべて配信データに入っています"));
+    } catch (e) {
+      setStatus("❌ GitHub上の zukan.json を読み込めませんでした（アップロードされていない、または通信できません）");
+    }
+    setBusy(false);
+  };
   const handleImport = () => {
     if (!window.confirm("この端末の図鑑・カレンダーを、GitHub上の配信データで上書きします。よろしいですか？\n（上書き前の内容は端末内に退避されます）")) return;
     onSync(true);
@@ -8686,6 +8712,7 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
       , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } },
           "図鑑・カレンダー・使い方の画像を編集したら「書き出す」で zukan.json を作り、GitHubのリポジトリに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。")
       , React.createElement('button', { onClick: handleExport, disabled: busy, style: { ...btn, background: "var(--forest)", color: "white", opacity: busy ? 0.6 : 1 } }, "📤 配信用に書き出す（zukan.json）")
+      , React.createElement('button', { onClick: handleCheck, disabled: busy, style: { ...btn, background: "#f3f6fb", color: "#2a4d8f", border: "1px solid #c9d6ea", opacity: busy ? 0.6 : 1 } }, "🔎 配信状況を確認する")
       , React.createElement('button', { onClick: handleImport, style: { ...btn, background: "var(--mist)", color: "var(--forest)" } }, "📥 配信データを今すぐ取り込む")
       , status && React.createElement('div', { style: { marginTop: 10, fontSize: 12, color: "#444", whiteSpace: "pre-wrap", lineHeight: 1.7 } }, status)
     )
@@ -8943,6 +8970,8 @@ function ManualView({ isAdmin }) {
       ))
     );
   };
+  const sentPids = (() => { try { return JSON.parse(localStorage.getItem(MANUAL_SENT_KEY) || "[]") || []; } catch (e) { return []; } })();
+  const unsentCount = manualImgPids(imgMap).filter(p => photos[p] && sentPids.indexOf(p) < 0).length;
   const addImgBtn = (it) => React.createElement('label', {
     style:{ padding:"6px 12px", borderRadius:8, border:"1px solid var(--mist)", background:"white", color:"var(--forest)", fontFamily:"inherit", fontSize:13, cursor:"pointer", display:"inline-block" },}
     , "📷 画像を追加"
@@ -9026,6 +9055,7 @@ function ManualView({ isAdmin }) {
         , isAdmin && React.createElement('button', { className:"add-btn", onClick:openAdd,}, "＋ 新規登録")
       )
       , React.createElement('div', { className:"section-desc", style:{marginBottom:14},}, isAdmin ? "【管理者モード】追加・編集・削除・並べ替えができます。項目を開いて「📷 画像を追加」でスクリーンショットも足せます（足したら作成者メニューで「配信用に書き出す」）。" : "タイトルをタップすると内容が開きます")
+      , isAdmin && unsentCount > 0 && React.createElement('div', { style:{background:"#fff8e1", border:"1px solid #f3d27a", borderRadius:10, padding:"10px 12px", fontSize:12, lineHeight:1.7, color:"#7a5b00", marginBottom:12},}, "📤 追加した画像" + unsentCount + "枚が、まだメンバーに配信されていません。作成者メニューの「配信用に書き出す」で zukan.json を作り、GitHubに上書きアップロードしてください。")
       , React.createElement('div', { style:{display:"flex", borderRadius:10, overflow:"hidden", marginBottom:14, border:"1px solid var(--mist)"},}
         , pill("manual", "📘 使い方マニュアル")
         , pill("qa", "❓ Q&A集")
@@ -9645,18 +9675,36 @@ function App() {
       try { localStorage.setItem("sansai_list_v2_prev", localStorage.getItem("sansai_list_v2") || ""); } catch (e) {}
       await importPhotos(remote.photos || {});
       if (remote.manualImgs && typeof remote.manualImgs === "object") {
-        try { localStorage.setItem(MANUAL_IMGS_KEY, JSON.stringify(remote.manualImgs)); window.dispatchEvent(new Event("sansai-manual-imgs")); } catch (e) {}
+        try { localStorage.setItem(MANUAL_IMGS_KEY, JSON.stringify(remote.manualImgs)); localStorage.setItem(MANUAL_SENT_KEY, JSON.stringify(manualImgPids(remote.manualImgs))); window.dispatchEvent(new Event("sansai-manual-imgs")); } catch (e) {}
       }
       setSansaiList(prev => zukanMerge(remote.list, prev));
       try { localStorage.setItem(ZUKAN_VER_KEY, String(remote.version)); } catch (e) {}
-      showToast("🌿 図鑑・カレンダーを最新版に更新しました");
+      const mc = manualImgPids(remote.manualImgs).length;
+      showToast("🌿 図鑑・カレンダーを最新版に更新しました" + (mc > 0 ? "（使い方の画像" + mc + "枚）" : ""));
       return true;
     } catch (e) {
       if (force) showToast("❌ 配信データを取得できませんでした", "err");
       return false;
     }
   };
-  useEffect(() => { if (!zukanIsAdminDevice()) syncZukan(false); }, []);
+  // 管理者の端末は自動更新しない。ただし使い方の画像を1枚も持っていないときだけ、配信データの画像を受け取る
+  const pullManualImgsIfEmpty = async () => {
+    try {
+      const cur = JSON.parse(localStorage.getItem(MANUAL_IMGS_KEY) || "{}") || {};
+      if (manualImgPids(cur).length > 0) return;
+      const remote = await zukanFetchRemote();
+      const mi = remote.manualImgs;
+      const pids = manualImgPids(mi);
+      if (pids.length === 0) return;
+      const only = {};
+      pids.forEach(p => { if (remote.photos && remote.photos[p]) only[p] = remote.photos[p]; });
+      await importPhotos(only);
+      localStorage.setItem(MANUAL_IMGS_KEY, JSON.stringify(mi));
+      localStorage.setItem(MANUAL_SENT_KEY, JSON.stringify(pids));
+      window.dispatchEvent(new Event("sansai-manual-imgs"));
+    } catch (e) {}
+  };
+  useEffect(() => { if (!zukanIsAdminDevice()) syncZukan(false); else pullManualImgsIfEmpty(); }, []);
 
   // Google Calendar URL\u65b9\u5f0f\u3067\u81ea\u52d5\u767b\u9332
   // OAuth\u4e0d\u8981\u30fb\u30a2\u30d7\u30ea\u304b\u3089\u76f4\u63a5Google\u30ab\u30ec\u30f3\u30c0\u30fc\u767b\u9332\u753b\u9762\u3078\u9077\u79fb

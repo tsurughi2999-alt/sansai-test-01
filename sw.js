@@ -1,62 +1,41 @@
-// 山菜採り手帳 - Service Worker v23
-const CACHE_NAME = 'sansai-v23';
+// 山菜採り手帳 Service Worker
+// 常にネットワークの最新版を先に取りに行き、通信できないときだけ保存済みのものを使う。
+// （以前のように、更新のたびにキャッシュ名の数字を上げる必要はありません）
+const CACHE = "sansai-techo-runtime";
 
-const PRECACHE = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon-96.png',
-  './icon-192.png',
-  './icon-180.png',
-  './icon-512.png',
-  './icon-maskable-512.png',
-  './logo-badge.png',
-];
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
 
-// インストール時：古いキャッシュを削除して新しいファイルをキャッシュ
-self.addEventListener('install', event => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(k => caches.delete(k)))
-    ).then(() =>
-      caches.open(CACHE_NAME).then(cache =>
-        cache.addAll(PRECACHE).catch(() => {})
-      )
-    ).then(() => self.skipWaiting())
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
 
-// アクティベート時：古いキャッシュを全削除
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
-  );
-});
-
-// フェッチ：ネットワーク優先、失敗時はキャッシュ
-self.addEventListener('fetch', event => {
-  // 天気API・配信データ(図鑑・パトロール・採取記録・メモ)はキャッシュしない（常に最新を直接取得）
-  // ※配信データは書き換えても、この sw.js の数字を上げる必要はありません
-  const NO_CACHE = ['open-meteo.com', 'api.anthropic.com', 'zukan.json', 'patrol.json', 'harvest.json', 'memo.json'];
-  if (NO_CACHE.some(p => event.request.url.includes(p))) {
-    return;
-  }
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return; // 外部サイト（Wikipediaなど）はそのまま通す
 
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+    fetch(req, { cache: "no-cache" })
+      .then((res) => {
+        if (res && res.ok && res.type === "basic") {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
         }
-        return response;
+        return res;
       })
       .catch(() =>
-        caches.match(event.request).then(cached =>
-          cached || caches.match('./index.html')
-        )
+        caches.match(req).then((hit) => {
+          if (hit) return hit;
+          if (req.mode === "navigate") return caches.match("./index.html").then((r) => r || caches.match("./"));
+          return undefined;
+        })
       )
   );
 });
