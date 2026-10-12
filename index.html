@@ -2767,7 +2767,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
   const [secretCount, setSecretCount] = useState(0);
   const [backupStatus, setBackupStatus] = useState("");
   const importInputRef = useRef(null);
-  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1"];
+  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1","sansai_danger_custom_v1"];
 
   const handleExport = async () => {
     const FOLDER_NAME = "\u5c71\u83dc\u624b\u5e33\u30d0\u30c3\u30af\u30a2\u30c3\u30d7";
@@ -6294,12 +6294,58 @@ function _dangerNameKeys(name) {
   }
   return keys;
 }
+// ===== 後から追加できる毒草・毒きのこ（管理者が追加 → zukan.json で全員に配信） =====
+const DANGER_CUSTOM_KEY = "sansai_danger_custom_v1";
+let _customDangerCache = null;
+function _normDanger(x) {
+  if (!x || !x.name) return null;
+  return {
+    id: x.id, custom: true,
+    kind: x.kind === "mushroom" ? "mushroom" : "plant",
+    emoji: x.emoji || "☠️",
+    name: String(x.name),
+    danger: DANGER_LEVEL[x.danger] ? x.danger : "注意",
+    similarIds: Array.isArray(x.similarIds) ? x.similarIds : [],
+    similar: Array.isArray(x.similar) ? x.similar.map(String) : [],
+    region: String(x.region || ""), season: String(x.season || ""),
+    desc: String(x.desc || ""), howToDistinguish: String(x.howToDistinguish || ""), warning: String(x.warning || ""),
+  };
+}
+function loadCustomDangers() {
+  if (_customDangerCache === null) {
+    try {
+      const a = JSON.parse(localStorage.getItem(DANGER_CUSTOM_KEY) || "[]");
+      _customDangerCache = (Array.isArray(a) ? a : []).map(_normDanger).filter(Boolean);
+    } catch (e) { _customDangerCache = []; }
+  }
+  return _customDangerCache;
+}
+function saveCustomDangers(list) {
+  _customDangerCache = (Array.isArray(list) ? list : []).map(_normDanger).filter(Boolean);
+  try { localStorage.setItem(DANGER_CUSTOM_KEY, JSON.stringify(_customDangerCache)); } catch (e) {}
+  try { window.dispatchEvent(new Event("sansai-danger-custom")); } catch (e) {}
+}
+function useCustomDangers() {
+  const [list, setList] = useState(loadCustomDangers);
+  useEffect(() => {
+    const on = () => setList(loadCustomDangers());
+    window.addEventListener("sansai-danger-custom", on);
+    return () => window.removeEventListener("sansai-danger-custom", on);
+  }, []);
+  return list;
+}
+
 function lookalikeDangers(entry) {
   if (!entry) return [];
   var myKeys = _dangerNameKeys(entry.name);
+  var picked = Array.isArray(entry.lookalikeIds) ? entry.lookalikeIds : [];
   var order = { "猛毒": 0, "有毒": 1, "注意": 2 };
-  return DANGER_PLANTS.concat(DANGER_MUSHROOMS).filter(function (d) {
-    if (!entry.isCustom && Array.isArray(d.similarIds) && d.similarIds.indexOf(entry.id) >= 0) return true;
+  return DANGER_PLANTS.concat(DANGER_MUSHROOMS, loadCustomDangers()).filter(function (d) {
+    // 登録・編集画面で「似ている毒草」として選んだもの
+    if (picked.indexOf(d.id) >= 0) return true;
+    // 毒草側で「似ている山菜」として選んだもの（手帳に最初から入っている毒草の番号は、追加した山菜とは照合しない）
+    if (Array.isArray(d.similarIds) && d.similarIds.indexOf(entry.id) >= 0 && (d.custom || !entry.isCustom)) return true;
+    // 名前が一致するもの
     return (d.similar || []).some(function (nm) {
       return _dangerNameKeys(nm).some(function (k) { return myKeys.indexOf(k) >= 0; });
     });
@@ -6310,14 +6356,122 @@ function lookalikeDangers(entry) {
   });
 }
 
-function DangerPlantsView({ items, kind }) {
+function DangerPlantsView({ items, kind, isAdmin, sansaiList }) {
   const [selected, setSelected] = useState(null);
+  const [form, setForm] = useState(null); // 追加・編集フォーム（null=閉じている）
   const isMush = kind === "mushroom";
   const dangerList = [...(items || DANGER_PLANTS)].sort(kanaCompare);
   const simLabel = isMush ? "⚠️ 間違えやすい食用きのこ" : "⚠️ 間違えやすい山菜";
   const bannerText = isMush
     ? "毒きのこは食用きのこにそっくりなものが多く、見た目だけの判断はとても危険です。「縦に裂ける」「虫が食べている」「加熱や塩漬けで毒が抜ける」などの言い伝えは当てになりません。少しでも疑問があれば採取しないでください。"
     : "山菜と有毒植物は見た目が非常に似ていることがあります。必ず複数の特徴で確認し、少しでも疑問があれば採取しないでください。";
+
+  /* ---- 毒草・毒きのこの追加・編集（管理者のみ） ---- */
+  const DANGER_EMOJIS = ["☠️","⚠️","🌿","🍃","🌱","🌺","🍄","🍇"];
+  const simCandidates = (sansaiList || []).filter(e => (sansaiCategory(e) === "mushroom") === isMush).sort(kanaCompare);
+  const emptyDanger = () => ({ id: null, emoji: isMush ? "🍄" : "☠️", name: "", danger: "有毒", similarIds: [], extra: "", region: "", season: "", desc: "", howToDistinguish: "", warning: "" });
+  const openEditDanger = (d) => {
+    const pickedNames = simCandidates.filter(c => (d.similarIds || []).includes(c.id)).map(c => c.name);
+    setForm({
+      id: d.id, emoji: d.emoji, name: d.name, danger: d.danger,
+      similarIds: d.similarIds || [],
+      extra: (d.similar || []).filter(n => !pickedNames.includes(n)).join("、"),
+      region: d.region || "", season: d.season || "", desc: d.desc || "",
+      howToDistinguish: d.howToDistinguish || "", warning: d.warning || "",
+    });
+    setSelected(null);
+  };
+  const saveDangerForm = () => {
+    if (!form.name.trim()) return;
+    const picked = simCandidates.filter(c => form.similarIds.includes(c.id));
+    const extra = form.extra.split(/[、,，\n]/).map(x => x.trim()).filter(Boolean);
+    const entry = {
+      id: form.id || ("u" + Date.now()), custom: true, kind: isMush ? "mushroom" : "plant",
+      emoji: form.emoji, name: form.name.trim(), danger: form.danger,
+      similarIds: picked.map(c => c.id), similar: picked.map(c => c.name).concat(extra),
+      region: form.region.trim(), season: form.season.trim(),
+      desc: form.desc.trim(), howToDistinguish: form.howToDistinguish.trim(), warning: form.warning.trim(),
+    };
+    const cur = loadCustomDangers();
+    saveCustomDangers(form.id ? cur.map(x => x.id === form.id ? entry : x) : cur.concat([entry]));
+    setForm(null);
+  };
+  const removeDanger = (d) => {
+    if (!window.confirm("「" + d.name + "」を削除しますか？")) return;
+    saveCustomDangers(loadCustomDangers().filter(x => x.id !== d.id));
+    setSelected(null);
+  };
+  const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const renderDangerForm = () => (
+    React.createElement('div', { className: "form-overlay", onClick: e => e.target === e.currentTarget && setForm(null),}
+      , React.createElement('div', { className: "form-box", style: {maxHeight:"88vh", overflowY:"auto"},}
+        , React.createElement('div', { className: "form-title",}, (form.id ? "✏️ " : "☠️ ") + (isMush ? "危険キノコ" : "危険植物") + (form.id ? "を編集" : "を追加"))
+        , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"80px 1fr", gap:12},}
+          , React.createElement('div', { className: "form-group",}
+            , React.createElement('label', { className: "form-label",}, "絵文字")
+            , React.createElement('select', { className: "form-select", value: form.emoji, onChange: e => setF("emoji", e.target.value),}
+              , DANGER_EMOJIS.map(e => React.createElement('option', { key: e, value: e,}, e))
+            )
+          )
+          , React.createElement('div', { className: "form-group",}
+            , React.createElement('label', { className: "form-label",}, "名前 *")
+            , React.createElement('input', { className: "form-input", value: form.name, onChange: e => setF("name", e.target.value), placeholder: "例：コバイケイソウ",} )
+          )
+        )
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, "危険度")
+          , React.createElement('select', { className: "form-select", value: form.danger, onChange: e => setF("danger", e.target.value),}
+            , Object.keys(DANGER_LEVEL).map(k => React.createElement('option', { key: k, value: k,}, DANGER_LEVEL[k].badge))
+          )
+        )
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, simLabel + "（図鑑から選ぶ・複数可）")
+          , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6},}
+            , simCandidates.length === 0 && React.createElement('div', { style: {fontSize:12, color:"#888"},}, "図鑑に登録がありません。下の欄に名前を書いてください。")
+            , simCandidates.map(c => {
+              const on = form.similarIds.includes(c.id);
+              return React.createElement('div', { key: c.id,
+                onClick: () => setF("similarIds", on ? form.similarIds.filter(x => x !== c.id) : form.similarIds.concat([c.id])),
+                style: {padding:"5px 10px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
+                  background: on ? "#c0392b" : "var(--mist)", color: on ? "white" : "#666",
+                  border: `2px solid ${on ? "#c0392b" : "transparent"}`, transition:"all 0.15s"},}, c.emoji + " " + c.name);
+            })
+          )
+          , React.createElement('div', { style: {fontSize:11, color:"#888", marginTop:6, lineHeight:1.6},}, "選んだ山菜・キノコの図鑑カードに、この毒草の警告が出ます。")
+        )
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, "図鑑にないものの名前（任意・「、」で区切る）")
+          , React.createElement('input', { className: "form-input", value: form.extra, onChange: e => setF("extra", e.target.value), placeholder: "例：オオバギボウシ、アサツキ",} )
+          , React.createElement('div', { style: {fontSize:11, color:"#888", marginTop:6, lineHeight:1.6},}, "あとで同じ名前の山菜を図鑑に追加すると、自動で警告が出ます。")
+        )
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, "生育場所・地域")
+          , React.createElement('input', { className: "form-input", value: form.region, onChange: e => setF("region", e.target.value), placeholder: "例：亜高山の湿った林",} )
+        )
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, "時期")
+          , React.createElement('input', { className: "form-input", value: form.season, onChange: e => setF("season", e.target.value), placeholder: "例：芽出しは4〜5月",} )
+        )
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, "毒性・危険性")
+          , React.createElement('textarea', { className: "form-textarea", value: form.desc, onChange: e => setF("desc", e.target.value), placeholder: "食べるとどうなるか、毒の種類など",} )
+        )
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, "見分け方・チェックポイント")
+          , React.createElement('textarea', { className: "form-textarea", value: form.howToDistinguish, onChange: e => setF("howToDistinguish", e.target.value), placeholder: "山菜との違い（葉のつき方、におい、根の形など）",} )
+        )
+        , React.createElement('div', { className: "form-group",}
+          , React.createElement('label', { className: "form-label",}, "採取・取扱い注意")
+          , React.createElement('textarea', { className: "form-textarea", value: form.warning, onChange: e => setF("warning", e.target.value), placeholder: "例：少しでも迷ったら採らない",} )
+        )
+        , React.createElement('div', { className: "form-actions",}
+          , React.createElement('button', { className: "btn-cancel", onClick: () => setForm(null),}, "キャンセル")
+          , React.createElement('button', { className: "btn-submit", onClick: saveDangerForm,}, form.id ? "保存する" : "追加する")
+        )
+      )
+    )
+  );
+
 
   return (
     React.createElement('div', null
@@ -6338,6 +6492,9 @@ function DangerPlantsView({ items, kind }) {
           )
         ))
       )
+
+      /* 毒草・毒きのこの追加（管理者のみ） */
+      , isAdmin && React.createElement('button', { className: "add-btn", style: {marginBottom:16}, onClick: ()=>setForm(emptyDanger()),}, "＋ " + (isMush ? "危険キノコ" : "危険植物") + "を追加")
 
       /* \u690d\u7269\u30ab\u30fc\u30c9\u4e00\u89a7 */
       , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:14, marginBottom:24},}
@@ -6430,13 +6587,17 @@ function DangerPlantsView({ items, kind }) {
                 )
               )
 
-              , React.createElement('div', { className: "form-actions", style: {marginTop:20},}
+              , React.createElement('div', { className: "form-actions", style: {marginTop:20, flexWrap:"wrap"},}
+                , isAdmin && selected.custom && React.createElement('button', { className: "btn-cancel", onClick: ()=>openEditDanger(selected),}, "✏️ 編集")
+                , isAdmin && selected.custom && React.createElement('button', { className: "btn-cancel", style: {color:"#c0392b"}, onClick: ()=>removeDanger(selected),}, "🗑 削除")
                 , React.createElement('button', { className: "btn-submit", onClick: ()=>setSelected(null),}, "\u9589\u3058\u308b")
               )
             )
           )
         );
       })()
+
+      , form && renderDangerForm()
     )
   );
 }
@@ -6455,6 +6616,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
   const [showEditForm, setShowEditForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [catTab, setCatTab] = useState("plant"); // plant | fruit | mushroom
+  const customDangers = useCustomDangers(); // あとから追加された毒草・毒きのこ
 
   // \u65e7\u30c7\u30fc\u30bf\u79fb\u884c\uff1aisCustom\u304c\u672a\u4fdd\u5b58\u306e\u307e\u307e\u4fdd\u5b58\u3055\u308c\u3066\u3044\u305f\u30e6\u30fc\u30b6\u30fc\u8ffd\u52a0\u5c71\u83dc\u3092\u3001sansaiList\u5074\u306b\u3082\u6b63\u3057\u304f\u66f8\u304d\u623b\u3059\uff08\u521d\u56de\u306e\u307f\uff09
   useEffect(() => {
@@ -6467,7 +6629,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
     }
   }, []);
 
-  const emptyForm = { name:"", emoji: SANSAI_CATEGORIES[catTab].icon, months:[], region:"", color:"#6aab5e", desc:"", customSpots:[], notes:"", photoId:null, category: catTab, yomi:"", wiki:"" };
+  const emptyForm = { name:"", emoji: SANSAI_CATEGORIES[catTab].icon, months:[], region:"", color:"#6aab5e", desc:"", customSpots:[], notes:"", photoId:null, category: catTab, yomi:"", wiki:"", lookalikeIds:[] };
   const [form, setForm] = useState(emptyForm);
 
   const EMOJIS = ["\ud83c\udf3f","\ud83c\udf43","\ud83c\udf31","\ud83c\udf3e","\ud83c\udf00","\ud83e\uddc5","\ud83c\udf40","\ud83e\udeb4","\ud83c\udf47","\ud83c\udf44","\ud83c\udf38","\ud83c\udf8b","\ud83c\udf3a","\ud83e\udd6c","\ud83c\udf32"];
@@ -6482,7 +6644,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
     if (!form.name.trim() || form.months.length === 0) return;
     const newEntry = { ...form, id: Date.now(), isCustom: true };
     setEntries(prev => [...prev, newEntry]);
-    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", photoId:newEntry.photoId||null, isCustom:true, category:newEntry.category||catTab, yomi:newEntry.yomi||"", wiki:newEntry.wiki||""}]);
+    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", photoId:newEntry.photoId||null, isCustom:true, category:newEntry.category||catTab, yomi:newEntry.yomi||"", wiki:newEntry.wiki||"", lookalikeIds:newEntry.lookalikeIds||[]}]);
     setForm(emptyForm);
     setShowAddForm(false);
   };
@@ -6576,6 +6738,24 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
       , React.createElement('div', { className: "form-group",}
         , React.createElement('label', { className: "form-label",}, "Wikipediaの記事名（任意）")
         , React.createElement('input', { className: "form-input", value: form.wiki || "", onChange: e=>setForm(f=>({...f,wiki:e.target.value})), placeholder: "空欄なら名前から自動で探します",} )
+      )
+
+      , React.createElement('div', { className: "form-group",}
+        , React.createElement('label', { className: "form-label",}, "⚠️ 似ている毒草・毒きのこ（任意・複数選択）")
+        , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6},}
+          , DANGER_PLANTS.concat(DANGER_MUSHROOMS, customDangers).map(d => {
+            const on = (form.lookalikeIds || []).includes(d.id);
+            return React.createElement('div', { key: d.id,
+              onClick: () => setForm(f => {
+                const cur = f.lookalikeIds || [];
+                return { ...f, lookalikeIds: cur.includes(d.id) ? cur.filter(x => x !== d.id) : [...cur, d.id] };
+              }),
+              style: {padding:"5px 10px", borderRadius:20, cursor:"pointer", fontSize:12, fontWeight:600,
+                background: on ? "#c0392b" : "var(--mist)", color: on ? "white" : "#666",
+                border: `2px solid ${on ? "#c0392b" : "transparent"}`, transition:"all 0.15s"},}, d.emoji + " " + d.name);
+          })
+        )
+        , React.createElement('div', { style: {fontSize:11, color:"#888", marginTop:6, lineHeight:1.6},}, "選ぶと、図鑑のカードと詳細に警告が出ます。名前が一致する毒草は、選ばなくても自動で出ます。")
       )
 
       , React.createElement('div', { className: "form-group",}
@@ -6690,6 +6870,19 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
       , React.createElement('div', { className: "section-title",}, "\ud83c\udf3f \u5c71\u83dc\u56f3\u9451" )
       , React.createElement('div', { className: "section-desc",}, "植物・果実・キノコに分けて、採れるものの情報と間違えやすい危険な種類を確認できます。（五十音順）")
 
+      /* 山菜見分けチェック（別アプリ）へのリンク */
+      , React.createElement('a', { href: "https://tsurughi2999-alt.github.io/sansai-check/", target: "_blank", rel: "noopener noreferrer", style: {
+        display:"flex", alignItems:"center", gap:12, background:"white", border:"2px solid var(--forest)", borderRadius:12,
+        padding:"12px 14px", marginBottom:16, textDecoration:"none", color:"var(--forest)", boxShadow:"0 2px 8px rgba(0,0,0,0.07)",
+      },}
+        , React.createElement('span', { style: {fontSize:28},}, "🔍")
+        , React.createElement('div', { style: {flex:1},}
+          , React.createElement('div', { style: {fontSize:15, fontWeight:700, fontFamily:"'Noto Serif JP',serif"},}, "山菜見分けチェック")
+          , React.createElement('div', { style: {fontSize:11, color:"#666", lineHeight:1.6},}, "形・場所・においを選ぶと、候補と似た毒草を絞り込みます。（植物のみ・きのこは対象外）")
+        )
+        , React.createElement('span', { style: {fontSize:22},}, "›")
+      )
+
       /* 区分切替（植物・果実・キノコ） */
       , React.createElement('div', { style: {display:"flex", gap:6, marginBottom: dangerLabel ? 10 : 20, background:"var(--soil)", borderRadius:10, padding:4},}
         , Object.keys(SANSAI_CATEGORIES).map(k => {
@@ -6720,7 +6913,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
         },}, "☠️ " + dangerLabel)
       )
 
-      , dangerLabel && infoTab === "danger" && React.createElement(DangerPlantsView, { key: catTab, items: catTab === "mushroom" ? DANGER_MUSHROOMS : DANGER_PLANTS, kind: catTab,} )
+      , dangerLabel && infoTab === "danger" && React.createElement(DangerPlantsView, { key: catTab, items: (catTab === "mushroom" ? DANGER_MUSHROOMS : DANGER_PLANTS).concat(customDangers.filter(d => (d.kind === "mushroom") === (catTab === "mushroom"))), kind: catTab, isAdmin: isAdmin, sansaiList: entries,} )
       , infoTab === "sansai" && React.createElement(React.Fragment, null
 
       /* \u7d71\u8a08\u30d0\u30fc */
@@ -8722,7 +8915,7 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
       }
       try { localStorage.setItem(MANUAL_SENT_KEY, JSON.stringify(manualImgPids(manualImgs))); } catch (e) {}
       const version = Date.now();
-      const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, photos: outPhotos, manualImgs: manualImgs });
+      const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, photos: outPhotos, manualImgs: manualImgs, danger: loadCustomDangers() });
       const sealed = await secureSeal(json);
       const blob = new Blob([sealed.text], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -9735,6 +9928,7 @@ function App() {
       if (remote.manualImgs && typeof remote.manualImgs === "object") {
         try { localStorage.setItem(MANUAL_IMGS_KEY, JSON.stringify(remote.manualImgs)); localStorage.setItem(MANUAL_SENT_KEY, JSON.stringify(manualImgPids(remote.manualImgs))); window.dispatchEvent(new Event("sansai-manual-imgs")); } catch (e) {}
       }
+      if (Array.isArray(remote.danger)) saveCustomDangers(remote.danger);
       setSansaiList(prev => zukanMerge(remote.list, prev));
       try { localStorage.setItem(ZUKAN_VER_KEY, String(remote.version)); } catch (e) {}
       const mc = manualImgPids(remote.manualImgs).length;
