@@ -8978,7 +8978,7 @@ function zukanShrink(dataUrl, maxPx, quality) {
   });
 }
 
-function ZukanAdminPanel({ sansaiList, onSync }) {
+function ZukanAdminPanel({ sansaiList, members, onSync }) {
   const { photos } = usePhotos();
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
@@ -8999,8 +8999,21 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
         if (arr.length) manualImgs[k] = arr; else delete manualImgs[k];
       }
       try { localStorage.setItem(MANUAL_SENT_KEY, JSON.stringify(manualImgPids(manualImgs))); } catch (e) {}
+      // メンバー名簿（管理者の画面に出る項目すべて＋プロフィール写真・アバター・大きい画像）
+      const memberOut = [];
+      for (const m of (members || [])) {
+        const c = { ...m };
+        const pack = async (idKey, inlineKey, maxPx, q) => {
+          if (c[idKey] && photos[c[idKey]]) outPhotos[c[idKey]] = await zukanShrink(photos[c[idKey]], maxPx, q);
+          if (typeof c[inlineKey] === "string" && c[inlineKey].indexOf("data:") === 0) c[inlineKey] = await zukanShrink(c[inlineKey], maxPx, q);
+        };
+        await pack("photoId", "photo", 480, 0.75);
+        await pack("avatarId", "avatar", 320, 0.8);
+        await pack("bigPhotoId", "bigPhoto", 900, 0.75);
+        memberOut.push(c);
+      }
       const version = Date.now();
-      const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, photos: outPhotos, manualImgs: manualImgs, danger: loadCustomDangers(), dangerOver: loadDangerOver() });
+      const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, members: memberOut, photos: outPhotos, manualImgs: manualImgs, danger: loadCustomDangers(), dangerOver: loadDangerOver() });
       const sealed = await secureSeal(json);
       const blob = new Blob([sealed.text], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -9009,7 +9022,7 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 10000);
       try { localStorage.setItem(ZUKAN_VER_KEY, String(version)); localStorage.setItem(ZUKAN_ADMIN_KEY, "1"); } catch (e) {}
-      setStatus("✅ zukan.json を保存しました（" + sansaiList.length + "件・使い方の画像" + manualCount + "枚・約" + (json.length / 1048576).toFixed(1) + "MB）\n" + (sealed.enc ? "🔒 暗号化済み" : "⚠️ 暗号化されていません（メンバータブでID・パスワードを設定し直してください）") + "\nGitHubの同じ場所にアップロードして上書きしてください");
+      setStatus("✅ zukan.json を保存しました（" + sansaiList.length + "件・メンバー" + memberOut.length + "名・使い方の画像" + manualCount + "枚・約" + (json.length / 1048576).toFixed(1) + "MB）\n" + (sealed.enc ? "🔒 暗号化済み" : "⚠️ 暗号化されていません（メンバータブでID・パスワードを設定し直してください）") + "\nGitHubの同じ場所にアップロードして上書きしてください");
     } catch (e) {
       setStatus("❌ 書き出しに失敗しました");
     }
@@ -9026,7 +9039,7 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
       const rp = new Set(manualImgPids(remote.manualImgs));
       const unsent = lp.filter(p => !rp.has(p)).length;
       const fmt = v => { try { return new Date(v).toLocaleString("ja-JP"); } catch (e) { return "不明"; } };
-      setStatus("【GitHub上の配信データ】\n書き出し日時：" + fmt(remote.version) + "\n図鑑：" + remote.list.length + "件\n使い方の画像：" + rp.size + "枚"
+      setStatus("【GitHub上の配信データ】\n書き出し日時：" + fmt(remote.version) + "\n図鑑：" + remote.list.length + "件\nメンバー名簿：" + (Array.isArray(remote.members) ? remote.members.length + "名" : "なし") + "\n使い方の画像：" + rp.size + "枚"
         + "\n\n【この端末】\n最後に取り込み・書き出した版：" + (zukanLocalVer() ? fmt(zukanLocalVer()) : "なし") + "\n使い方の画像：" + lp.length + "枚"
         + (unsent > 0 ? "\n⚠️ うち" + unsent + "枚はGitHub上にありません。「配信用に書き出す」→ zukan.json をアップロードしてください" : "\n✅ この端末の画像はすべて配信データに入っています"));
     } catch (e) {
@@ -9035,7 +9048,7 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
     setBusy(false);
   };
   const handleImport = () => {
-    if (!window.confirm("この端末の図鑑・カレンダーを、GitHub上の配信データで上書きします。よろしいですか？\n（上書き前の内容は端末内に退避されます）")) return;
+    if (!window.confirm("この端末の図鑑・カレンダー・メンバー名簿を、GitHub上の配信データで上書きします。よろしいですか？\n（上書き前の内容は端末内に退避されます）")) return;
     onSync(true);
   };
   const btn = { display: "block", width: "100%", padding: "12px 14px", marginTop: 10, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" };
@@ -9043,7 +9056,7 @@ function ZukanAdminPanel({ sansaiList, onSync }) {
     React.createElement('div', { style: { marginTop: 20, padding: 16, background: "white", border: "2px solid var(--mist)", borderRadius: 14 } }
       , React.createElement('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 15 } }, "🌿 図鑑・カレンダーの配信（管理者用）")
       , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } },
-          "図鑑・カレンダー・使い方の画像を編集したら「書き出す」で zukan.json を作り、GitHubのリポジトリに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。")
+          "図鑑・カレンダー・メンバー名簿・使い方の画像を編集したら「書き出す」で zukan.json を作り、GitHubのリポジトリに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。")
       , React.createElement('button', { onClick: handleExport, disabled: busy, style: { ...btn, background: "var(--forest)", color: "white", opacity: busy ? 0.6 : 1 } }, "📤 配信用に書き出す（zukan.json）")
       , React.createElement('button', { onClick: handleCheck, disabled: busy, style: { ...btn, background: "#f3f6fb", color: "#2a4d8f", border: "1px solid #c9d6ea", opacity: busy ? 0.6 : 1 } }, "🔎 配信状況を確認する")
       , React.createElement('button', { onClick: handleImport, style: { ...btn, background: "var(--mist)", color: "var(--forest)" } }, "📥 配信データを今すぐ取り込む")
@@ -10015,10 +10028,23 @@ function App() {
       }
       if (Array.isArray(remote.danger)) saveCustomDangers(remote.danger);
       if (remote.dangerOver && typeof remote.dangerOver === "object") saveDangerOver(remote.dangerOver);
+      // メンバー名簿：配信データを正とする（ただし、この端末で「自分」に選んだ人のプロフィールは端末側を残す）
+      if (Array.isArray(remote.members) && remote.members.length > 0) {
+        try { localStorage.setItem("sansai_members_prev", localStorage.getItem("sansai_members") || ""); } catch (e) {}
+        let localMembers = []; let myId = "";
+        try { localMembers = JSON.parse(localStorage.getItem("sansai_members") || "[]") || []; } catch (e) { localMembers = []; }
+        try { myId = localStorage.getItem("sansai_my_member") || ""; } catch (e) { myId = ""; }
+        const mergedMembers = remote.members.map(r => {
+          const mine = myId && String(r.id) === String(myId) ? localMembers.find(x => String(x.id) === String(r.id)) : null;
+          return mine || r;
+        });
+        setMembers(mergedMembers);
+        saveMembersToStorage(mergedMembers);
+      }
       setSansaiList(prev => zukanMerge(remote.list, prev));
       try { localStorage.setItem(ZUKAN_VER_KEY, String(remote.version)); } catch (e) {}
       const mc = manualImgPids(remote.manualImgs).length;
-      showToast("🌿 図鑑・カレンダーを最新版に更新しました" + (mc > 0 ? "（使い方の画像" + mc + "枚）" : ""));
+      showToast("🌿 図鑑・カレンダー・メンバー名簿を最新版に更新しました" + (mc > 0 ? "（使い方の画像" + mc + "枚）" : ""));
       return true;
     } catch (e) {
       if (isDecryptError(e)) showToast("🔒 配信データを開けませんでした。メンバータブからログアウトして、入り直してください", "err");
@@ -10149,7 +10175,7 @@ function App() {
           , tab === "gear"     && React.createElement(GearView, { sansaiList: sansaiList,} )
           , tab === "links"    && React.createElement(LinkView, null)
           , tab === "manual"   && React.createElement(ManualView, { isAdmin: (secretOn || zukanIsAdminDevice()),})
-          , tab === "secret" && secretOn && React.createElement(React.Fragment, null, React.createElement(SecretMemoView, { onLock: lockSecret,} ), React.createElement(ZukanAdminPanel, { sansaiList: sansaiList, onSync: syncZukan,} ))
+          , tab === "secret" && secretOn && React.createElement(React.Fragment, null, React.createElement(SecretMemoView, { onLock: lockSecret,} ), React.createElement(ZukanAdminPanel, { sansaiList: sansaiList, members: members, onSync: syncZukan,} ))
           , showUnlock && React.createElement(SecretUnlockModal, { onClose: () => setShowUnlock(false), onOk: unlockSecret,} )
         )
       )
