@@ -9755,7 +9755,7 @@ function ShareSharedList({ kind }) {
       } catch (e) {
         if (!alive) return;
         const decErr = isDecryptError(e);
-        const decMsg = "🔒 配信データを開けませんでした。パスワードが変わった可能性があります。メンバータブからログアウトして、入り直してください";
+        if (decErr) decryptLog(e, cfg.file); const decMsg = decryptReason(e);
         try {
           const c = JSON.parse(localStorage.getItem("sansai_shared_cache_" + kind) || "null");
           if (c && Array.isArray(c.list)) { setList(c.list); setInfo(decErr ? decMsg + "\n（前回取得した内容・写真なしを表示しています）" : "最新を取得できなかったため、前回取得した内容（写真なし）を表示しています"); return; }
@@ -10019,7 +10019,7 @@ function App() {
 
   const showToast = (msg, type="ok") => {
     setToast({msg, type});
-    setTimeout(() => setToast(null), 3500);
+    setTimeout(() => setToast(null), (type === "err" && String(msg).length > 40) ? 15000 : 3500);
   };
 
   // 図鑑・カレンダーの配信データを取り込む（管理者端末は自動更新しない）
@@ -10054,7 +10054,7 @@ function App() {
       showToast("🌿 図鑑・カレンダー・メンバー名簿を最新版に更新しました" + (mc > 0 ? "（使い方の画像" + mc + "枚）" : ""));
       return true;
     } catch (e) {
-      if (isDecryptError(e)) showToast("🔒 配信データを開けませんでした。メンバータブからログアウトして、入り直してください", "err");
+      if (isDecryptError(e)) { decryptLog(e, "zukan.json"); showToast(decryptReason(e), "err"); }
       else if (force) showToast("❌ 配信データを取得できませんでした", "err");
       return false;
     }
@@ -10136,7 +10136,8 @@ function App() {
             color:"white", padding:"10px 24px", borderRadius:24,
             fontSize:14, fontWeight:600, zIndex:9999,
             boxShadow:"0 4px 20px rgba(0,0,0,0.25)",
-          },}
+            maxWidth:"90vw", whiteSpace:"pre-wrap", lineHeight:1.6, textAlign:"left",
+          }, onClick: () => setToast(null),}
             , toast.msg
           )
         )
@@ -10247,18 +10248,36 @@ async function secureSeal(jsonText) {
   } catch (e) { return { text: jsonText, enc: false }; }
 }
 // 読み込み用：暗号化されていれば復号、そうでなければそのまま返す
+function decErrMake(code, detail) { const e = new Error(code); e.detail = detail || {}; return e; }
 async function secureOpen(obj) {
   if (!obj || obj.app !== "sansai-enc") return obj;
-  if (!cryptoReady()) throw new Error("decrypt");
+  if (!cryptoReady()) throw decErrMake("decrypt", { reason: "nocrypto" });
   const cfg = authLoadCfg();
-  if (obj.kid && cfg && cfg.hash && obj.kid !== String(cfg.hash).slice(0, 8)) throw new Error("kid");
-  const key = await encKeyObject();
+  const fileKid = obj.kid ? String(obj.kid) : "";
+  const localKid = cfg && cfg.hash ? String(cfg.hash).slice(0, 8) : "";
+  if (fileKid && localKid && fileKid !== localKid) throw decErrMake("kid", { fileKid: fileKid, localKid: localKid });
+  let key;
+  try { key = await encKeyObject(); } catch (e) { throw decErrMake(e && e.message === "nokey" ? "nokey" : "decrypt", { fileKid: fileKid, localKid: localKid }); }
   try {
     const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64dec(obj.iv) }, key, b64dec(obj.data));
     return JSON.parse(new TextDecoder().decode(pt));
-  } catch (e) { throw new Error("decrypt"); }
+  } catch (e) { throw decErrMake("decrypt", { fileKid: fileKid, localKid: localKid }); }
 }
 function isDecryptError(e) { return !!(e && (e.message === "decrypt" || e.message === "nokey" || e.message === "kid")); }
+// エラーの原因別の説明文（画面に表示する）
+function decryptReason(e) {
+  const d = (e && e.detail) || {};
+  const code = e && e.message;
+  let t;
+  if (code === "nokey") t = "原因：この端末に暗号鍵がありません。\n→ メンバータブの「ログアウト」を押し、IDとパスワードで入り直してください。";
+  else if (code === "kid") t = "原因：配信ファイルとログイン設定が一致しません。\n（配信ファイルの目印 " + (d.fileKid || "?") + "／この端末の目印 " + (d.localKid || "?") + "）\n→ ログアウトして入り直してください。直らないときは、管理者が auth.json と配信ファイルを同時に上げ直す必要があります。";
+  else if (d.reason === "nocrypto") t = "原因：この環境では暗号化を使えません。https:// のアドレスで開いてください。";
+  else t = "原因：配信ファイルを開く鍵が合いません。" + (d.fileKid ? "\n（配信ファイルの目印 " + d.fileKid + "／この端末の目印 " + (d.localKid || "?") + "）" : "") + "\n→ ログアウトして入り直してください。直らないときは管理者に連絡してください。";
+  return "🔒 配信データを開けませんでした\n" + t + "\n（メンバータブの「🔍 配信データの診断」で詳しく確認できます）";
+}
+function decryptLog(e, where) {
+  try { const d = (e && e.detail) || {}; localStorage.setItem("sansai_last_dec_err", JSON.stringify({ at: Date.now(), code: e && e.message, where: where || "", fileKid: d.fileKid || "", localKid: d.localKid || "" })); } catch (x) {}
+}
 async function authHash(id, pw) {
   const t = "sansai-auth:" + String(id).trim() + ":" + pw;
   try {
@@ -10371,6 +10390,7 @@ function AuthPanel({ isAdmin }) {
   const [id, setId] = useState(() => { const c = authLoadCfg(); return c && c.id ? c.id : ""; });
   const [pw, setPw] = useState("");
   const [status, setStatus] = useState("");
+  const [diag, setDiag] = useState("");
   const enabled = !!(cfg && cfg.hash);
   const download = (obj) => {
     const blob = new Blob([JSON.stringify(obj)], { type: "application/json" });
@@ -10403,6 +10423,41 @@ function AuthPanel({ isAdmin }) {
     download(next);
     setStatus("✅ 解除しました。auth.json をGitHubに上書きアップロードすると全員に反映されます。\n⚠️ ログイン不要に戻すと、配信ファイルは暗号化されなくなります。");
   };
+  const handleDiag = async () => {
+    setDiag("確認しています…（少し時間がかかります）");
+    const out = [];
+    const sh = h => (h ? String(h).slice(0, 8) : "なし");
+    const fmt = v => { try { return v ? new Date(v).toLocaleString("ja-JP") : "不明"; } catch (e) { return "不明"; } };
+    const local = authLoadCfg();
+    let remote = null;
+    try { remote = await authFetchRemote(); } catch (e) { out.push("❌ GitHub上の auth.json を取得できませんでした（通信できない／まだ置かれていない）"); }
+    if (remote) out.push("【GitHub上の auth.json】\n目印：" + sh(remote.hash) + "\n更新：" + fmt(remote.ver));
+    out.push("【この端末のログイン設定】\n目印：" + sh(local && local.hash) + "\n更新：" + fmt(local && local.ver) + "\n暗号鍵：" + (encKeyLoad() ? "あり" : "なし"));
+    if (remote && local && remote.hash && remote.hash !== local.hash) out.push("⚠️ この端末の設定がGitHub上と違います。アプリを完全に閉じて開き直し、ログインし直してください。");
+    const files = [["zukan.json", "図鑑・カレンダー・名簿"], ["patrol.json", "パトロール"], ["harvest.json", "採取記録"], ["memo.json", "忘備録"]];
+    const refHash = (remote && remote.hash) ? remote.hash : ((local && local.hash) || "");
+    for (const f of files) {
+      let line = "【" + f[1] + "（" + f[0] + "）】\n";
+      try {
+        const res = await fetch("./" + f[0] + "?t=" + Date.now(), { cache: "no-store" });
+        if (!res.ok) { out.push(line + "取得できません（http " + res.status + "）"); continue; }
+        const obj = await res.json();
+        if (!obj || obj.app !== "sansai-enc") { out.push(line + "暗号化されていません（誰でも読める状態）"); continue; }
+        line += "配信ファイルの目印：" + (obj.kid || "なし");
+        if (obj.kid && refHash) line += obj.kid === String(refHash).slice(0, 8) ? "（auth.jsonと一致 ✅）" : "（auth.jsonと不一致 ❌）";
+        try {
+          const d = await secureOpen(obj);
+          line += "\nこの端末で開く：✅ 開けました" + (d && d.exportedAt ? "\n書き出し日時：" + fmt(d.exportedAt) : "");
+        } catch (e) { line += "\nこの端末で開く：❌ 開けません（種類：" + (e && e.message) + "）"; }
+        out.push(line);
+      } catch (e) { out.push(line + "確認できませんでした（" + (e && e.message) + "）"); }
+    }
+    let last = null;
+    try { last = JSON.parse(localStorage.getItem("sansai_last_dec_err") || "null"); } catch (e) {}
+    if (last) out.push("【最後に出たエラー】\n" + fmt(last.at) + "／" + (last.where || "") + "／種類：" + (last.code || "") + (last.fileKid ? "／配信の目印 " + last.fileKid : "") + (last.localKid ? "／端末の目印 " + last.localKid : ""));
+    out.push("※管理者に連絡するときは、この画面のスクリーンショットを送ってください。");
+    setDiag(out.join("\n\n"));
+  };
   if (!enabled && !isAdmin) return null;
   const btn = { display: "block", width: "100%", padding: "12px 14px", marginTop: 10, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" };
   const inp = { width: "100%", boxSizing: "border-box", padding: "11px 12px", fontSize: 16, border: "2px solid #cfe0c6", borderRadius: 10, marginTop: 8 };
@@ -10410,6 +10465,8 @@ function AuthPanel({ isAdmin }) {
     React.createElement('div', { style: { marginTop: 20, padding: 16, background: "white", border: "2px solid #dfe9d8", borderRadius: 14 } }
       , React.createElement('div', { style: { fontWeight: 700, color: "#2d4a2d", fontSize: 15 } }, "🔑 ログイン")
       , enabled && React.createElement('button', { onClick: authLogout, style: { ...btn, background: "#eaf3e3", color: "#2d4a2d" } }, "🚪 この端末をログアウト")
+      , (enabled || isAdmin) && React.createElement('button', { onClick: handleDiag, style: { ...btn, background: "#fff6dc", color: "#7a5a00" } }, "🔍 配信データの診断（原因を表示）")
+      , diag && React.createElement('div', { style: { marginTop: 10, fontSize: 12, color: "#333", whiteSpace: "pre-wrap", lineHeight: 1.7, background: "#fafaf5", border: "1px solid #e3e3d3", borderRadius: 8, padding: 10, wordBreak: "break-all" } }, diag)
       , isAdmin && React.createElement('div', { style: { marginTop: 14, paddingTop: 12, borderTop: "1px dashed #cfe0c6" } }
         , React.createElement('div', { style: { fontWeight: 700, color: "#2d4a2d", fontSize: 14 } }, "共通ID・パスワードの設定（管理者用）")
         , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } }
