@@ -10325,6 +10325,7 @@ function AuthLoginScreen({ cfg, onOk }) {
   const [remember, setRemember] = useState(true);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const submit = async () => {
     if (busy) return;
     setBusy(true); setErr("");
@@ -10347,7 +10348,10 @@ function AuthLoginScreen({ cfg, onOk }) {
         , React.createElement('div', { style: { fontSize: 20, fontWeight: 800, color: "#2d4a2d", marginTop: 12 } }, "山菜採り手帳")
         , React.createElement('div', { style: { fontSize: 13, color: "#666", marginTop: 6, lineHeight: 1.7 } }, "メンバー共通のIDとパスワードを入力してください")
         , React.createElement('input', { type: "text", value: id, placeholder: "ID", autoComplete: "username", autoCapitalize: "none", autoCorrect: "off", spellCheck: false, onChange: e => setId(e.target.value), style: input })
-        , React.createElement('input', { type: "password", value: pw, placeholder: "パスワード", autoComplete: "current-password", onChange: e => setPw(e.target.value), style: input })
+        , React.createElement('div', { style: { position: "relative", marginTop: 10 } }
+          , React.createElement('input', { type: showPw ? "text" : "password", value: pw, placeholder: "パスワード", autoComplete: "current-password", autoCapitalize: "none", autoCorrect: "off", spellCheck: false, onChange: e => setPw(e.target.value), style: { ...input, marginTop: 0, paddingRight: 92 } })
+          , React.createElement('div', { style: { position: "absolute", top: 0, bottom: 0, right: 8, display: "flex", alignItems: "center" } }
+            , React.createElement('button', { type: "button", onClick: () => setShowPw(v => !v), "aria-label": showPw ? "パスワードを隠す" : "パスワードを表示", style: { border: "none", background: "#eaf3e3", color: "#2d4a2d", borderRadius: 8, padding: "8px 10px", fontSize: 13, fontWeight: 700, cursor: "pointer" } }, showPw ? "🙈 隠す" : "👁 表示")))
         , React.createElement('label', { style: { display: "flex", alignItems: "center", gap: 8, marginTop: 12, fontSize: 13, color: "#444", textAlign: "left" } }
           , React.createElement('input', { type: "checkbox", checked: remember, onChange: e => setRemember(e.target.checked) })
           , "この端末ではログイン状態を保存する")
