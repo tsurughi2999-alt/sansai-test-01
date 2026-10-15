@@ -2876,6 +2876,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
     { id:"patrol",   icon:"\ud83d\udd0d", label:"\u30d1\u30c8\u30ed\u30fc\u30eb",   desc:"\u5de1\u56de\u8a18\u9332\u30fb\u751f\u80b2\u72b6\u6cc1", color:"#2980b9" },
     { id:"harvest",  icon:"\ud83e\uddfa", label:"\u53ce\u7a6b\u8a18\u9332",   desc:"\u53ce\u7a6b\u91cf\u30fb\u7d71\u8a08", color:"#d35400" },
     { id:"memo",     icon:"\ud83d\udcd2", label:"\u5fd8\u5099\u9332",       desc:"\u30a2\u30af\u30bb\u30b9\u30fb\u9053\u9806\u30e1\u30e2", color:"#7f8c8d" },
+    { id:"map",      icon:"🗺️", label:"収穫マップ",   desc:"自分専用・GPSの地図", color:"#2e7d32" },
     { id:"gear",     icon:"\ud83d\udc55", label:"\u670d\u88c5\u30fb\u9053\u5177",   desc:"\u5c71\u83dc\u5225\u306e\u670d\u88c5\u30fb\u9053\u5177\u30ea\u30b9\u30c8", color:"#34495e" },
     { id:"links",    icon:"🔗", label:"リンク集",     desc:"SNS・おすすめWeb", color:"#2c7a7b" },
     { id:"manual",   icon:"📖", label:"使い方・Q&A",  desc:"操作説明・よくある質問", color:"#b7791f" },
@@ -9071,7 +9072,7 @@ function ZukanAdminPanel({ sansaiList, members, spots, onSync }) {
   };
   const [keyInfo, setKeyInfo] = useState("");
   const handleKeyCheck = async () => {
-    const files = ["zukan.json", "patrol.json", "harvest.json", "memo.json"];
+    const files = ["zukan.json", "patrol.json", "harvest.json", "memo.json", "blog.json"];
     const cfg = authLoadCfg();
     const localKid = cfg && cfg.hash ? String(cfg.hash).slice(0, 8) : "";
     const lines = []; let bad = 0;
@@ -9087,11 +9088,11 @@ function ZukanAdminPanel({ sansaiList, members, spots, onSync }) {
         } else lines.push("⚠️ " + f + "：暗号化されていません");
       } catch (e) { lines.push("・" + f + "：確認できませんでした（通信エラー）"); }
     }
-    setKeyInfo((bad > 0 ? "⚠️ 鍵が古い配信ファイルがあります。下の「4ファイルまとめて書き出す」→ GitHubへ上書きしてください。\n" : "") + lines.join("\n") + (localKid ? "" : "\n（この端末にはログイン設定がないため、鍵の照合はできません）"));
+    setKeyInfo((bad > 0 ? "⚠️ 鍵が古い配信ファイルがあります。下の「5ファイルまとめて書き出す」→ GitHubへ上書きしてください。\n" : "") + lines.join("\n") + (localKid ? "" : "\n（この端末にはログイン設定がないため、鍵の照合はできません）"));
   };
   useEffect(() => { handleKeyCheck(); }, []);
   const handleExportAll = async () => {
-    if (!window.confirm("図鑑・パトロール・採取記録・メモの4つの配信ファイルを、まとめて書き出します。\n（ブラウザから「複数ファイルのダウンロード」の確認が出たら、許可してください）")) return;
+    if (!window.confirm("図鑑・パトロール・採取記録・メモ・ブログの5つの配信ファイルを、まとめて書き出します。\n（ブラウザから「複数ファイルのダウンロード」の確認が出たら、許可してください）")) return;
     let name = "";
     try { name = localStorage.getItem(SHARE_NAME_KEY) || ""; } catch (e) {}
     if (!name) {
@@ -9101,19 +9102,19 @@ function ZukanAdminPanel({ sansaiList, members, spots, onSync }) {
     setBusy(true);
     const notes = []; let encOff = false;
     try {
-      setStatus("1/4 図鑑・名簿を書き出し中です（写真を縮小しています）…");
+      setStatus("1/5 図鑑・名簿を書き出し中です（写真を縮小しています）…");
       const z = await buildZukan();
       shareDownload("zukan.json", z.sealed.text);
       if (!z.sealed.enc) encOff = true;
       try { localStorage.setItem(ZUKAN_VER_KEY, String(z.version)); localStorage.setItem(ZUKAN_ADMIN_KEY, "1"); } catch (e) {}
       notes.push("✅ zukan.json（図鑑" + sansaiList.length + "件・メンバー" + z.memberOut.length + "名）");
       let n = 1;
-      for (const kind of ["patrol", "harvest", "memo"]) {
+      for (const kind of ["patrol", "harvest", "memo", "blog"]) {
         n++;
         const cfg = SHARE_KINDS[kind];
         const records = shareLoadOwn(kind).filter(r => r.shared && !r.private);
         if (!records.length) { notes.push("⚠️ " + cfg.file + "：共有する記録が0件のため、書き出していません（GitHub上のファイルは古い鍵のままです）"); continue; }
-        setStatus(n + "/4 " + cfg.file + " を書き出し中です…");
+        setStatus(n + "/5 " + cfg.file + " を書き出し中です…");
         await new Promise(r => setTimeout(r, 900));
         const list = await sharePack(kind, records, photos, spots || [], sansaiList, name || "管理者");
         const sealed = await secureSeal(shareBuildJson(kind, list, name || "管理者"));
@@ -9160,10 +9161,10 @@ function ZukanAdminPanel({ sansaiList, members, spots, onSync }) {
       , React.createElement('button', { onClick: handleCheck, disabled: busy, style: { ...btn, background: "#f3f6fb", color: "#2a4d8f", border: "1px solid #c9d6ea", opacity: busy ? 0.6 : 1 } }, "🔎 配信状況を確認する")
       , React.createElement('button', { onClick: handleImport, style: { ...btn, background: "var(--mist)", color: "var(--forest)" } }, "📥 配信データを今すぐ取り込む")
       , React.createElement('div', { style: { marginTop: 18, paddingTop: 14, borderTop: "1px dashed #cfe0c6" } }
-        , React.createElement('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 14 } }, "📦 4つの配信ファイルをまとめて書き出す")
-        , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } }, "パスワードを変えたあとなど、配信ファイルの鍵をそろえたいときに使います。zukan.json・patrol.json・harvest.json・memo.json を順に保存します。")
+        , React.createElement('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 14 } }, "📦 5つの配信ファイルをまとめて書き出す")
+        , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } }, "パスワードを変えたあとなど、配信ファイルの鍵をそろえたいときに使います。zukan.json・patrol.json・harvest.json・memo.json・blog.json を順に保存します。")
         , keyInfo && React.createElement('div', { style: { marginTop: 8, fontSize: 12, color: "#444", whiteSpace: "pre-wrap", lineHeight: 1.7, background: "#f7faf5", borderRadius: 8, padding: "8px 10px" } }, keyInfo)
-        , React.createElement('button', { onClick: handleExportAll, disabled: busy, style: { ...btn, background: "var(--forest)", color: "white", opacity: busy ? 0.6 : 1 } }, "📦 4ファイルまとめて書き出す")
+        , React.createElement('button', { onClick: handleExportAll, disabled: busy, style: { ...btn, background: "var(--forest)", color: "white", opacity: busy ? 0.6 : 1 } }, "📦 5ファイルまとめて書き出す")
         , React.createElement('button', { onClick: handleKeyCheck, disabled: busy, style: { ...btn, background: "#f3f6fb", color: "#2a4d8f", border: "1px solid #c9d6ea", opacity: busy ? 0.6 : 1 } }, "🔑 GitHub上の鍵を確認する")
       )
       , status && React.createElement('div', { style: { marginTop: 10, fontSize: 12, color: "#444", whiteSpace: "pre-wrap", lineHeight: 1.7 } }, status)
@@ -9305,22 +9306,23 @@ function manualSyncDefaults(saved, defs, idKey, legacy) {
 const MANUAL_ITEMS = [
   { t:"はじめに", i:"🌿", b:["山菜採り手帳は、山菜・きのこ採りの仲間と、採取の予定・場所・記録を管理するアプリです。","画面上部のタブ（横にスクロールできます）を切り替えて使います。表紙に戻るときは「◀ 表紙に戻る」を押します。","入力した内容は、お使いのスマホ本体に自動で保存されます。アイコンの入れ替えや再インストールの前には、必ずバックアップを取ってください（「バックアップ・復元」を見てください）。","管理者とメンバーで、できることが少し違います。図鑑・山菜カレンダーの編集とメンバーの追加・削除は管理者が行い、メンバーは最新の内容を見ます。"], v:MANUAL_VER },
   { t:"ログイン", i:"🔑", b:["アプリを開くと、共通ID・パスワードの入力画面が出ることがあります。IDとパスワードは管理者に聞いてください。","「この端末ではログイン状態を保存する」にチェックを入れると、次回からは入力しなくても開けます。","ログアウトは、メンバータブの下にある「🚪 この端末をログアウト」を押します。","管理者は、メンバータブの下の「共通ID・パスワードの設定」で、IDとパスワードを決めたり解除したりできます。"], v:MANUAL_VER },
-  { t:"メンバー（管理者以外）ができること", i:"🙋", b:["【見られるもの】山菜カレンダー・山菜図鑑（危険植物・危険キノコを含む）・メンバー名簿、そして管理者が共有した「👥 みんなの〜」（パトロール・収穫記録・忘備録）です。","【自分の端末に記録できるもの】スポット・ブログ（写真つき）・パトロール・収穫記録・忘備録・服装道具・リンク集は、自分のスマホの中に自由に追加・編集・削除できます。山菜ごとの「おすすめスポット」も追加できます。","【みんなに共有したいとき】パトロール・収穫記録・忘備録は、「共有する記録を選ぶ」→「📤 管理者に提出する」で管理者に送ると、確認後に「👥 みんなの〜」に表示されます。","【自分のプロフィール】メンバータブで編集できるのは自分のプロフィールだけです。知り合いを誘いたいときは「👋 知り合いを推薦する」からLINEで管理者に知らせます。","【その他】採取予定をGoogleカレンダーに登録する、バックアップ・復元、ログアウトもできます。","【できないこと】図鑑・山菜カレンダー・毒草の編集、メンバーの追加・削除、「みんなの〜」の編集・削除は管理者だけです。直してほしいところは、LINEなどで管理者に伝えてください。"], v:MANUAL_VER },
+  { t:"メンバー（管理者以外）ができること", i:"🙋", b:["【見られるもの】山菜カレンダー・山菜図鑑（危険植物・危険キノコを含む）・メンバー名簿、そして管理者が共有した「👥 みんなの〜」（パトロール・収穫記録・忘備録・ブログ）です。","【自分の端末に記録できるもの】スポット・ブログ（写真つき）・パトロール・収穫記録・忘備録・服装道具・リンク集は、自分のスマホの中に自由に追加・編集・削除できます。山菜ごとの「おすすめスポット」も追加できます。","【みんなに共有したいとき】パトロール・収穫記録・忘備録・ブログは、「共有する記録を選ぶ」→「📤 管理者に提出する」で管理者に送ると、確認後に「👥 みんなの〜」に表示されます。","【自分のプロフィール】メンバータブで編集できるのは自分のプロフィールだけです。知り合いを誘いたいときは「👋 知り合いを推薦する」からLINEで管理者に知らせます。","【その他】採取予定をGoogleカレンダーに登録する、バックアップ・復元、ログアウトもできます。","【できないこと】図鑑・山菜カレンダー・毒草の編集、メンバーの追加・削除、「みんなの〜」の編集・削除は管理者だけです。直してほしいところは、LINEなどで管理者に伝えてください。"], v:MANUAL_VER },
   { t:"カレンダー", i:"🍃", b:["中部・北陸エリアの山菜ごとの採取適期を、一覧で確認できます。","山菜の追加・編集・削除ができるのは管理者だけです。管理者が更新した内容は、メンバーの端末で次に開いたときに自動で最新になります。","山菜カレンダーと山菜図鑑は連動していて、管理者が追加した山菜は他のタブにも反映されます。"], v:MANUAL_VER },
   { t:"採取プラン", i:"📅", b:["月を選ぶと、その月に採れる山菜が表示されます。","採取予定を入力すると、Googleカレンダーの登録画面が開きます。内容を確認して保存してください。"], v:MANUAL_VER },
   { t:"スポット", i:"📍", b:["よく行く採取ポイントを登録・管理します。","採れる山菜の種類や覚え書きも残せます。"], v:MANUAL_VER },
-  { t:"ブログ", i:"📝", b:["採取の記録を投稿する場所です。投稿は自分のスマホの中に保存されます。","写真を付けて投稿できます。写真をタップすると拡大表示されます。","仲間に見せたいときは、LINEなどで写真や文章を送り合ってください（みんなで共有できるのは、パトロール・収穫記録・忘備録です）。"], v:MANUAL_VER },
+  { t:"ブログ", i:"📝", b:["採取の記録を投稿する場所です。投稿は、まず自分のスマホの中に保存されます。","写真を付けて投稿できます。写真をタップすると拡大表示されます。","【みんなに共有したいとき】ブログのタブで「共有する記録を選ぶ」を押し、共有したい投稿にチェックを入れて「📤 管理者に提出する」を押します。できたファイルをLINEなどで管理者に送ると、管理者の確認後に「👥 みんなのブログ」に表示されます。","共有されるのは、タイトル・本文・場所の名前・山菜の名前・写真（最大4枚、縮小されます）・投稿者名です。位置情報（GPS）といいね数は共有されません。チェックを入れなかった投稿は、自分のスマホの中だけに残ります。"], v:MANUAL_VER },
   { t:"山菜図鑑", i:"🌿", b:["図鑑は「植物」「果実」「キノコ」の3つに分かれていて、それぞれ五十音（あいうえお）順に並びます。植物とキノコには、間違えやすい「危険植物」「危険キノコ」の一覧もあります。","採れる山菜の情報と、間違えやすい危険な植物を確認できます。","各項目の詳細画面にある「📖 Wikipediaで見る」から、Wikipediaで詳しい説明を見られます（通信が必要です）。","採取前に必ず見分けを確認しましょう。少しでも迷ったら採らないでください。","図鑑の編集ができるのは管理者だけです。管理者が更新した内容は、次に開いたときに自動で最新になります。","山菜ごとに追加した「おすすめスポット」は、更新しても自分の端末に残ります。"], v:MANUAL_VER },
   { t:"メンバー", i:"👥", b:["仲間の一覧です。追加・削除は管理者だけが行えます。メンバーが編集できるのは、自分のプロフィールだけです。","知り合いを仲間に誘いたいときは、「👋 知り合いを推薦する」から、LINEで管理者に知らせてください。","メンバータブの下には、ログインの設定とログアウトのボタンがあります。"], v:MANUAL_VER },
   { t:"パトロール", i:"🔍", b:["スポットの巡回記録、山菜の生育状況、スケジュールを管理します。","位置情報（GPS）を記録して、場所を地図で開くこともできます。"], v:MANUAL_VER },
   { t:"収穫記録", i:"🧺", b:["採れた山菜の種類・量・参加メンバーを記録します。","記録が貯まると収穫の統計を見ることができます。"], v:MANUAL_VER },
   { t:"忘備録", i:"📒", b:["採取場所の道順・駐車場・目印・注意事項などを詳しくメモします。","写真やタグ、GPS位置も付けられ、タグで絞り込めます。"], v:MANUAL_VER },
-  { t:"記録の共有（パトロール・収穫記録・忘備録）", i:"🔗", b:["この3つのタブには、「✏️ 自分の〜」と「👥 みんなの〜」の2つの画面があります（〜にはパトロール・採取記録・メモが入ります）。","「自分の〜」に入力した内容は、これまで通り自分のスマホの中にだけ保存されます。","【メンバー】「共有する記録を選ぶ」で、みんなに見せたい記録にチェックを入れ、「📤 管理者に提出する」を押します。できた提出ファイルを、LINEなどで管理者に送ってください。初めて提出するときは、名前の入力を求められます。","【管理者】メンバーの提出ファイルを「📥 メンバーの提出ファイルを取り込む」で追加し、内容を確認したら「🌿 配信用に書き出す」でファイルを作り、GitHubに上書きアップロードします。","共有された内容は「👥 みんなの〜」に表示されます。見るだけの画面なので、編集や削除はできません。","位置情報（GPS）は、共有されません。"], v:MANUAL_VER },
-  { t:"更新のお知らせがあったとき（データの更新）", i:"🔄", b:["管理者が図鑑・カレンダー・メンバー名簿などを更新すると、LINEなどで「更新しました」と案内が届きます。メンバーが、ボタンを押したりファイルを入れたりする必要はありません。","【更新のしかた】①インターネットにつながった状態で、アプリを一度完全に閉じます（最近使ったアプリの一覧から上にスワイプして終了）。②もう一度アプリを開き、ログイン画面が出たらログインします。③画面に「🌿 図鑑・カレンダー・メンバー名簿を最新版に更新しました」と表示されれば完了です。","【更新される内容】山菜図鑑（危険植物・危険キノコを含む）、山菜カレンダー、メンバー名簿、使い方・Q&Aの画像です。","【みんなの〜（パトロール・収穫記録・忘備録）】それぞれのタブの「👥 みんなの〜」を開くたびに、最新の内容を読み込みます。画面に「最終更新」の日時が出ます。","【自分の記録は消えません】自分で入力した記録・スポット・ブログや、山菜ごとの「おすすめスポット」は、更新しても自分の端末に残ります。メンバー名簿は管理者の内容に置き換わりますが、この端末で「自分」に選んでいる人のプロフィールは端末側の内容が残ります。","【表示が変わらないとき】管理者がまだアップロードしていないか、すでに最新の状態です。少し待ってから、もう一度アプリを開き直してください。「ストレージを消去」「サイトデータの削除」は保存データも消えるので押さないでください。","【「🔒 配信データを開けませんでした」と出たとき】管理者がパスワードを変えた可能性があります。管理者に新しいIDとパスワードを聞き、メンバータブの下の「🚪 この端末をログアウト」を押してから、入り直してください。","※管理者の端末は、自動では更新されません（管理者の端末が元データのためです）。"], v:MANUAL_VER },
+  { t:"収穫マップ", i:"🗺️", b:["【収穫マップとは】収穫記録・パトロール・忘備録・ブログに保存したGPS（位置情報）を、地図に表示します。収穫記録には、山菜の名前つきのピンが自動で立ちます。","【自分専用です】GPSは自分のスマホにだけ保存されているため、地図には自分の記録だけが出ます。他の人の位置情報は見られず、自分の位置情報も他の人には送られません。","【ピンが出ないとき】位置情報（GPS）を取って保存した記録だけが表示されます。記録を入力するときに、位置情報を取得するボタンを押してください。家で後から入力すると、家の位置になります。","【見かた】ピンをタップすると、日付・収穫量・メモが出ます。指で動かし、2本指で拡大・縮小します。「📍」を押すと、いまいる場所が青い点で表示されます。上のボタンで、収穫・パトロール・忘備録・ブログの表示を切り替えたり、山菜で絞ったりできます。","【圏外のとき】一度表示した場所の地図は、自動でスマホに保存されます。電波のあるうちに「📥 この範囲を保存」を押すと、いま見ている範囲を、少し拡大した分までまとめて保存できます。山に入る前に、行く場所を表示して保存しておくと安心です。圏外でも、現在地の青い点は表示されます。","【お願い】「この範囲を保存」を、広い範囲で何度も押さないでください。地図の提供元（国土地理院）に負担がかかります。保存した地図は、バックアップには含まれません。"], v:MANUAL_VER },
+  { t:"記録の共有（パトロール・収穫記録・忘備録・ブログ）", i:"🔗", b:["この4つのタブには、「✏️ 自分の〜」と「👥 みんなの〜」の2つの画面があります（〜にはパトロール・採取記録・メモ・ブログが入ります）。","「自分の〜」に入力した内容は、これまで通り自分のスマホの中にだけ保存されます。","【メンバー】「共有する記録を選ぶ」で、みんなに見せたい記録にチェックを入れ、「📤 管理者に提出する」を押します。できた提出ファイルを、LINEなどで管理者に送ってください。初めて提出するときは、名前の入力を求められます。","【管理者】メンバーの提出ファイルを「📥 メンバーの提出ファイルを取り込む」で追加し、内容を確認したら「🌿 配信用に書き出す」でファイルを作り、GitHubに上書きアップロードします。","共有された内容は「👥 みんなの〜」に表示されます。見るだけの画面なので、編集や削除はできません。","位置情報（GPS）は、共有されません。"], v:MANUAL_VER },
+  { t:"更新のお知らせがあったとき（データの更新）", i:"🔄", b:["管理者が図鑑・カレンダー・メンバー名簿などを更新すると、LINEなどで「更新しました」と案内が届きます。メンバーが、ボタンを押したりファイルを入れたりする必要はありません。","【更新のしかた】①インターネットにつながった状態で、アプリを一度完全に閉じます（最近使ったアプリの一覧から上にスワイプして終了）。②もう一度アプリを開き、ログイン画面が出たらログインします。③画面に「🌿 図鑑・カレンダー・メンバー名簿を最新版に更新しました」と表示されれば完了です。","【更新される内容】山菜図鑑（危険植物・危険キノコを含む）、山菜カレンダー、メンバー名簿、使い方・Q&Aの画像です。","【みんなの〜（パトロール・収穫記録・忘備録・ブログ）】それぞれのタブの「👥 みんなの〜」を開くたびに、最新の内容を読み込みます。画面に「最終更新」の日時が出ます。","【自分の記録は消えません】自分で入力した記録・スポット・ブログや、山菜ごとの「おすすめスポット」は、更新しても自分の端末に残ります。メンバー名簿は管理者の内容に置き換わりますが、この端末で「自分」に選んでいる人のプロフィールは端末側の内容が残ります。","【表示が変わらないとき】管理者がまだアップロードしていないか、すでに最新の状態です。少し待ってから、もう一度アプリを開き直してください。「ストレージを消去」「サイトデータの削除」は保存データも消えるので押さないでください。","【「🔒 配信データを開けませんでした」と出たとき】管理者がパスワードを変えた可能性があります。管理者に新しいIDとパスワードを聞き、メンバータブの下の「🚪 この端末をログアウト」を押してから、入り直してください。","※管理者の端末は、自動では更新されません（管理者の端末が元データのためです）。"], v:MANUAL_VER },
   { t:"服装・道具", i:"👕", b:["山菜ごとに必要な服装や道具を確認できます。","「管理」から、リストの追加・編集・削除ができます。"], v:MANUAL_VER },
   { t:"リンク集", i:"🔗", b:["YouTube・Threads・X・Instagramなどのおすすめリンクをまとめたタブです。","「＋ 新規登録」で追加、各リンクの「削除」で削除できます。「初期状態に戻す」で最初の状態に戻ります。"], v:MANUAL_VER },
   { t:"バックアップ・復元", i:"💾", b:["データはスマホの中にだけ保存されています。アイコンの入れ替え・アプリの削除や再インストール・機種変更の前には、必ずバックアップを保存してください。","【バックアップのしかた】表紙（ホーム）画面の一番下にある「💾 バックアップ」ボタンをタップします。ファイル名に保存した日時が入るので、「山菜手帳バックアップ_2026-10-06_14-30-25.json」のように毎回別のファイルになります。","【保存される内容】メンバー・スポット・ブログ・山菜図鑑・パトロール・収穫記録・忘備録・服装道具・リンク集、および写真すべてです。","【保存場所】パソコンでは保存先を選ぶと「山菜手帳バックアップ」フォルダが自動で作られます。スマホ・タブレットでは「ダウンロード」フォルダに保存されます。ファイル管理アプリで「山菜手帳バックアップ」フォルダを作り、移しておくと分かりやすくなります。","【復元のしかた】表紙画面の「📤 復元」をタップし、保存したバックアップファイル（.json）を選びます。復元が終わるとアプリが自動で再読み込みされます。ファイル名の日時を見て、戻したい時点のファイルを選んでください。","【アイコンを入れ替えたいとき】①バックアップを保存する → ②ホーム画面の「山菜手帳」を長押しして削除（アンインストール）する → ③ブラウザでアプリのページを開き直し、「ホーム画面に追加」（または「インストール」）する → ④アプリの「📤 復元」でバックアップを読み込む、の順で進めます。","【注意】ブラウザやアプリ情報の「ストレージを消去」「サイトデータの削除」「データを削除して権限をリセット」を押すと、保存データも消えます。「キャッシュを削除」だけなら記録は消えません。","【おすすめ】山菜シーズンの前後や、大きな記録を入力したあとは、こまめにバックアップしましょう。バックアップファイルは Google ドライブや LINE のKeepメモなどにもコピーしておくと、端末が壊れたときも安心です。"], v:MANUAL_VER },
-  { t:"管理者のしごと", i:"🛠", b:["管理者の端末では、ホーム画面の一番下の「山菜採り手帳 v2.0」の文字を7回続けてタップし、合言葉を入力します。すると、管理者用の「メモ」タブが現れます。","【図鑑・カレンダーの配信】図鑑とカレンダーを編集したら、「メモ」タブの「📤 配信用に書き出す（zukan.json）」でファイルを作り、GitHubに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。","【記録の共有】パトロール・収穫記録・忘備録の各タブで、メンバーの提出ファイルを取り込み、「🌿 配信用に書き出す」で作ったファイル（patrol.json・harvest.json・memo.json）をGitHubに上書きアップロードします。","【ログイン】メンバータブの「共通ID・パスワードの設定」で設定すると、auth.json が作られます。GitHubに上書きアップロードすると、全員に反映されます。","【暗号化】書き出した配信ファイル（zukan.json・patrol.json・harvest.json・memo.json）は、共通パスワードで自動的に暗号化されます。パスワードは10文字以上にしてください。パスワードを変えたら、4つのファイルをすべて書き出し直してGitHubに上書きアップロードしてください。"], v:MANUAL_VER },
+  { t:"管理者のしごと", i:"🛠", b:["管理者の端末では、ホーム画面の一番下の「山菜採り手帳 v2.0」の文字を7回続けてタップし、合言葉を入力します。すると、管理者用の「メモ」タブが現れます。","【図鑑・カレンダーの配信】図鑑とカレンダーを編集したら、「メモ」タブの「📤 配信用に書き出す（zukan.json）」でファイルを作り、GitHubに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。","【記録の共有】パトロール・収穫記録・忘備録・ブログの各タブで、メンバーの提出ファイルを取り込み、「🌿 配信用に書き出す」で作ったファイル（patrol.json・harvest.json・memo.json・blog.json）をGitHubに上書きアップロードします。「メモ」タブの「📦 5ファイルまとめて書き出す」を使うと、図鑑も含めて一度に書き出せます。","【ログイン】メンバータブの「共通ID・パスワードの設定」で設定すると、auth.json が作られます。GitHubに上書きアップロードすると、全員に反映されます。","【暗号化】書き出した配信ファイル（zukan.json・patrol.json・harvest.json・memo.json・blog.json）は、共通パスワードで自動的に暗号化されます。パスワードは10文字以上にしてください。パスワードを変えたら、5つのファイルをすべて書き出し直してGitHubに上書きアップロードしてください。"], v:MANUAL_VER },
 ];
 const QA_ITEMS = [
   { q:"バックアップはどうやって取りますか？", a:"表紙（ホーム）画面の一番下にある「💾 バックアップ」ボタンをタップするだけです。保存したファイル名には日時が入ります（例：山菜手帳バックアップ_2026-10-06_14-30-25.json）。同じ名前で上書きされることはありません。", v:MANUAL_VER },
@@ -9341,7 +9343,10 @@ const QA_ITEMS = [
   { q:"更新すると、自分の記録は消えますか？", a:"消えません。自分で入力した記録・スポット・ブログ・山菜ごとの「おすすめスポット」は、そのまま端末に残ります。メンバー名簿だけは管理者の内容に置き換わりますが、この端末で「自分」に選んでいる人のプロフィールは端末側の内容が残ります。心配なときは、先にバックアップを取ってください。", v:MANUAL_VER },
   { q:"メンバー名簿の名前や人数が、管理者と違います", a:"管理者が名簿を更新して配信すると、次にアプリを開いたときに同じになります。まだ違うときは、アプリを一度完全に閉じて開き直してください。それでも変わらないときは、管理者がまだ更新していない可能性があるので、LINEなどで伝えてください。", v:MANUAL_VER },
   { q:"「配信データを開けませんでした」と表示されます", a:"管理者がパスワードを変えた可能性があります。管理者に新しいIDとパスワードを聞き、メンバータブの下の「🚪 この端末をログアウト」を押してから、入り直してください。", v:MANUAL_VER },
-  { q:"記録をみんなと共有するには？", a:"パトロール・収穫記録・忘備録のタブで「共有する記録を選ぶ」を押し、みんなに見せたい記録にチェックを入れて「📤 管理者に提出する」を押します。できたファイルをLINEなどで管理者に送ると、管理者の確認後に「👥 みんなの〜」に表示されます。ブログは共有の対象ではないので、LINEなどで送り合ってください。", v:MANUAL_VER },
+  { q:"記録をみんなと共有するには？", a:"パトロール・収穫記録・忘備録・ブログのタブで「共有する記録を選ぶ」を押し、みんなに見せたい記録にチェックを入れて「📤 管理者に提出する」を押します。できたファイルをLINEなどで管理者に送ると、管理者の確認後に「👥 みんなの〜」に表示されます。共有に選ばなかった記録は、自分のスマホの中だけに残ります。", v:MANUAL_VER },
+  { q:"収穫マップにピンが出ません", a:"位置情報（GPS）を取って保存した記録だけが表示されます。記録を入力するときに、位置情報を取得するボタンを押してください。「GPSなしで表示できない記録」の件数が、地図の上に出ています。", v:MANUAL_VER },
+  { q:"圏外でも収穫マップは見られますか？", a:"一度表示した場所と、「📥 この範囲を保存」で保存した場所は見られます。保存していない場所は空白になります。山に入る前に、電波のあるところで行く場所を表示して保存しておいてください。現在地の青い点は、圏外でも表示されます。", v:MANUAL_VER },
+  { q:"収穫マップの位置情報は、他の人に見られますか？", a:"見られません。GPSは自分のスマホにだけ保存され、パトロールなどを管理者に提出するときも、GPSは含まれません。地図に出るのは、自分の記録だけです。", v:MANUAL_VER },
   { q:"提出したのに「みんなの〜」に出てきません", a:"管理者が提出ファイルを取り込み、配信用に書き出してGitHubにアップロードしたあとに表示されます。少し待ってから、アプリを開き直してください。", v:MANUAL_VER },
   { q:"共有すると、位置情報も伝わりますか？", a:"いいえ。位置情報（GPS）は共有されません。写真は、共有用に小さくして送られます。", v:MANUAL_VER },
   { q:"「みんなの〜」の内容を、自分で直せますか？", a:"見るだけの画面なので、直せません。直したいときは「自分の〜」の記録を直して、もう一度提出してください。", v:MANUAL_VER },
@@ -9736,6 +9741,7 @@ const SHARE_KINDS = {
   patrol:  { label: "パトロール", key: "sansai_patrol",   file: "patrol.json",  noteField: "notes" },
   harvest: { label: "採取記録",   key: "sansai_harvests", file: "harvest.json", noteField: "memo" },
   memo:    { label: "メモ",       key: "sansai_memos",    file: "memo.json",    noteField: "landmark" },
+  blog:    { label: "ブログ",     key: "sansai_blog",     file: "blog.json",    noteField: "content" },
 };
 const SHARE_NAME_KEY = "sansai_my_name";
 function shareLoadOwn(kind) {
@@ -9752,7 +9758,7 @@ function shareSansaiName(list, id) {
 }
 function shareRecLabel(kind, r, spots, sansaiList) {
   const date = r.date || "";
-  if (kind === "memo") return date + " " + (r.title || "(無題)");
+  if (kind === "memo" || kind === "blog") return date + " " + (r.title || "(無題)");
   const spot = shareSpotName(spots, r.spotId) || "場所未設定";
   if (kind === "harvest") return date + " " + (shareSansaiName(sansaiList, r.sansaiId) || "") + " " + (r.amount ? r.amount + (r.unit || "") : "") + "（" + spot + "）";
   return date + " " + spot;
@@ -9762,13 +9768,14 @@ async function sharePack(kind, records, photoStore, spots, sansaiList, by) {
   const out = [];
   for (const r of records) {
     const c = { ...r };
-    delete c.gps; delete c.shared; delete c.private; delete c.clothingChecks; delete c.toolsChecks;
-    c._spot = shareSpotName(spots, r.spotId);
-    c._by = r._by || by;
+    delete c.gps; delete c.shared; delete c.private; delete c.clothingChecks; delete c.toolsChecks; delete c.likes;
+    c._spot = shareSpotName(spots, kind === "blog" ? r.spot : r.spotId);
+    if (kind === "blog") delete c.spot;
+    c._by = r._by || (kind === "blog" && r.author) || by;
     c._uid = r._uid || (by + ":" + r.id);
     if (kind === "patrol") c.sansaiStatus = (r.sansaiStatus || []).map(s => ({ ...s, _name: shareSansaiName(sansaiList, s.sansaiId) }));
     if (kind === "harvest") c._sansai = shareSansaiName(sansaiList, r.sansaiId);
-    if (kind === "memo") c._sansaiNames = (r.sansai || []).map(id => shareSansaiName(sansaiList, id));
+    if (kind === "memo" || kind === "blog") c._sansaiNames = (r.sansai || []).map(id => shareSansaiName(sansaiList, id));
     const ph = [];
     for (const p of (r.photos || []).slice(0, 4)) {
       const src = photoStore[p] || p;
@@ -9812,6 +9819,13 @@ function shareDescribe(kind, r) {
     add("メモ", r.memo);
     return { title: r._sansai || "山菜", sub: r.date, rows };
   }
+  if (kind === "blog") {
+    add("投稿者", r.author);
+    add("場所", r._spot);
+    add("山菜", j(r._sansaiNames));
+    add("本文", r.content);
+    return { title: r.title || "(無題)", sub: r.date, rows };
+  }
   add("場所", r._spot);
   add("山菜", j(r._sansaiNames));
   add("行き方", r.route);
@@ -9828,15 +9842,16 @@ function shareAdaptImported(kind, r, spots, sansaiList) {
   const cfg = SHARE_KINDS[kind];
   const rec = { ...r };
   const spot = (spots || []).find(s => s.name === r._spot);
-  if (spot) rec.spotId = spot.id;
+  if (spot) { if (kind === "blog") rec.spot = spot.id; else rec.spotId = spot.id; }
   else {
-    rec.spotId = "";
+    if (kind === "blog") rec.spot = null; else rec.spotId = "";
     if (r._spot) { const f = cfg.noteField; rec[f] = "【場所】" + r._spot + (rec[f] ? "\n" + rec[f] : ""); }
   }
   const sid = (name, fb) => { const s = (sansaiList || []).find(x => x.name === name); return s ? s.id : fb; };
   if (kind === "patrol") rec.sansaiStatus = (r.sansaiStatus || []).map(s => ({ ...s, sansaiId: sid(s._name, s.sansaiId) }));
   if (kind === "harvest") rec.sansaiId = sid(r._sansai, r.sansaiId);
-  if (kind === "memo") rec.sansai = (r.sansai || []).map((id, i) => sid((r._sansaiNames || [])[i], id));
+  if (kind === "memo" || kind === "blog") rec.sansai = (r.sansai || []).map((id, i) => sid((r._sansaiNames || [])[i], id));
+  if (kind === "blog" && rec.likes == null) rec.likes = 0;
   return rec;
 }
 
@@ -9931,7 +9946,305 @@ function ShareSelectModal({ kind, spots, sansaiList, onClose, onSaved }) {
   );
 }
 
-function ShareTab({ kind, isAdmin, spots, sansaiList, renderOwn }) {
+/* ===== 収穫マップ（自分専用：GPSはこの端末の中だけで使います） ===== */
+const _m = React.createElement;
+const MAP_TILE_URL = (z, x, y) => "https://cyberjapandata.gsi.go.jp/xyz/std/" + z + "/" + x + "/" + y + ".png";
+const MAP_MIN_Z = 5, MAP_MAX_Z = 17, MAP_TILE_CAP = 2500;
+const MAP_KINDS = {
+  harvest: { name: "収穫", icon: "🧺", color: "#d35400" },
+  patrol: { name: "パトロール", icon: "🔍", color: "#2980b9" },
+  memo: { name: "忘備録", icon: "📒", color: "#7f8c8d" },
+  blog: { name: "ブログ", icon: "📝", color: "#e67e22" },
+};
+let _mapDbP = null;
+function mapDb() {
+  if (_mapDbP) return _mapDbP;
+  const p = new Promise((resolve, reject) => {
+    try {
+      const rq = indexedDB.open("sansai_tiles", 1);
+      rq.onupgradeneeded = () => { const st = rq.result.createObjectStore("t"); st.createIndex("ts", "ts"); };
+      rq.onsuccess = () => resolve(rq.result);
+      rq.onerror = () => reject(rq.error);
+    } catch (e) { reject(e); }
+  });
+  p.catch(() => { _mapDbP = null; });
+  _mapDbP = p;
+  return p;
+}
+function mapIdb(mode, fn) {
+  return mapDb().then(db => new Promise((res, rej) => {
+    const tx = db.transaction("t", mode);
+    const r = fn(tx.objectStore("t"));
+    tx.oncomplete = () => res(r && r.result);
+    tx.onerror = () => rej(tx.error);
+    tx.onabort = () => rej(tx.error);
+  }));
+}
+const _tileMem = new Map();
+let _tilePuts = 0;
+async function mapTrim() {
+  try {
+    const n = await mapIdb("readonly", st => st.count());
+    if (n <= MAP_TILE_CAP) return;
+    const db = await mapDb();
+    await new Promise(res => {
+      const tx = db.transaction("t", "readwrite");
+      let left = n - MAP_TILE_CAP + 300;
+      const cur = tx.objectStore("t").index("ts").openCursor();
+      cur.onsuccess = () => { const c = cur.result; if (c && left > 0) { c.delete(); left--; c.continue(); } };
+      tx.oncomplete = res; tx.onerror = res; tx.onabort = res;
+    });
+  } catch (e) {}
+}
+async function mapTileSrc(z, x, y) {
+  const key = z + "/" + x + "/" + y;
+  if (_tileMem.has(key)) return _tileMem.get(key);
+  try {
+    const rec = await mapIdb("readonly", st => st.get(key));
+    if (rec && rec.blob) { const u = URL.createObjectURL(rec.blob); _tileMem.set(key, u); return u; }
+  } catch (e) {}
+  const url = MAP_TILE_URL(z, x, y);
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("http");
+    const blob = await res.blob();
+    try { await mapIdb("readwrite", st => st.put({ blob: blob, ts: Date.now() }, key)); if (++_tilePuts % 60 === 0) mapTrim(); } catch (e) {}
+    const u = URL.createObjectURL(blob); _tileMem.set(key, u); return u;
+  } catch (e) {
+    return navigator.onLine === false ? "" : url;
+  }
+}
+function MapTile({ z, x, y, left, top, size }) {
+  const [src, setSrc] = useState("");
+  useEffect(() => { let alive = true; mapTileSrc(z, x, y).then(u => { if (alive) setSrc(u); }); return () => { alive = false; }; }, [z, x, y]);
+  if (!src) return null;
+  return _m('img', { src: src, alt: "", draggable: false, onError: () => setSrc(""), style: { position: "absolute", left: Math.floor(left), top: Math.floor(top), width: Math.ceil(size) + 1, height: Math.ceil(size) + 1, userSelect: "none", pointerEvents: "none", maxWidth: "none" } });
+}
+const mapLng2x = (lng) => (lng + 180) / 360;
+const mapLat2y = (lat) => { const s = Math.sin(lat * Math.PI / 180); return 0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI); };
+function mapFit(pins, w, h) {
+  if (!pins.length) return { x: mapLng2x(137.3), y: mapLat2y(36.5), z: 8 };
+  let x0 = 1, x1 = 0, y0 = 1, y1 = 0;
+  pins.forEach(p => { const x = mapLng2x(p.lng), y = mapLat2y(p.lat); x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); });
+  const span = Math.max(x1 - x0, y1 - y0);
+  let z = span < 1e-7 ? 15 : Math.log2(0.8 * Math.min(w, h) / (256 * span));
+  z = Math.max(MAP_MIN_Z, Math.min(15, z));
+  return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, z: z };
+}
+function mapZoomAt(v, sx, sy, w, h, newZ) {
+  const z = Math.max(MAP_MIN_Z, Math.min(MAP_MAX_Z + 1, newZ));
+  const wx = v.x + (sx - w / 2) / (256 * Math.pow(2, v.z)), wy = v.y + (sy - h / 2) / (256 * Math.pow(2, v.z));
+  return { x: wx - (sx - w / 2) / (256 * Math.pow(2, z)), y: wy - (sy - h / 2) / (256 * Math.pow(2, z)), z: z };
+}
+function mapCollectPins(sansaiList, spots) {
+  const ok = g => g && typeof g.lat === "number" && typeof g.lng === "number" && isFinite(g.lat) && isFinite(g.lng);
+  const sp = id => shareSpotName(spots, id);
+  const pins = []; let noGps = 0;
+  shareLoadOwn("harvest").forEach(r => {
+    if (!ok(r.gps)) { noGps++; return; }
+    const nm = shareSansaiName(sansaiList, r.sansaiId) || "山菜";
+    pins.push({ key: "h" + r.id, kind: "harvest", lat: r.gps.lat, lng: r.gps.lng, label: nm, title: nm + (r.amount ? "　" + r.amount + (r.unit || "") : ""), date: r.date || "", lines: [sp(r.spotId) && "場所：" + sp(r.spotId), r.condition && "状態：" + r.condition, r.memo].filter(Boolean) });
+  });
+  shareLoadOwn("patrol").forEach(r => {
+    if (!ok(r.gps)) { noGps++; return; }
+    pins.push({ key: "p" + r.id, kind: "patrol", lat: r.gps.lat, lng: r.gps.lng, label: "", title: sp(r.spotId) || "パトロール", date: r.date || "", lines: [r.overallCondition && "全体の状況：" + r.overallCondition, r.notes].filter(Boolean) });
+  });
+  shareLoadOwn("memo").forEach(r => {
+    if (!ok(r.gps)) { noGps++; return; }
+    pins.push({ key: "m" + r.id, kind: "memo", lat: r.gps.lat, lng: r.gps.lng, label: "", title: r.title || "(無題)", date: r.date || "", lines: [sp(r.spotId) && "場所：" + sp(r.spotId), r.route, r.caution && "注意：" + r.caution].filter(Boolean) });
+  });
+  shareLoadOwn("blog").forEach(r => {
+    if (!ok(r.gps)) { noGps++; return; }
+    pins.push({ key: "b" + r.id, kind: "blog", lat: r.gps.lat, lng: r.gps.lng, label: "", title: r.title || "(無題)", date: r.date || "", lines: [r.content] });
+  });
+  return { pins: pins, noGps: noGps };
+}
+function HarvestMapView({ spots, sansaiList }) {
+  const data = React.useMemo(() => mapCollectPins(sansaiList, spots), []);
+  const boxRef = React.useRef(null);
+  const fitted = React.useRef(false);
+  const ptrs = React.useRef(new Map());
+  const moved = React.useRef(false);
+  const watchRef = React.useRef(null);
+  const [size, setSize] = useState({ w: 360, h: 460 });
+  const [view, setView] = useState(() => mapFit(data.pins, 360, 460));
+  const [kinds, setKinds] = useState({ harvest: true, patrol: true, memo: true, blog: true });
+  const [sansaiSel, setSansaiSel] = useState("");
+  const [sel, setSel] = useState(null);
+  const [me, setMe] = useState(null);
+  const [msg, setMsg] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [savedCount, setSavedCount] = useState(null);
+  const [online, setOnline] = useState(() => navigator.onLine !== false);
+  const sizeRef = React.useRef(size); sizeRef.current = size;
+
+  const refreshCount = () => { mapIdb("readonly", st => st.count()).then(n => setSavedCount(n)).catch(() => setSavedCount(null)); };
+  useEffect(() => {
+    refreshCount();
+    const on = () => setOnline(true), off = () => setOnline(false);
+    window.addEventListener("online", on); window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on); window.removeEventListener("offline", off);
+      if (watchRef.current != null && navigator.geolocation) navigator.geolocation.clearWatch(watchRef.current);
+      _tileMem.forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} }); _tileMem.clear();
+    };
+  }, []);
+  useEffect(() => {
+    const el = boxRef.current; if (!el) return;
+    const measure = () => {
+      const w = el.clientWidth, h = el.clientHeight; if (!w || !h) return;
+      setSize({ w: w, h: h });
+      if (!fitted.current) { fitted.current = true; setView(mapFit(data.pins, w, h)); }
+    };
+    measure();
+    let ro = null;
+    if (window.ResizeObserver) { ro = new ResizeObserver(measure); ro.observe(el); } else window.addEventListener("resize", measure);
+    const onWheel = (ev) => {
+      ev.preventDefault();
+      const r = el.getBoundingClientRect();
+      setView(v => mapZoomAt(v, ev.clientX - r.left, ev.clientY - r.top, sizeRef.current.w, sizeRef.current.h, v.z - ev.deltaY / 400));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => { if (ro) ro.disconnect(); else window.removeEventListener("resize", measure); el.removeEventListener("wheel", onWheel); };
+  }, []);
+
+  const onDown = (e) => {
+    ptrs.current.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY });
+    moved.current = false;
+  };
+  const onMove = (e) => {
+    const p = ptrs.current.get(e.pointerId); if (!p) return;
+    const el = boxRef.current; const r = el.getBoundingClientRect();
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    if (!moved.current && Math.abs(e.clientX - p.sx) + Math.abs(e.clientY - p.sy) > 8) {
+      moved.current = true;
+      try { el.setPointerCapture(e.pointerId); } catch (x) {}
+    }
+    if (!moved.current) return;
+    const { w, h } = sizeRef.current;
+    if (ptrs.current.size >= 2) {
+      const arr = Array.from(ptrs.current.entries());
+      const other = arr.find(a => a[0] !== e.pointerId)[1];
+      const d0 = Math.hypot(p.x - other.x, p.y - other.y), d1 = Math.hypot(e.clientX - other.x, e.clientY - other.y);
+      if (d0 > 0 && d1 > 0) {
+        const mx = (e.clientX + other.x) / 2 - r.left, my = (e.clientY + other.y) / 2 - r.top;
+        setView(v => mapZoomAt(v, mx, my, w, h, v.z + Math.log2(d1 / d0)));
+      }
+    } else {
+      setView(v => { const ws = 256 * Math.pow(2, v.z); return { x: v.x - dx / ws, y: v.y - dy / ws, z: v.z }; });
+    }
+    p.x = e.clientX; p.y = e.clientY;
+  };
+  const onUp = (e) => { ptrs.current.delete(e.pointerId); };
+
+  const zoomBtn = (d) => setView(v => mapZoomAt(v, sizeRef.current.w / 2, sizeRef.current.h / 2, sizeRef.current.w, sizeRef.current.h, Math.round(v.z) + d));
+  const visible = data.pins.filter(p => kinds[p.kind] && !(p.kind === "harvest" && sansaiSel && p.label !== sansaiSel));
+  const harvestNames = Array.from(new Set(data.pins.filter(p => p.kind === "harvest").map(p => p.label))).sort();
+
+  const handleLocate = () => {
+    if (!navigator.geolocation) { setMsg("この端末では現在地を取得できません。"); return; }
+    if (watchRef.current != null) { navigator.geolocation.clearWatch(watchRef.current); watchRef.current = null; setMe(null); setMsg(""); return; }
+    setMsg("現在地を探しています…");
+    let first = true;
+    watchRef.current = navigator.geolocation.watchPosition(pos => {
+      const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      setMe(c); setMsg("");
+      if (first) { first = false; setView(v => ({ x: mapLng2x(c.lng), y: mapLat2y(c.lat), z: Math.max(v.z, 14) })); }
+    }, () => { setMsg("現在地を取得できませんでした。位置情報の許可を確認してください。"); watchRef.current = null; setMe(null); }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
+  };
+
+  const handleSaveArea = async () => {
+    if (saving) return;
+    if (!navigator.onLine) { setMsg("圏外のため保存できません。電波のある場所でお試しください。"); return; }
+    const { w, h } = sizeRef.current;
+    const zt = Math.max(MAP_MIN_Z, Math.min(MAP_MAX_Z, Math.round(view.z)));
+    const minX = view.x - w / 2 / (256 * Math.pow(2, view.z)), maxX = view.x + w / 2 / (256 * Math.pow(2, view.z));
+    const minY = view.y - h / 2 / (256 * Math.pow(2, view.z)), maxY = view.y + h / 2 / (256 * Math.pow(2, view.z));
+    const list = [];
+    for (let z = zt; z <= Math.min(MAP_MAX_Z, zt + 2); z++) {
+      const n = Math.pow(2, z);
+      const xa = Math.floor(minX * n), xb = Math.floor(maxX * n), ya = Math.max(0, Math.floor(minY * n)), yb = Math.min(n - 1, Math.floor(maxY * n));
+      const add = [];
+      for (let ty = ya; ty <= yb; ty++) for (let tx = xa; tx <= xb; tx++) add.push([z, ((tx % n) + n) % n, ty]);
+      if (z > zt && list.length + add.length > 250) break;
+      if (z === zt && add.length > 250) { setMsg("範囲が広すぎます。地図を拡大して、保存したい範囲だけを表示してください。"); return; }
+      add.forEach(a => list.push(a));
+    }
+    setSaving(true); let done = 0;
+    try {
+      let idx = 0;
+      const worker = async () => { while (idx < list.length) { const t = list[idx++]; await mapTileSrc(t[0], t[1], t[2]); done++; setMsg("保存中… " + done + " / " + list.length); } };
+      await Promise.all([worker(), worker(), worker(), worker()]);
+      setMsg("✅ " + list.length + "枚の地図を端末に保存しました（圏外でも表示できます）");
+    } catch (e) { setMsg("保存の途中でエラーが起きました。"); }
+    setSaving(false); refreshCount();
+  };
+  const handleClearTiles = async () => {
+    if (!window.confirm("保存した地図をすべて削除します。（記録やGPSは消えません）")) return;
+    try { await mapIdb("readwrite", st => st.clear()); _tileMem.clear(); setMsg("保存した地図を削除しました。"); } catch (e) { setMsg("削除できませんでした。"); }
+    refreshCount();
+  };
+
+  const { w, h } = size;
+  const z = view.z, zt = Math.max(MAP_MIN_Z, Math.min(MAP_MAX_Z, Math.round(z)));
+  const scale = Math.pow(2, z - zt), ts = 256 * scale, n = Math.pow(2, zt);
+  const tlx = view.x * n - w / 2 / ts, tly = view.y * n - h / 2 / ts;
+  const tiles = [];
+  for (let ty = Math.max(0, Math.floor(tly)); ty <= Math.min(n - 1, Math.floor(tly + h / ts)); ty++) {
+    for (let tx = Math.floor(tlx); tx <= Math.floor(tlx + w / ts); tx++) {
+      const wx = ((tx % n) + n) % n;
+      tiles.push(_m(MapTile, { key: zt + "/" + wx + "/" + ty + "@" + tx, z: zt, x: wx, y: ty, left: (tx - tlx) * ts, top: (ty - tly) * ts, size: ts }));
+    }
+  }
+  const ws = 256 * Math.pow(2, z);
+  const toScreen = (lat, lng) => ({ sx: (mapLng2x(lng) - view.x) * ws + w / 2, sy: (mapLat2y(lat) - view.y) * ws + h / 2 });
+  const pinEls = visible.map(p => {
+    const s = toScreen(p.lat, p.lng); if (s.sx < -60 || s.sx > w + 60 || s.sy < -60 || s.sy > h + 60) return null;
+    const k = MAP_KINDS[p.kind]; const on = sel && sel.key === p.key;
+    return _m('div', { key: p.key, onClick: (ev) => { ev.stopPropagation(); setSel(p); }, style: { position: "absolute", left: s.sx - 15, top: s.sy - 15, width: 30, height: 30, zIndex: on ? 5 : 2, cursor: "pointer" } },
+      p.label && _m('div', { style: { position: "absolute", left: "50%", bottom: 32, transform: "translateX(-50%)", background: "white", color: k.color, border: "1px solid " + k.color, borderRadius: 8, padding: "1px 6px", fontSize: 11, fontWeight: 700, whiteSpace: "nowrap", boxShadow: "0 1px 3px rgba(0,0,0,0.3)" } }, p.label),
+      _m('div', { style: { width: 30, height: 30, borderRadius: "50%", background: k.color, border: on ? "3px solid #ffd54f" : "2px solid white", boxShadow: "0 1px 4px rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, boxSizing: "border-box" } }, k.icon));
+  });
+  const meS = me ? toScreen(me.lat, me.lng) : null;
+  const ctl = { width: 40, height: 40, borderRadius: 10, border: "1px solid #bbb", background: "white", fontSize: 18, fontWeight: 700, cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", color: "#333" };
+  const chip = (id) => { const k = MAP_KINDS[id]; const cnt = data.pins.filter(p => p.kind === id).length; return _m('button', { key: id, onClick: () => setKinds(o => ({ ...o, [id]: !o[id] })), style: { padding: "6px 10px", borderRadius: 16, border: "2px solid " + k.color, background: kinds[id] ? k.color : "white", color: kinds[id] ? "white" : k.color, fontSize: 12, fontWeight: 700, cursor: "pointer" } }, k.icon + " " + k.name + " " + cnt); };
+  const small = { padding: "10px 12px", borderRadius: 10, border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer" };
+  return (
+    _m('div', null,
+      _m('div', { className: "section-title" }, "🗺️ 収穫マップ"),
+      _m('div', { className: "section-desc" }, "自分の記録のGPSを地図に表示します。この地図は自分専用で、位置情報はこの端末の外には出ません。"),
+      _m('div', { style: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 } }, ["harvest", "patrol", "memo", "blog"].map(chip)),
+      harvestNames.length > 0 && _m('select', { value: sansaiSel, onChange: e => setSansaiSel(e.target.value), style: { width: "100%", padding: "8px 10px", borderRadius: 10, border: "1px solid #ccc", fontSize: 13, marginBottom: 8 } },
+        _m('option', { value: "" }, "収穫：すべての山菜"), harvestNames.map(nm => _m('option', { key: nm, value: nm }, "収穫：" + nm))),
+      _m('div', { style: { fontSize: 12, color: "#555", marginBottom: 6 } }, "地図に表示：" + visible.length + "件／GPSなしで表示できない記録：" + data.noGps + "件"),
+      _m('div', { ref: boxRef, onPointerDown: onDown, onPointerMove: onMove, onPointerUp: onUp, onPointerCancel: onUp, onClick: () => { if (!moved.current) setSel(null); }, style: { position: "relative", width: "100%", height: "62vh", minHeight: 340, background: "#dfe8d8", borderRadius: 14, overflow: "hidden", touchAction: "none", border: "2px solid var(--mist)" } },
+        tiles, pinEls,
+        meS && _m('div', { style: { position: "absolute", left: meS.sx - 9, top: meS.sy - 9, width: 18, height: 18, borderRadius: "50%", background: "#1a73e8", border: "3px solid white", boxShadow: "0 0 0 2px rgba(26,115,232,0.35)", zIndex: 4, pointerEvents: "none", boxSizing: "border-box" } }),
+        !online && _m('div', { style: { position: "absolute", left: 8, right: 56, top: 8, background: "rgba(122,90,0,0.92)", color: "white", fontSize: 11, lineHeight: 1.5, borderRadius: 8, padding: "6px 8px", zIndex: 6, pointerEvents: "none" } }, "📡 圏外：保存した地図を表示しています（保存していない場所は空白になります）"),
+        _m('div', { onPointerDown: e => e.stopPropagation(), onClick: e => e.stopPropagation(), style: { position: "absolute", right: 8, top: 8, display: "flex", flexDirection: "column", gap: 6, zIndex: 7 } },
+          _m('button', { style: ctl, onClick: () => zoomBtn(1) }, "＋"),
+          _m('button', { style: ctl, onClick: () => zoomBtn(-1) }, "－"),
+          _m('button', { style: ctl, onClick: () => setView(mapFit(visible, w, h)), title: "全体" }, "⤢"),
+          _m('button', { style: { ...ctl, background: me ? "#1a73e8" : "white", color: me ? "white" : "#333" }, onClick: handleLocate, title: "現在地" }, "📍")),
+        _m('div', { style: { position: "absolute", left: 6, bottom: 4, fontSize: 10, color: "#333", background: "rgba(255,255,255,0.8)", padding: "1px 5px", borderRadius: 4, zIndex: 6, pointerEvents: "none" } }, "地理院タイル（国土地理院）"),
+        sel && _m('div', { onPointerDown: e => e.stopPropagation(), onClick: e => e.stopPropagation(), style: { position: "absolute", left: 8, right: 8, bottom: 22, background: "white", borderRadius: 12, padding: "10px 12px", boxShadow: "0 2px 10px rgba(0,0,0,0.35)", zIndex: 8, maxHeight: "45%", overflowY: "auto" } },
+          _m('div', { style: { display: "flex", justifyContent: "space-between", gap: 8 } },
+            _m('div', { style: { fontWeight: 700, color: MAP_KINDS[sel.kind].color, fontSize: 14 } }, MAP_KINDS[sel.kind].icon + " " + sel.title),
+            _m('button', { onClick: () => setSel(null), style: { border: "none", background: "transparent", fontSize: 18, cursor: "pointer", color: "#666" } }, "✕")),
+          sel.date && _m('div', { style: { fontSize: 12, color: "#666", marginTop: 2 } }, sel.date),
+          sel.lines.map((t, i) => _m('div', { key: i, style: { fontSize: 12, color: "#333", marginTop: 4, lineHeight: 1.6, whiteSpace: "pre-wrap" } }, String(t).length > 120 ? String(t).slice(0, 120) + "…" : t)),
+          _m('a', { href: "https://www.google.com/maps?q=" + sel.lat + "," + sel.lng, target: "_blank", rel: "noopener noreferrer", style: { display: "inline-block", marginTop: 8, fontSize: 12, color: "#1a73e8", fontWeight: 700 } }, "Googleマップで開く"))
+      ),
+      msg && _m('div', { style: { marginTop: 8, fontSize: 12, color: "#444", lineHeight: 1.7, whiteSpace: "pre-wrap" } }, msg),
+      _m('div', { style: { display: "flex", gap: 8, marginTop: 10 } },
+        _m('button', { onClick: handleSaveArea, disabled: saving, style: { ...small, flex: 1, background: "var(--forest)", color: "white", opacity: saving ? 0.6 : 1 } }, "📥 この範囲を保存"),
+        _m('button', { onClick: handleClearTiles, disabled: saving, style: { ...small, background: "var(--mist)", color: "var(--forest)" } }, "保存した地図を削除")),
+      _m('div', { style: { marginTop: 8, fontSize: 11, color: "#777", lineHeight: 1.7 } }, "電波のあるうちに行く場所を表示して「この範囲を保存」を押すと、圏外でも地図が見られます。一度見た場所も自動で保存されます。" + (savedCount != null ? "（保存済み：" + savedCount + "枚）" : "") + "\n広い範囲を何度も保存しないでください。現在地の青い点は、圏外でも表示されます。")
+    )
+  );
+}
+
+function ShareTab({ kind, isAdmin, spots, sansaiList, renderOwn, onOwnChanged }) {
   const cfg = SHARE_KINDS[kind];
   const { photos: photoStore, importPhotos } = usePhotos();
   const [view, setView] = useState("own");
@@ -10007,6 +10320,7 @@ function ShareTab({ kind, isAdmin, spots, sansaiList, renderOwn }) {
       await importPhotos(photoMap);
       if (!shareSaveOwn(kind, next)) throw new Error("save");
       setOwnKey(k => k + 1);
+      if (onOwnChanged) onOwnChanged();
       setStatus("✅ " + (data.by ? data.by + "さんの" : "") + cfg.label + "を取り込みました（" + added + "件追加・" + updated + "件更新）\n続けて「配信用に書き出す」でみんなに公開できます");
     } catch (err) {
       setStatus("❌ 取り込めませんでした。" + cfg.label + "の提出ファイルを選んでください。");
@@ -10040,7 +10354,7 @@ function ShareTab({ kind, isAdmin, spots, sansaiList, renderOwn }) {
         , renderOwn(ownKey)
       )
       , view === "shared" && React.createElement(ShareSharedList, { kind: kind })
-      , showSelect && React.createElement(ShareSelectModal, { kind: kind, spots: spots, sansaiList: sansaiList, onClose: () => setShowSelect(false), onSaved: () => { setShowSelect(false); setOwnKey(k => k + 1); setStatus("✅ 共有する記録を保存しました"); } })
+      , showSelect && React.createElement(ShareSelectModal, { kind: kind, spots: spots, sansaiList: sansaiList, onClose: () => setShowSelect(false), onSaved: () => { setShowSelect(false); setOwnKey(k => k + 1); if (onOwnChanged) onOwnChanged(); setStatus("✅ 共有する記録を保存しました"); } })
     )
   );
 }
@@ -10225,6 +10539,7 @@ function App() {
     { id: "patrol",   label: "\u30d1\u30c8\u30ed\u30fc\u30eb", icon: "\ud83d\udd0d" },
     { id: "harvest",  label: "\u53ce\u7a6b\u8a18\u9332",   icon: "\ud83e\uddfa" },
     { id: "memo",     label: "\u5fd8\u5099\u9332",     icon: "\ud83d\udcd2" },
+    { id: "map",      label: "収穫マップ", icon: "🗺️" },
     { id: "gear",     label: "\u670d\u88c5\u30fb\u9053\u5177", icon: "\ud83d\udc55" },
     { id: "links",    label: "リンク集",   icon: "🔗" },
     { id: "manual",   label: "使い方・Q&A", icon: "📖" },
@@ -10280,11 +10595,12 @@ function App() {
           , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: (secretOn || zukanIsAdminDevice()),} )
           , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
           , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots, sansaiList: sansaiList,} )
-          , tab === "blog"     && React.createElement(BlogView, { posts: posts, setPosts: setPosts, spots: spots, members: members, sansaiList: sansaiList,} )
+          , tab === "blog"     && React.createElement(ShareTab, { kind: "blog", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, onOwnChanged: () => setPosts(shareLoadOwn("blog")), renderOwn: (k) => React.createElement(BlogView, { key: k, posts: posts, setPosts: setPosts, spots: spots, members: members, sansaiList: sansaiList }) })
           , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots, sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: (secretOn || zukanIsAdminDevice()),} )
           , tab === "members"  && React.createElement(React.Fragment, null, React.createElement(MembersView, { members: members, setMembers: setMembers, isAdmin: (secretOn || zukanIsAdminDevice()),} ), React.createElement(AuthPanel, { isAdmin: (secretOn || zukanIsAdminDevice()),} ))
           , tab === "patrol"   && React.createElement(ShareTab, { kind: "patrol", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(PatrolView, { key: k, spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} ),} )
           , tab === "harvest"  && React.createElement(ShareTab, { kind: "harvest", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(HarvestView, { key: k, spots: spots, members: members, sansaiList: sansaiList,} ),} )
+          , tab === "map"      && React.createElement(HarvestMapView, { spots: spots, sansaiList: sansaiList })
           , tab === "memo"     && React.createElement(ShareTab, { kind: "memo", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(MemoView, { key: k, spots: spots, sansaiList: sansaiList,} ),} )
           , tab === "gear"     && React.createElement(GearView, { sansaiList: sansaiList,} )
           , tab === "links"    && React.createElement(LinkView, null)
@@ -10304,7 +10620,7 @@ const AUTH_OK_KEY = "sansai_auth_ok";
 const AUTH_URL = "./auth.json";
 
 // ===== 配信ファイルの暗号化（共通ID・パスワードから鍵を作り、AES-GCMで暗号化） =====
-// GitHubに置く zukan.json / patrol.json / harvest.json / memo.json は暗号文になり、パスワードを知らない人には読めません
+// GitHubに置く zukan.json / patrol.json / harvest.json / memo.json / blog.json は暗号文になり、パスワードを知らない人には読めません
 const ENC_KEY_STORE = "sansai_enc_key";
 const AUTH_ITER = 600000;
 function b64enc(bytes) {
@@ -10544,7 +10860,7 @@ function AuthPanel({ isAdmin }) {
     if (remote) out.push("【GitHub上の auth.json】\n目印：" + sh(remote.hash) + "\n更新：" + fmt(remote.ver));
     out.push("【この端末のログイン設定】\n目印：" + sh(local && local.hash) + "\n更新：" + fmt(local && local.ver) + "\n暗号鍵：" + (encKeyLoad() ? "あり" : "なし"));
     if (remote && local && remote.hash && remote.hash !== local.hash) out.push("⚠️ この端末の設定がGitHub上と違います。アプリを完全に閉じて開き直し、ログインし直してください。");
-    const files = [["zukan.json", "図鑑・カレンダー・名簿"], ["patrol.json", "パトロール"], ["harvest.json", "採取記録"], ["memo.json", "忘備録"]];
+    const files = [["zukan.json", "図鑑・カレンダー・名簿"], ["patrol.json", "パトロール"], ["harvest.json", "採取記録"], ["memo.json", "忘備録"], ["blog.json", "ブログ"]];
     const refHash = (remote && remote.hash) ? remote.hash : ((local && local.hash) || "");
     for (const f of files) {
       let line = "【" + f[1] + "（" + f[0] + "）】\n";
