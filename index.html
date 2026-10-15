@@ -2792,7 +2792,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
   const [backupStatus, setBackupStatus] = useState("");
   const [lastBackup, setLastBackup] = useState(() => { try { return Number(localStorage.getItem("sansai_last_backup")) || 0; } catch (e) { return 0; } });
   const importInputRef = useRef(null);
-  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1","sansai_danger_custom_v1","sansai_danger_over_v1"];
+  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1","sansai_danger_custom_v1","sansai_danger_over_v1","sansai_notices"];
 
   const handleExport = async () => {
     const FOLDER_NAME = "\u5c71\u83dc\u624b\u5e33\u30d0\u30c3\u30af\u30a2\u30c3\u30d7";
@@ -2867,6 +2867,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
   };
 
   const menuItems = [
+    { id:"notices",  icon:"📢", label:"お知らせ",     desc: noticeHasNew() ? "🆕 新しいお知らせがあります" : "更新の案内", color:"#c0392b" },
     { id:"calendar", icon:"\ud83c\udf43", label:"\u5c71\u83dc\u30ab\u30ec\u30f3\u30c0\u30fc", desc:"\u63a1\u53d6\u9069\u671f\u4e00\u89a7", color:"#2d4a2d" },
     { id:"plan",     icon:"\ud83d\udcc5", label:"\u63a1\u53d6\u30d7\u30e9\u30f3",   desc:"\u5929\u6c17\u30fb\u30ab\u30ec\u30f3\u30c0\u30fc\u9023\u643a", color:"#27ae60" },
     { id:"spots",    icon:"\ud83d\udccd", label:"\u30b9\u30dd\u30c3\u30c8",       desc:"\u63a1\u53d6\u5834\u6240\u7ba1\u7406", color:"#e74c3c" },
@@ -9047,10 +9048,12 @@ function ZukanAdminPanel({ sansaiList, members, spots, onSync }) {
         await pack("bigPhotoId", "bigPhoto", 900, 0.75);
         memberOut.push(c);
       }
+      const noticesOut = loadNotices().slice(0, 10);
+      for (const nt of noticesOut) for (const pid of (nt.imgs || [])) { if (photos[pid]) outPhotos[pid] = await zukanShrink(photos[pid], 900, 0.75); }
       const version = Date.now();
-      const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, members: memberOut, photos: outPhotos, manualImgs: manualImgs, danger: loadCustomDangers(), dangerOver: loadDangerOver() });
+      const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, members: memberOut, notices: noticesOut, photos: outPhotos, manualImgs: manualImgs, danger: loadCustomDangers(), dangerOver: loadDangerOver() });
       const sealed = await secureSeal(json);
-    return { sealed, json, version, manualCount, memberOut };
+    return { sealed, json, version, manualCount, memberOut, noticeCount: noticesOut.length };
   };
   const handleExport = async () => {
     setBusy(true);
@@ -9107,7 +9110,7 @@ function ZukanAdminPanel({ sansaiList, members, spots, onSync }) {
       shareDownload("zukan.json", z.sealed.text);
       if (!z.sealed.enc) encOff = true;
       try { localStorage.setItem(ZUKAN_VER_KEY, String(z.version)); localStorage.setItem(ZUKAN_ADMIN_KEY, "1"); } catch (e) {}
-      notes.push("✅ zukan.json（図鑑" + sansaiList.length + "件・メンバー" + z.memberOut.length + "名）");
+      notes.push("✅ zukan.json（図鑑" + sansaiList.length + "件・メンバー" + z.memberOut.length + "名・お知らせ" + z.noticeCount + "件）");
       let n = 1;
       for (const kind of ["patrol", "harvest", "memo", "blog"]) {
         n++;
@@ -9318,11 +9321,12 @@ const MANUAL_ITEMS = [
   { t:"忘備録", i:"📒", b:["採取場所の道順・駐車場・目印・注意事項などを詳しくメモします。","写真やタグ、GPS位置も付けられ、タグで絞り込めます。"], v:MANUAL_VER },
   { t:"収穫マップ", i:"🗺️", b:["【収穫マップとは】収穫記録・パトロール・忘備録・ブログに保存したGPS（位置情報）を、地図に表示します。収穫記録には、山菜の名前つきのピンが自動で立ちます。","【自分専用です】GPSは自分のスマホにだけ保存されているため、地図には自分の記録だけが出ます。他の人の位置情報は見られず、自分の位置情報も他の人には送られません。","【ピンが出ないとき】位置情報（GPS）を取って保存した記録だけが表示されます。記録を入力するときに、位置情報を取得するボタンを押してください。家で後から入力すると、家の位置になります。","【見かた】ピンをタップすると、日付・収穫量・メモが出ます。指で動かし、2本指で拡大・縮小します。「📍」を押すと、いまいる場所が青い点で表示されます。上のボタンで、収穫・パトロール・忘備録・ブログの表示を切り替えたり、山菜で絞ったりできます。","【圏外のとき】一度表示した場所の地図は、自動でスマホに保存されます。電波のあるうちに「📥 この範囲を保存」を押すと、いま見ている範囲を、少し拡大した分までまとめて保存できます。山に入る前に、行く場所を表示して保存しておくと安心です。圏外でも、現在地の青い点は表示されます。","【お願い】「この範囲を保存」を、広い範囲で何度も押さないでください。地図の提供元（国土地理院）に負担がかかります。保存した地図は、バックアップには含まれません。"], v:MANUAL_VER },
   { t:"記録の共有（パトロール・収穫記録・忘備録・ブログ）", i:"🔗", b:["この4つのタブには、「✏️ 自分の〜」と「👥 みんなの〜」の2つの画面があります（〜にはパトロール・採取記録・メモ・ブログが入ります）。","「自分の〜」に入力した内容は、これまで通り自分のスマホの中にだけ保存されます。","【メンバー】「共有する記録を選ぶ」で、みんなに見せたい記録にチェックを入れ、「📤 管理者に提出する」を押します。できた提出ファイルを、LINEなどで管理者に送ってください。初めて提出するときは、名前の入力を求められます。","【管理者】メンバーの提出ファイルを「📥 メンバーの提出ファイルを取り込む」で追加し、内容を確認したら「🌿 配信用に書き出す」でファイルを作り、GitHubに上書きアップロードします。","共有された内容は「👥 みんなの〜」に表示されます。見るだけの画面なので、編集や削除はできません。","位置情報（GPS）は、共有されません。"], v:MANUAL_VER },
-  { t:"更新のお知らせがあったとき（データの更新）", i:"🔄", b:["管理者が図鑑・カレンダー・メンバー名簿などを更新すると、LINEなどで「更新しました」と案内が届きます。メンバーが、ボタンを押したりファイルを入れたりする必要はありません。","【更新のしかた】①インターネットにつながった状態で、アプリを一度完全に閉じます（最近使ったアプリの一覧から上にスワイプして終了）。②もう一度アプリを開き、ログイン画面が出たらログインします。③画面に「🌿 図鑑・カレンダー・メンバー名簿を最新版に更新しました」と表示されれば完了です。","【更新される内容】山菜図鑑（危険植物・危険キノコを含む）、山菜カレンダー、メンバー名簿、使い方・Q&Aの画像です。","【みんなの〜（パトロール・収穫記録・忘備録・ブログ）】それぞれのタブの「👥 みんなの〜」を開くたびに、最新の内容を読み込みます。画面に「最終更新」の日時が出ます。","【自分の記録は消えません】自分で入力した記録・スポット・ブログや、山菜ごとの「おすすめスポット」は、更新しても自分の端末に残ります。メンバー名簿は管理者の内容に置き換わりますが、この端末で「自分」に選んでいる人のプロフィールは端末側の内容が残ります。","【表示が変わらないとき】管理者がまだアップロードしていないか、すでに最新の状態です。少し待ってから、もう一度アプリを開き直してください。「ストレージを消去」「サイトデータの削除」は保存データも消えるので押さないでください。","【「🔒 配信データを開けませんでした」と出たとき】管理者がパスワードを変えた可能性があります。管理者に新しいIDとパスワードを聞き、メンバータブの下の「🚪 この端末をログアウト」を押してから、入り直してください。","※管理者の端末は、自動では更新されません（管理者の端末が元データのためです）。"], v:MANUAL_VER },
+  { t:"更新のお知らせがあったとき（データの更新）", i:"🔄", b:["管理者が図鑑・カレンダー・メンバー名簿などを更新すると、LINEなどで「更新しました」と案内が届きます。メンバーが、ボタンを押したりファイルを入れたりする必要はありません。","【更新のしかた】①インターネットにつながった状態で、アプリを一度完全に閉じます（最近使ったアプリの一覧から上にスワイプして終了）。②もう一度アプリを開き、ログイン画面が出たらログインします。③画面に「🌿 図鑑・カレンダー・メンバー名簿を最新版に更新しました」と表示されれば完了です。","【更新される内容】山菜図鑑（危険植物・危険キノコを含む）、山菜カレンダー、メンバー名簿、使い方・Q&Aの画像、お知らせです。","【みんなの〜（パトロール・収穫記録・忘備録・ブログ）】それぞれのタブの「👥 みんなの〜」を開くたびに、最新の内容を読み込みます。画面に「最終更新」の日時が出ます。","【自分の記録は消えません】自分で入力した記録・スポット・ブログや、山菜ごとの「おすすめスポット」は、更新しても自分の端末に残ります。メンバー名簿は管理者の内容に置き換わりますが、この端末で「自分」に選んでいる人のプロフィールは端末側の内容が残ります。","【表示が変わらないとき】管理者がまだアップロードしていないか、すでに最新の状態です。少し待ってから、もう一度アプリを開き直してください。「ストレージを消去」「サイトデータの削除」は保存データも消えるので押さないでください。","【「🔒 配信データを開けませんでした」と出たとき】管理者がパスワードを変えた可能性があります。管理者に新しいIDとパスワードを聞き、メンバータブの下の「🚪 この端末をログアウト」を押してから、入り直してください。","※管理者の端末は、自動では更新されません（管理者の端末が元データのためです）。"], v:MANUAL_VER },
+  { t:"お知らせ", i:"📢", b:["管理者が更新の案内を出すと、アプリを開いたときに「📢 お知らせ」が全画面で表示されます。何がどう変わったかを、画像つきで読めます。","【必読のお知らせ】最後までスクロールすると、「読みました（アプリを開く）」のボタンが押せるようになります。押すと、アプリが使えます。重要な変更のときだけ、この形になります。","【ふつうのお知らせ】「閉じる」を押すだけで、アプリが開きます。","読んだお知らせは、二度と自動では出ません。あとで読み返したいときは、表紙の「📢 お知らせ」を開いてください。新しいお知らせ（7日以内）には、「NEW」が付きます。","お知らせは、電波のあるところでアプリを開いたときに届きます。受け取ったあとは、圏外でも読み返せます。","更新を何回か飛ばしたときは、読んでいないお知らせ（30日以内）が、まとめて表示されます。"], v:MANUAL_VER },
   { t:"服装・道具", i:"👕", b:["山菜ごとに必要な服装や道具を確認できます。","「管理」から、リストの追加・編集・削除ができます。"], v:MANUAL_VER },
   { t:"リンク集", i:"🔗", b:["YouTube・Threads・X・Instagramなどのおすすめリンクをまとめたタブです。","「＋ 新規登録」で追加、各リンクの「削除」で削除できます。「初期状態に戻す」で最初の状態に戻ります。"], v:MANUAL_VER },
   { t:"バックアップ・復元", i:"💾", b:["データはスマホの中にだけ保存されています。アイコンの入れ替え・アプリの削除や再インストール・機種変更の前には、必ずバックアップを保存してください。","【バックアップのしかた】表紙（ホーム）画面の一番下にある「💾 バックアップ」ボタンをタップします。ファイル名に保存した日時が入るので、「山菜手帳バックアップ_2026-10-06_14-30-25.json」のように毎回別のファイルになります。","【保存される内容】メンバー・スポット・ブログ・山菜図鑑・パトロール・収穫記録・忘備録・服装道具・リンク集、および写真すべてです。","【保存場所】パソコンでは保存先を選ぶと「山菜手帳バックアップ」フォルダが自動で作られます。スマホ・タブレットでは「ダウンロード」フォルダに保存されます。ファイル管理アプリで「山菜手帳バックアップ」フォルダを作り、移しておくと分かりやすくなります。","【復元のしかた】表紙画面の「📤 復元」をタップし、保存したバックアップファイル（.json）を選びます。復元が終わるとアプリが自動で再読み込みされます。ファイル名の日時を見て、戻したい時点のファイルを選んでください。","【アイコンを入れ替えたいとき】①バックアップを保存する → ②ホーム画面の「山菜手帳」を長押しして削除（アンインストール）する → ③ブラウザでアプリのページを開き直し、「ホーム画面に追加」（または「インストール」）する → ④アプリの「📤 復元」でバックアップを読み込む、の順で進めます。","【注意】ブラウザやアプリ情報の「ストレージを消去」「サイトデータの削除」「データを削除して権限をリセット」を押すと、保存データも消えます。「キャッシュを削除」だけなら記録は消えません。","【おすすめ】山菜シーズンの前後や、大きな記録を入力したあとは、こまめにバックアップしましょう。バックアップファイルは Google ドライブや LINE のKeepメモなどにもコピーしておくと、端末が壊れたときも安心です。"], v:MANUAL_VER },
-  { t:"管理者のしごと", i:"🛠", b:["管理者の端末では、ホーム画面の一番下の「山菜採り手帳 v2.0」の文字を7回続けてタップし、合言葉を入力します。すると、管理者用の「メモ」タブが現れます。","【図鑑・カレンダーの配信】図鑑とカレンダーを編集したら、「メモ」タブの「📤 配信用に書き出す（zukan.json）」でファイルを作り、GitHubに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。","【記録の共有】パトロール・収穫記録・忘備録・ブログの各タブで、メンバーの提出ファイルを取り込み、「🌿 配信用に書き出す」で作ったファイル（patrol.json・harvest.json・memo.json・blog.json）をGitHubに上書きアップロードします。「メモ」タブの「📦 5ファイルまとめて書き出す」を使うと、図鑑も含めて一度に書き出せます。","【ログイン】メンバータブの「共通ID・パスワードの設定」で設定すると、auth.json が作られます。GitHubに上書きアップロードすると、全員に反映されます。","【暗号化】書き出した配信ファイル（zukan.json・patrol.json・harvest.json・memo.json・blog.json）は、共通パスワードで自動的に暗号化されます。パスワードは10文字以上にしてください。パスワードを変えたら、5つのファイルをすべて書き出し直してGitHubに上書きアップロードしてください。"], v:MANUAL_VER },
+  { t:"管理者のしごと", i:"🛠", b:["管理者の端末では、ホーム画面の一番下の「山菜採り手帳 v2.0」の文字を7回続けてタップし、合言葉を入力します。すると、管理者用の「メモ」タブが現れます。","【図鑑・カレンダーの配信】図鑑とカレンダーを編集したら、「メモ」タブの「📤 配信用に書き出す（zukan.json）」でファイルを作り、GitHubに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。","【記録の共有】パトロール・収穫記録・忘備録・ブログの各タブで、メンバーの提出ファイルを取り込み、「🌿 配信用に書き出す」で作ったファイル（patrol.json・harvest.json・memo.json・blog.json）をGitHubに上書きアップロードします。「メモ」タブの「📦 5ファイルまとめて書き出す」を使うと、図鑑も含めて一度に書き出せます。","【お知らせ】「📢 お知らせ」タブの「＋ 新しいお知らせを作る」で、タイトル・本文・画像（8枚まで）を入力します。「必ず読ませる」にチェックを入れると、メンバーは最後まで読まないとアプリを開けません。書いたあとは、「メモ」タブで図鑑を書き出して（「📦 5ファイルまとめて書き出す」でも構いません）、GitHubに上書きアップロードしてください。配信されるのは、新しい10件までです。内容を直したときは、「もう一度表示する」にチェックを入れると、読んだ人にも再表示されます。「👁 表示を確認」で、メンバーの画面を確認できます。誰が読んだかは、管理者には分かりません。","【ログイン】メンバータブの「共通ID・パスワードの設定」で設定すると、auth.json が作られます。GitHubに上書きアップロードすると、全員に反映されます。","【暗号化】書き出した配信ファイル（zukan.json・patrol.json・harvest.json・memo.json・blog.json）は、共通パスワードで自動的に暗号化されます。パスワードは10文字以上にしてください。パスワードを変えたら、5つのファイルをすべて書き出し直してGitHubに上書きアップロードしてください。"], v:MANUAL_VER },
 ];
 const QA_ITEMS = [
   { q:"バックアップはどうやって取りますか？", a:"表紙（ホーム）画面の一番下にある「💾 バックアップ」ボタンをタップするだけです。保存したファイル名には日時が入ります（例：山菜手帳バックアップ_2026-10-06_14-30-25.json）。同じ名前で上書きされることはありません。", v:MANUAL_VER },
@@ -9340,6 +9344,8 @@ const QA_ITEMS = [
   { q:"図鑑・カレンダーの内容が古いままです", a:"アプリを一度完全に閉じて、開き直してください。管理者がまだ更新していないときは、前のままです。", v:MANUAL_VER },
   { q:"メンバー（管理者以外）は何ができますか？", a:"図鑑・山菜カレンダー・メンバー名簿・「👥 みんなの〜」を見られます。スポット・ブログ・パトロール・収穫記録・忘備録などは、自分のスマホに自由に記録できます。みんなに見せたい記録は「📤 管理者に提出する」で送れます。図鑑・カレンダー・毒草の編集、メンバーの追加・削除は管理者だけです。", v:MANUAL_VER },
   { q:"管理者から「更新しました」と案内がありました。何をすればいいですか？", a:"インターネットにつながった状態で、アプリを一度完全に閉じて開き直してください（ログイン画面が出たらログインします）。「🌿 図鑑・カレンダー・メンバー名簿を最新版に更新しました」と表示されれば完了です。ボタンを押したり、ファイルを入れたりする必要はありません。", v:MANUAL_VER },
+  { q:"アプリを開いたら「お知らせ」が出ました。どうすればいいですか？", a:"内容を読んで、いちばん下の「読みました（アプリを開く）」または「閉じる」を押してください。必読のお知らせは、最後までスクロールすると、ボタンが押せるようになります。", v:MANUAL_VER },
+  { q:"前に読んだお知らせを、もう一度読みたいです", a:"表紙の「📢 お知らせ」を開くと、過去のお知らせを読み返せます。圏外でも読めます。", v:MANUAL_VER },
   { q:"更新すると、自分の記録は消えますか？", a:"消えません。自分で入力した記録・スポット・ブログ・山菜ごとの「おすすめスポット」は、そのまま端末に残ります。メンバー名簿だけは管理者の内容に置き換わりますが、この端末で「自分」に選んでいる人のプロフィールは端末側の内容が残ります。心配なときは、先にバックアップを取ってください。", v:MANUAL_VER },
   { q:"メンバー名簿の名前や人数が、管理者と違います", a:"管理者が名簿を更新して配信すると、次にアプリを開いたときに同じになります。まだ違うときは、アプリを一度完全に閉じて開き直してください。それでも変わらないときは、管理者がまだ更新していない可能性があるので、LINEなどで伝えてください。", v:MANUAL_VER },
   { q:"「配信データを開けませんでした」と表示されます", a:"管理者がパスワードを変えた可能性があります。管理者に新しいIDとパスワードを聞き、メンバータブの下の「🚪 この端末をログアウト」を押してから、入り直してください。", v:MANUAL_VER },
@@ -10244,6 +10250,148 @@ function HarvestMapView({ spots, sansaiList }) {
   );
 }
 
+/* ===== お知らせ（管理者が書き、メンバーの起動時に全画面で表示） ===== */
+const NOTICES_KEY = "sansai_notices";
+const NOTICES_READ_KEY = "sansai_notices_read";
+function loadNotices() { try { const v = JSON.parse(localStorage.getItem(NOTICES_KEY) || "[]"); return Array.isArray(v) ? v.filter(n => n && n.id) : []; } catch (e) { return []; } }
+function saveNotices(list) {
+  const sorted = list.slice().sort((a, b) => Number(b.id) - Number(a.id));
+  try { localStorage.setItem(NOTICES_KEY, JSON.stringify(sorted)); } catch (e) {}
+  try { window.dispatchEvent(new Event("sansai-notices")); } catch (e) {}
+}
+function noticeReadSet() { try { return new Set((JSON.parse(localStorage.getItem(NOTICES_READ_KEY) || "[]") || []).map(String)); } catch (e) { return new Set(); } }
+function noticeMarkRead(ids) { const s = noticeReadSet(); ids.forEach(i => s.add(String(i))); try { localStorage.setItem(NOTICES_READ_KEY, JSON.stringify(Array.from(s).slice(-60))); } catch (e) {} }
+// 起動時に表示するのは「まだ読んでいない」かつ「30日以内」のお知らせだけ（後から入った人に古いお知らせを強制しない）
+function noticeUnread() { const rd = noticeReadSet(), now = Date.now(); return loadNotices().filter(n => !rd.has(String(n.id)) && (now - Number(n.id)) < 30 * 86400000); }
+function noticeIsNew(n) { return (Date.now() - Number(n.id)) < 7 * 86400000; }
+function noticeHasNew() { return loadNotices().some(noticeIsNew); }
+
+function NoticeCard({ n, photos, onZoom }) {
+  const imgs = (n.imgs || []).map(pid => photos[pid]).filter(Boolean);
+  return _m('div', { style: { marginBottom: 18, paddingBottom: 14, borderBottom: "1px dashed #cfe0c6" } },
+    _m('div', { style: { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, marginBottom: 4 } },
+      n.must && _m('span', { style: { background: "#c0392b", color: "white", fontSize: 11, fontWeight: 700, borderRadius: 6, padding: "1px 6px" } }, "必読"),
+      noticeIsNew(n) && _m('span', { style: { background: "#e67e22", color: "white", fontSize: 11, fontWeight: 700, borderRadius: 6, padding: "1px 6px" } }, "NEW"),
+      _m('span', { style: { fontSize: 11, color: "#777" } }, n.date || "")),
+    _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 16, lineHeight: 1.5, marginBottom: 6 } }, n.title),
+    _m('div', { style: { fontSize: 14, color: "#333", lineHeight: 1.8, whiteSpace: "pre-wrap", wordBreak: "break-word" } }, n.body),
+    imgs.map((src, i) => _m('img', { key: i, src: src, alt: "", onClick: () => onZoom && onZoom(src), style: { display: "block", width: "100%", borderRadius: 10, marginTop: 10, cursor: "pointer" } })));
+}
+function NoticeZoom({ src, onClose }) {
+  return _m('div', { onClick: onClose, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 9100, display: "flex", alignItems: "center", justifyContent: "center", padding: 8 } },
+    _m('img', { src: src, alt: "", style: { maxWidth: "100%", maxHeight: "100%", borderRadius: 8 } }));
+}
+function NoticeModal({ notices, onDone, preview }) {
+  const { photos } = usePhotos();
+  const must = !preview && notices.some(n => n.must);
+  const [canClose, setCanClose] = useState(!must);
+  const [zoom, setZoom] = useState(null);
+  const scRef = React.useRef(null);
+  useEffect(() => {
+    if (!must) return;
+    const check = () => { const el = scRef.current; if (el && el.scrollTop + el.clientHeight >= el.scrollHeight - 12) setCanClose(true); };
+    check();
+    const t = setInterval(check, 600);
+    return () => clearInterval(t);
+  }, []);
+  return _m('div', { style: { position: "fixed", inset: 0, zIndex: 9000, background: "rgba(15,35,15,0.94)", display: "flex", alignItems: "center", justifyContent: "center", padding: 12 } },
+    _m('div', { style: { background: "white", borderRadius: 18, width: "100%", maxWidth: 520, maxHeight: "94vh", display: "flex", flexDirection: "column", overflow: "hidden" } },
+      _m('div', { style: { background: "var(--forest)", color: "white", padding: "14px 16px", fontWeight: 700, fontSize: 16 } }, "📢 お知らせ" + (notices.length > 1 ? "（" + notices.length + "件）" : "") + (preview ? "　※確認用の表示です" : "")),
+      _m('div', { ref: scRef, style: { padding: 16, overflowY: "auto", flex: 1 } },
+        notices.map(n => _m(NoticeCard, { key: n.id, n: n, photos: photos, onZoom: setZoom }))),
+      _m('div', { style: { padding: "10px 16px 14px", borderTop: "1px solid #e5e5e5" } },
+        !canClose && _m('div', { style: { fontSize: 11, color: "#a15c00", marginBottom: 6, lineHeight: 1.6 } }, "最後までスクロールすると、ボタンが押せます。"),
+        _m('button', { disabled: !canClose, onClick: onDone, style: { width: "100%", padding: "13px 14px", border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: canClose ? "pointer" : "default", background: canClose ? "var(--forest)" : "#b8c4b4", color: "white" } }, preview ? "閉じる" : (must ? "読みました（アプリを開く）" : "閉じる")))),
+    zoom && _m(NoticeZoom, { src: zoom, onClose: () => setZoom(null) }));
+}
+function NoticeGate({ isAdmin }) {
+  const [, setTick] = useState(0);
+  useEffect(() => { const h = () => setTick(t => t + 1); window.addEventListener("sansai-notices", h); return () => window.removeEventListener("sansai-notices", h); }, []);
+  if (isAdmin) return null;
+  const unread = noticeUnread();
+  if (!unread.length) return null;
+  return _m(NoticeModal, { notices: unread, onDone: () => { noticeMarkRead(unread.map(n => n.id)); setTick(t => t + 1); } });
+}
+function NoticesView({ isAdmin }) {
+  const { photos, savePhoto, removePhoto } = usePhotos();
+  const [list, setList] = useState(loadNotices);
+  const [form, setForm] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [zoom, setZoom] = useState(null);
+  const [msg, setMsg] = useState("");
+  useEffect(() => { const h = () => setList(loadNotices()); window.addEventListener("sansai-notices", h); return () => window.removeEventListener("sansai-notices", h); }, []);
+  const today = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+  const openNew = () => { setMsg(""); setForm({ id: null, title: "", body: "", imgs: [], must: false, again: false }); };
+  const openEdit = (n) => { setMsg(""); setForm({ id: n.id, title: n.title || "", body: n.body || "", imgs: (n.imgs || []).slice(), must: !!n.must, again: false }); };
+  const addImgs = (files) => {
+    Array.from(files || []).forEach(file => {
+      compressImageFile(file, 900, 0.78, async (dataUrl) => {
+        const pid = await savePhoto(dataUrl);
+        setForm(f => (f && f.imgs.length < 8) ? { ...f, imgs: f.imgs.concat(pid) } : f);
+      });
+    });
+  };
+  const handleSave = () => {
+    if (!form.title.trim() || !form.body.trim()) { setMsg("タイトルと本文を入力してください。"); return; }
+    const cur = loadNotices();
+    const rec = { title: form.title.trim(), body: form.body.trim(), imgs: form.imgs, must: !!form.must };
+    if (form.id) {
+      const old = cur.find(n => n.id === form.id);
+      const id = form.again ? String(Date.now()) : form.id;
+      ((old && old.imgs) || []).forEach(pid => { if (!form.imgs.includes(pid)) removePhoto(pid); });
+      saveNotices(cur.map(n => n.id === form.id ? { ...rec, id: id, date: form.again ? today() : ((old && old.date) || today()) } : n));
+    } else {
+      saveNotices([{ ...rec, id: String(Date.now()), date: today() }].concat(cur));
+    }
+    setForm(null);
+    setMsg("✅ 保存しました。「メモ」タブで書き出して、GitHubに上書きアップロードすると、全員に届きます。");
+  };
+  const handleDelete = (n) => {
+    if (!window.confirm("このお知らせを削除します。（メンバーの端末からも、次の配信で消えます）")) return;
+    (n.imgs || []).forEach(pid => removePhoto(pid));
+    saveNotices(loadNotices().filter(x => x.id !== n.id));
+  };
+  const btn = { padding: "10px 14px", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" };
+  const inp = { width: "100%", padding: "10px 12px", border: "1px solid #ccc", borderRadius: 10, fontSize: 14, boxSizing: "border-box", marginBottom: 10, fontFamily: "inherit" };
+  return (
+    _m('div', null,
+      _m('div', { className: "section-title" }, "📢 お知らせ"),
+      _m('div', { className: "section-desc" }, isAdmin ? "更新の案内を作ると、メンバーがアプリを開いたときに全画面で表示されます。書いたあとは、「メモ」タブで書き出して、GitHubに上書きアップロードしてください。" : "管理者からの更新の案内です。過去のお知らせも、ここで読み返せます。"),
+      isAdmin && !form && _m('button', { onClick: openNew, style: { ...btn, width: "100%", background: "var(--forest)", color: "white", marginBottom: 12 } }, "＋ 新しいお知らせを作る"),
+      msg && _m('div', { style: { fontSize: 12, color: "#444", lineHeight: 1.7, marginBottom: 10, whiteSpace: "pre-wrap" } }, msg),
+      form && _m('div', { style: { background: "white", border: "2px solid var(--mist)", borderRadius: 14, padding: 14, marginBottom: 14 } },
+        _m('div', { style: { fontWeight: 700, color: "var(--forest)", marginBottom: 8 } }, form.id ? "お知らせを直す" : "新しいお知らせ"),
+        _m('input', { value: form.title, onChange: e => setForm(f => ({ ...f, title: e.target.value })), placeholder: "タイトル（例：アプリを更新しました）", style: inp }),
+        _m('textarea', { value: form.body, onChange: e => setForm(f => ({ ...f, body: e.target.value })), placeholder: "何がどう変わったか、使い方のポイントなど", rows: 7, style: { ...inp, resize: "vertical", lineHeight: 1.7 } }),
+        _m('div', { style: { fontSize: 12, color: "#555", marginBottom: 6 } }, "画像（" + form.imgs.length + " / 8枚）"),
+        _m('div', { style: { display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 } },
+          form.imgs.map(pid => photos[pid] && _m('div', { key: pid, style: { position: "relative" } },
+            _m('img', { src: photos[pid], alt: "", style: { width: 76, height: 76, objectFit: "cover", borderRadius: 8, display: "block" } }),
+            _m('button', { onClick: () => setForm(f => ({ ...f, imgs: f.imgs.filter(x => x !== pid) })), style: { position: "absolute", top: -6, right: -6, width: 22, height: 22, borderRadius: "50%", border: "none", background: "#c0392b", color: "white", fontSize: 12, cursor: "pointer" } }, "✕"))),
+          form.imgs.length < 8 && _m('label', { style: { width: 76, height: 76, borderRadius: 8, border: "2px dashed #9bb892", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#4a6b41", textAlign: "center", cursor: "pointer", lineHeight: 1.4 } }, "＋画像\n追加",
+            _m('input', { type: "file", accept: "image/*", multiple: true, style: { display: "none" }, onChange: e => { addImgs(e.target.files); e.target.value = ""; } }))),
+        _m('label', { style: { display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, marginBottom: 8, lineHeight: 1.6 } },
+          _m('input', { type: "checkbox", checked: form.must, onChange: e => setForm(f => ({ ...f, must: e.target.checked })), style: { marginTop: 4 } }),
+          _m('span', null, "必ず読ませる（最後までスクロールしないと、アプリを開けません）")),
+        form.id && _m('label', { style: { display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, marginBottom: 8, lineHeight: 1.6 } },
+          _m('input', { type: "checkbox", checked: form.again, onChange: e => setForm(f => ({ ...f, again: e.target.checked })), style: { marginTop: 4 } }),
+          _m('span', null, "内容を直したので、読んだ人にもう一度表示する")),
+        _m('div', { style: { display: "flex", gap: 8, marginTop: 6 } },
+          _m('button', { onClick: () => setForm(null), style: { ...btn, flex: 1, background: "var(--mist)", color: "var(--forest)" } }, "キャンセル"),
+          _m('button', { onClick: handleSave, style: { ...btn, flex: 1, background: "var(--forest)", color: "white" } }, "保存"))),
+      list.length === 0 && !form && _m('div', { style: { color: "#888", fontSize: 13, padding: "20px 0" } }, "お知らせはまだありません。"),
+      list.map(n => _m('div', { key: n.id, style: { background: "white", border: "2px solid var(--mist)", borderRadius: 14, padding: 14, marginBottom: 12 } },
+        _m(NoticeCard, { n: n, photos: photos, onZoom: setZoom }),
+        isAdmin && _m('div', { style: { display: "flex", gap: 8 } },
+          _m('button', { onClick: () => setPreview(n), style: { ...btn, flex: 1, background: "#eef3fb", color: "#2a4d8f" } }, "👁 表示を確認"),
+          _m('button', { onClick: () => openEdit(n), style: { ...btn, flex: 1, background: "var(--mist)", color: "var(--forest)" } }, "直す"),
+          _m('button', { onClick: () => handleDelete(n), style: { ...btn, background: "#fdecea", color: "#c0392b" } }, "削除")))),
+      preview && _m(NoticeModal, { notices: [preview], preview: true, onDone: () => setPreview(null) }),
+      zoom && _m(NoticeZoom, { src: zoom, onClose: () => setZoom(null) })
+    )
+  );
+}
+
 function ShareTab({ kind, isAdmin, spots, sansaiList, renderOwn, onOwnChanged }) {
   const cfg = SHARE_KINDS[kind];
   const { photos: photoStore, importPhotos } = usePhotos();
@@ -10453,6 +10601,7 @@ function App() {
       if (remote.manualImgs && typeof remote.manualImgs === "object") {
         try { localStorage.setItem(MANUAL_IMGS_KEY, JSON.stringify(remote.manualImgs)); localStorage.setItem(MANUAL_SENT_KEY, JSON.stringify(manualImgPids(remote.manualImgs))); window.dispatchEvent(new Event("sansai-manual-imgs")); } catch (e) {}
       }
+      if (Array.isArray(remote.notices)) saveNotices(remote.notices);
       if (Array.isArray(remote.danger)) saveCustomDangers(remote.danger);
       if (remote.dangerOver && typeof remote.dangerOver === "object") saveDangerOver(remote.dangerOver);
       // メンバー名簿：配信データを正とする（ただし、この端末で「自分」に選んだ人のプロフィールは端末側を残す）
@@ -10530,6 +10679,7 @@ function App() {
   };
 
   const tabs = [
+    { id: "notices",  label: "お知らせ", icon: "📢" },
     { id: "calendar", label: "\u30ab\u30ec\u30f3\u30c0\u30fc", icon: "\ud83c\udf43" },
     { id: "plan",     label: "\u63a1\u53d6\u30d7\u30e9\u30f3", icon: "\ud83d\udcc5" },
     { id: "spots",    label: "\u30b9\u30dd\u30c3\u30c8",   icon: "\ud83d\udccd" },
@@ -10548,6 +10698,7 @@ function App() {
 
   return (
     React.createElement(React.Fragment, null
+      , React.createElement(NoticeGate, { isAdmin: (secretOn || zukanIsAdminDevice()) })
       , React.createElement('style', null, styles)
       , React.createElement('div', { className: "app",}
         , toast && (
@@ -10601,6 +10752,7 @@ function App() {
           , tab === "patrol"   && React.createElement(ShareTab, { kind: "patrol", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(PatrolView, { key: k, spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} ),} )
           , tab === "harvest"  && React.createElement(ShareTab, { kind: "harvest", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(HarvestView, { key: k, spots: spots, members: members, sansaiList: sansaiList,} ),} )
           , tab === "map"      && React.createElement(HarvestMapView, { spots: spots, sansaiList: sansaiList })
+          , tab === "notices"  && React.createElement(NoticesView, { isAdmin: (secretOn || zukanIsAdminDevice()) })
           , tab === "memo"     && React.createElement(ShareTab, { kind: "memo", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(MemoView, { key: k, spots: spots, sansaiList: sansaiList,} ),} )
           , tab === "gear"     && React.createElement(GearView, { sansaiList: sansaiList,} )
           , tab === "links"    && React.createElement(LinkView, null)
