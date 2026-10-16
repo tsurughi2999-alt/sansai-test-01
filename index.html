@@ -33,6 +33,8 @@ body{margin:0;padding:0;}
     --paper: #fff9f0;
     --ink: #1a2e1a;
     --mist: #e8f0e4;
+    --hero1: #1a3a1a;
+    --hero2: #2d5a2d;
   }
 
   body {
@@ -972,6 +974,8 @@ const styles = `
     --paper: #fff9f0;
     --ink: #1a2e1a;
     --mist: #e8f0e4;
+    --hero1: #1a3a1a;
+    --hero2: #2d5a2d;
   }
 
   body {
@@ -2792,7 +2796,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
   const [backupStatus, setBackupStatus] = useState("");
   const [lastBackup, setLastBackup] = useState(() => { try { return Number(localStorage.getItem("sansai_last_backup")) || 0; } catch (e) { return 0; } });
   const importInputRef = useRef(null);
-  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1","sansai_danger_custom_v1","sansai_danger_over_v1","sansai_notices"];
+  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1","sansai_danger_custom_v1","sansai_danger_over_v1","sansai_notices","sansai_theme_pref","sansai_theme_policy","sansai_header_img","sansai_header_off"];
 
   const handleExport = async () => {
     const FOLDER_NAME = "\u5c71\u83dc\u624b\u5e33\u30d0\u30c3\u30af\u30a2\u30c3\u30d7";
@@ -2878,6 +2882,10 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
     { id:"harvest",  icon:"\ud83e\uddfa", label:"\u53ce\u7a6b\u8a18\u9332",   desc:"\u53ce\u7a6b\u91cf\u30fb\u7d71\u8a08", color:"#d35400" },
     { id:"memo",     icon:"\ud83d\udcd2", label:"\u5fd8\u5099\u9332",       desc:"\u30a2\u30af\u30bb\u30b9\u30fb\u9053\u9806\u30e1\u30e2", color:"#7f8c8d" },
     { id:"map",      icon:"🗺️", label:"収穫マップ",   desc:"自分専用・GPSの地図", color:"#2e7d32" },
+    { id:"theme",    icon:"🎨", label:"テーマ",       desc:"アプリの色を変える", color:"#8e44ad" },
+    { id:"safety",   icon:"🛡️", label:"安全・連絡",   desc:"入山の予定・現在地を送る", color:"#c0392b" },
+    { id:"summary",  icon:"📊", label:"年間まとめ",   desc:"1年のふりかえり・図鑑コンプリート", color:"#2980b9" },
+    { id:"search",   icon:"🔎", label:"検索",         desc:"図鑑・記録をまとめて探す", color:"#16a085" },
     { id:"gear",     icon:"\ud83d\udc55", label:"\u670d\u88c5\u30fb\u9053\u5177",   desc:"\u5c71\u83dc\u5225\u306e\u670d\u88c5\u30fb\u9053\u5177\u30ea\u30b9\u30c8", color:"#34495e" },
     { id:"links",    icon:"🔗", label:"リンク集",     desc:"SNS・おすすめWeb", color:"#2c7a7b" },
     { id:"manual",   icon:"📖", label:"使い方・Q&A",  desc:"操作説明・よくある質問", color:"#b7791f" },
@@ -2885,9 +2893,9 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
   if (secretOn) menuItems.push({ id:"secret", icon:"📝", label:"メモ", desc:"作成者専用・非公開", color:"#6b46c1" });
 
   return (
-    React.createElement('div', { style: {minHeight:"100vh", background:"linear-gradient(160deg,#1a3a1a 0%,#2d5a2d 40%,#1a3a1a 100%)", padding:"0 0 40px"},}
+    React.createElement('div', { style: {minHeight:"100vh", background:"linear-gradient(160deg,var(--hero1) 0%,var(--hero2) 40%,var(--hero1) 100%)", padding:"0 0 40px"},}
       /* \u30d8\u30c3\u30c0\u30fc\u30fb\u30ed\u30b4\u30a8\u30ea\u30a2 */
-      , React.createElement('div', { style: {textAlign:"center", padding:"48px 20px 32px"},}
+      , React.createElement('div', { className: "home-logo-area", style: {textAlign:"center", padding:"48px 20px 32px"},}
         , React.createElement('img', { src: APP_LOGO, alt: "\u5c71\u83dc\u624b\u5e33", style: {width:96, height:96, borderRadius:"50%",
           marginBottom:12, boxShadow:"0 4px 16px rgba(0,0,0,0.35)"},} )
         , React.createElement('div', { style: {fontSize:32, fontWeight:700, color:"white", fontFamily:"'Noto Serif JP',serif",
@@ -2905,6 +2913,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
         )
       )
 
+      , React.createElement(SeasonCard, { onGo: onTabChange })
       /* \u30e1\u30cb\u30e5\u30fc\u30b0\u30ea\u30c3\u30c9 */
       , React.createElement('div', { style: {padding:"0 16px"},}
         , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:12},}
@@ -9051,7 +9060,7 @@ function ZukanAdminPanel({ sansaiList, members, spots, onSync }) {
       const noticesOut = loadNotices().slice(0, 10);
       for (const nt of noticesOut) for (const pid of (nt.imgs || [])) { if (photos[pid]) outPhotos[pid] = await zukanShrink(photos[pid], 900, 0.75); }
       const version = Date.now();
-      const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, members: memberOut, notices: noticesOut, photos: outPhotos, manualImgs: manualImgs, danger: loadCustomDangers(), dangerOver: loadDangerOver() });
+      const json = JSON.stringify({ app: "sansai-zukan", version, exportedAt: new Date(version).toISOString(), list: sansaiList, members: memberOut, notices: noticesOut, theme: loadThemePolicy(), headerImage: loadHeaderImg(), photos: outPhotos, manualImgs: manualImgs, danger: loadCustomDangers(), dangerOver: loadDangerOver() });
       const sealed = await secureSeal(json);
     return { sealed, json, version, manualCount, memberOut, noticeCount: noticesOut.length };
   };
@@ -9074,6 +9083,7 @@ function ZukanAdminPanel({ sansaiList, members, spots, onSync }) {
     setBusy(false);
   };
   const [keyInfo, setKeyInfo] = useState("");
+  const [showQr, setShowQr] = useState(false);
   const handleKeyCheck = async () => {
     const files = ["zukan.json", "patrol.json", "harvest.json", "memo.json", "blog.json"];
     const cfg = authLoadCfg();
@@ -9163,6 +9173,12 @@ function ZukanAdminPanel({ sansaiList, members, spots, onSync }) {
       , React.createElement('button', { onClick: handleExport, disabled: busy, style: { ...btn, background: "var(--forest)", color: "white", opacity: busy ? 0.6 : 1 } }, "📤 配信用に書き出す（zukan.json）")
       , React.createElement('button', { onClick: handleCheck, disabled: busy, style: { ...btn, background: "#f3f6fb", color: "#2a4d8f", border: "1px solid #c9d6ea", opacity: busy ? 0.6 : 1 } }, "🔎 配信状況を確認する")
       , React.createElement('button', { onClick: handleImport, style: { ...btn, background: "var(--mist)", color: "var(--forest)" } }, "📥 配信データを今すぐ取り込む")
+      , React.createElement('div', { style: { marginTop: 18, paddingTop: 14, borderTop: "1px dashed #cfe0c6" } }
+        , React.createElement('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 14 } }, "📱 新しいメンバーを招く")
+        , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } }, "アプリのQRコードと案内カードを表示します。LINEで送ったり、画像を保存して印刷したりできます。")
+        , React.createElement('button', { onClick: () => setShowQr(true), style: { ...btn, background: "var(--forest)", color: "white" } }, "📱 新しいメンバー用のQRコードを表示する")
+      )
+      , showQr && React.createElement(InviteQrModal, { onClose: () => setShowQr(false) })
       , React.createElement('div', { style: { marginTop: 18, paddingTop: 14, borderTop: "1px dashed #cfe0c6" } }
         , React.createElement('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 14 } }, "📦 5つの配信ファイルをまとめて書き出す")
         , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } }, "パスワードを変えたあとなど、配信ファイルの鍵をそろえたいときに使います。zukan.json・patrol.json・harvest.json・memo.json・blog.json を順に保存します。")
@@ -9323,10 +9339,15 @@ const MANUAL_ITEMS = [
   { t:"記録の共有（パトロール・収穫記録・忘備録・ブログ）", i:"🔗", b:["この4つのタブには、「✏️ 自分の〜」と「👥 みんなの〜」の2つの画面があります（〜にはパトロール・採取記録・メモ・ブログが入ります）。","「自分の〜」に入力した内容は、これまで通り自分のスマホの中にだけ保存されます。","【メンバー】「共有する記録を選ぶ」で、みんなに見せたい記録にチェックを入れ、「📤 管理者に提出する」を押します。できた提出ファイルを、LINEなどで管理者に送ってください。初めて提出するときは、名前の入力を求められます。","【管理者】メンバーの提出ファイルを「📥 メンバーの提出ファイルを取り込む」で追加し、内容を確認したら「🌿 配信用に書き出す」でファイルを作り、GitHubに上書きアップロードします。","共有された内容は「👥 みんなの〜」に表示されます。見るだけの画面なので、編集や削除はできません。","位置情報（GPS）は、共有されません。"], v:MANUAL_VER },
   { t:"更新のお知らせがあったとき（データの更新）", i:"🔄", b:["管理者が図鑑・カレンダー・メンバー名簿などを更新すると、LINEなどで「更新しました」と案内が届きます。メンバーが、ボタンを押したりファイルを入れたりする必要はありません。","【更新のしかた】①インターネットにつながった状態で、アプリを一度完全に閉じます（最近使ったアプリの一覧から上にスワイプして終了）。②もう一度アプリを開き、ログイン画面が出たらログインします。③画面に「🌿 図鑑・カレンダー・メンバー名簿を最新版に更新しました」と表示されれば完了です。","【更新される内容】山菜図鑑（危険植物・危険キノコを含む）、山菜カレンダー、メンバー名簿、使い方・Q&Aの画像、お知らせです。","【みんなの〜（パトロール・収穫記録・忘備録・ブログ）】それぞれのタブの「👥 みんなの〜」を開くたびに、最新の内容を読み込みます。画面に「最終更新」の日時が出ます。","【自分の記録は消えません】自分で入力した記録・スポット・ブログや、山菜ごとの「おすすめスポット」は、更新しても自分の端末に残ります。メンバー名簿は管理者の内容に置き換わりますが、この端末で「自分」に選んでいる人のプロフィールは端末側の内容が残ります。","【表示が変わらないとき】管理者がまだアップロードしていないか、すでに最新の状態です。少し待ってから、もう一度アプリを開き直してください。「ストレージを消去」「サイトデータの削除」は保存データも消えるので押さないでください。","【「🔒 配信データを開けませんでした」と出たとき】管理者がパスワードを変えた可能性があります。管理者に新しいIDとパスワードを聞き、メンバータブの下の「🚪 この端末をログアウト」を押してから、入り直してください。","※管理者の端末は、自動では更新されません（管理者の端末が元データのためです）。"], v:MANUAL_VER },
   { t:"お知らせ", i:"📢", b:["管理者が更新の案内を出すと、アプリを開いたときに「📢 お知らせ」が全画面で表示されます。何がどう変わったかを、画像つきで読めます。","【必読のお知らせ】最後までスクロールすると、「読みました（アプリを開く）」のボタンが押せるようになります。押すと、アプリが使えます。重要な変更のときだけ、この形になります。","【ふつうのお知らせ】「閉じる」を押すだけで、アプリが開きます。","読んだお知らせは、二度と自動では出ません。あとで読み返したいときは、表紙の「📢 お知らせ」を開いてください。新しいお知らせ（7日以内）には、「NEW」が付きます。","お知らせは、電波のあるところでアプリを開いたときに届きます。受け取ったあとは、圏外でも読み返せます。","更新を何回か飛ばしたときは、読んでいないお知らせ（30日以内）が、まとめて表示されます。"], v:MANUAL_VER },
+  { t:"テーマ（色の変更）", i:"🎨", b:["アプリの色を、森・春（桜）・夏（渓流）・秋（紅葉）・冬（雪）から選べます。「季節で自動」にすると、春・夏・秋・冬で色が自動で変わります。","表紙の「🎨 テーマ」を開き、好きな色を押すとすぐ変わります。この設定は、自分のスマホだけに保存されます。","管理者が「全員同じにする」に設定しているときは、色を変えられません。そのときは、表紙のテーマの画面に、その旨が表示されます。","管理者が「各自で選べる」にしているときは、管理者のおすすめの色から始まります。「管理者のおすすめに戻す」ボタンで、いつでも戻せます。","管理者がヘッダーの風景写真を設定していると、アプリの上部と表紙の上部に表示されます。写真を表示したくないときは、「🎨 テーマ」の「風景写真を表示する」のチェックを外してください。"], v:MANUAL_VER },
+  { t:"今月の旬（表紙）", i:"🌿", b:["表紙の上のほうに、今月が旬の山菜が表示されます。来月から旬になる山菜も、あわせて出ます。","今年の収穫回数と、直近の収穫も表示されます。カードを押すと、山菜カレンダーが開きます。"], v:MANUAL_VER },
+  { t:"安全・連絡", i:"🛡️", b:["【入山の予定を送る】行き先・入山時刻・下山予定時刻・メンバー・車の場所を入力すると、LINE用の文章ができます。「LINEで送る」を押すと、LINEの送り先を選ぶ画面が開きます。送る相手は、自分で選びます。アプリが自動で送ることはありません。","【下山したら】「無事に下山しました」を、ワンタップでLINEに送れます。","【現在地を送る】「現在地を調べる」を押したときだけ、現在地を調べて、地図のリンクつきの文章を作ります。圏外でも現在地は調べられるので、電波が戻ったときに送れます。","緊急のときは、まず119（救急・消防）または110（警察）に電話してください。"], v:MANUAL_VER },
+  { t:"年間まとめ・図鑑コンプリート", i:"📊", b:["自分の収穫記録を、年ごとに集計します。収穫回数、合計の量、山菜の種類、よく採れた山菜、月ごとの収穫回数が出ます。","「まとめの画像を保存」や「画像をLINEなどで送る」で、1枚の画像にして共有できます。位置情報（GPS）は入りません。「いちばん行った場所」の名前は、チェックを入れたときだけ画像に入ります。","「図鑑コンプリート」では、収穫記録に残した山菜に色が付きます。何種類採ったかが分かります。","元になるのは、自分のスマホに入っている収穫記録だけです。"], v:MANUAL_VER },
+  { t:"検索", i:"🔎", b:["図鑑・スポット・収穫記録・パトロール・忘備録・ブログを、1つの検索欄でまとめて探せます。","ひらがな・カタカナの違いは気にしなくて大丈夫です。結果を押すと、そのタブが開きます。","検索できるのは、自分のスマホに入っている内容です。"], v:MANUAL_VER },
   { t:"服装・道具", i:"👕", b:["山菜ごとに必要な服装や道具を確認できます。","「管理」から、リストの追加・編集・削除ができます。"], v:MANUAL_VER },
   { t:"リンク集", i:"🔗", b:["YouTube・Threads・X・Instagramなどのおすすめリンクをまとめたタブです。","「＋ 新規登録」で追加、各リンクの「削除」で削除できます。「初期状態に戻す」で最初の状態に戻ります。"], v:MANUAL_VER },
   { t:"バックアップ・復元", i:"💾", b:["データはスマホの中にだけ保存されています。アイコンの入れ替え・アプリの削除や再インストール・機種変更の前には、必ずバックアップを保存してください。","【バックアップのしかた】表紙（ホーム）画面の一番下にある「💾 バックアップ」ボタンをタップします。ファイル名に保存した日時が入るので、「山菜手帳バックアップ_2026-10-06_14-30-25.json」のように毎回別のファイルになります。","【保存される内容】メンバー・スポット・ブログ・山菜図鑑・パトロール・収穫記録・忘備録・服装道具・リンク集、および写真すべてです。","【保存場所】パソコンでは保存先を選ぶと「山菜手帳バックアップ」フォルダが自動で作られます。スマホ・タブレットでは「ダウンロード」フォルダに保存されます。ファイル管理アプリで「山菜手帳バックアップ」フォルダを作り、移しておくと分かりやすくなります。","【復元のしかた】表紙画面の「📤 復元」をタップし、保存したバックアップファイル（.json）を選びます。復元が終わるとアプリが自動で再読み込みされます。ファイル名の日時を見て、戻したい時点のファイルを選んでください。","【アイコンを入れ替えたいとき】①バックアップを保存する → ②ホーム画面の「山菜手帳」を長押しして削除（アンインストール）する → ③ブラウザでアプリのページを開き直し、「ホーム画面に追加」（または「インストール」）する → ④アプリの「📤 復元」でバックアップを読み込む、の順で進めます。","【注意】ブラウザやアプリ情報の「ストレージを消去」「サイトデータの削除」「データを削除して権限をリセット」を押すと、保存データも消えます。「キャッシュを削除」だけなら記録は消えません。","【おすすめ】山菜シーズンの前後や、大きな記録を入力したあとは、こまめにバックアップしましょう。バックアップファイルは Google ドライブや LINE のKeepメモなどにもコピーしておくと、端末が壊れたときも安心です。"], v:MANUAL_VER },
-  { t:"管理者のしごと", i:"🛠", b:["管理者の端末では、ホーム画面の一番下の「山菜採り手帳 v2.0」の文字を7回続けてタップし、合言葉を入力します。すると、管理者用の「メモ」タブが現れます。","【図鑑・カレンダーの配信】図鑑とカレンダーを編集したら、「メモ」タブの「📤 配信用に書き出す（zukan.json）」でファイルを作り、GitHubに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。","【記録の共有】パトロール・収穫記録・忘備録・ブログの各タブで、メンバーの提出ファイルを取り込み、「🌿 配信用に書き出す」で作ったファイル（patrol.json・harvest.json・memo.json・blog.json）をGitHubに上書きアップロードします。「メモ」タブの「📦 5ファイルまとめて書き出す」を使うと、図鑑も含めて一度に書き出せます。","【お知らせ】「📢 お知らせ」タブの「＋ 新しいお知らせを作る」で、タイトル・本文・画像（8枚まで）を入力します。「必ず読ませる」にチェックを入れると、メンバーは最後まで読まないとアプリを開けません。書いたあとは、「メモ」タブで図鑑を書き出して（「📦 5ファイルまとめて書き出す」でも構いません）、GitHubに上書きアップロードしてください。配信されるのは、新しい10件までです。内容を直したときは、「もう一度表示する」にチェックを入れると、読んだ人にも再表示されます。「👁 表示を確認」で、メンバーの画面を確認できます。誰が読んだかは、管理者には分かりません。","【ログイン】メンバータブの「共通ID・パスワードの設定」で設定すると、auth.json が作られます。GitHubに上書きアップロードすると、全員に反映されます。","【暗号化】書き出した配信ファイル（zukan.json・patrol.json・harvest.json・memo.json・blog.json）は、共通パスワードで自動的に暗号化されます。パスワードは10文字以上にしてください。パスワードを変えたら、5つのファイルをすべて書き出し直してGitHubに上書きアップロードしてください。"], v:MANUAL_VER },
+  { t:"管理者のしごと", i:"🛠", b:["管理者の端末では、ホーム画面の一番下の「山菜採り手帳 v2.0」の文字を7回続けてタップし、合言葉を入力します。すると、管理者用の「メモ」タブが現れます。","【図鑑・カレンダーの配信】図鑑とカレンダーを編集したら、「メモ」タブの「📤 配信用に書き出す（zukan.json）」でファイルを作り、GitHubに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。","【記録の共有】パトロール・収穫記録・忘備録・ブログの各タブで、メンバーの提出ファイルを取り込み、「🌿 配信用に書き出す」で作ったファイル（patrol.json・harvest.json・memo.json・blog.json）をGitHubに上書きアップロードします。「メモ」タブの「📦 5ファイルまとめて書き出す」を使うと、図鑑も含めて一度に書き出せます。","【お知らせ】「📢 お知らせ」タブの「＋ 新しいお知らせを作る」で、タイトル・本文・画像（8枚まで）を入力します。「必ず読ませる」にチェックを入れると、メンバーは最後まで読まないとアプリを開けません。書いたあとは、「メモ」タブで図鑑を書き出して（「📦 5ファイルまとめて書き出す」でも構いません）、GitHubに上書きアップロードしてください。配信されるのは、新しい10件までです。内容を直したときは、「もう一度表示する」にチェックを入れると、読んだ人にも再表示されます。「👁 表示を確認」で、メンバーの画面を確認できます。誰が読んだかは、管理者には分かりません。","【新しいメンバーを招くとき】「メモ」タブの「📱 新しいメンバー用のQRコードを表示する」を押すと、アプリのQRコードと案内カードが出ます。「案内カードの画像を保存」や「LINEなどで送る」で、新しいメンバーに渡してください。ログインのIDとパスワードは、画像には入っていないので、別に伝えてください。","【テーマ】「🎨 テーマ」タブの「全員への設定」で、メンバーの初期の色を決められます。「各自で選べる」にするか、「全員同じにする」でメンバーの変更を止めるかを選びます。保存したあと、「メモ」タブで図鑑を書き出して、GitHubに上書きアップロードすると、メンバーに届きます。","【ヘッダーの写真】「🎨 テーマ」タブの「🖼 ヘッダーの風景写真」で、写真を選びます。アプリの上部と表紙の上部に、全員共通で表示されます。横長の写真がおすすめです（文字が読みやすいように、少し暗く表示されます）。保存したあと、「メモ」タブで図鑑を書き出して、GitHubに上書きアップロードしてください。「写真を外す」で、元の表示に戻せます。","【ログイン】メンバータブの「共通ID・パスワードの設定」で設定すると、auth.json が作られます。GitHubに上書きアップロードすると、全員に反映されます。","【暗号化】書き出した配信ファイル（zukan.json・patrol.json・harvest.json・memo.json・blog.json）は、共通パスワードで自動的に暗号化されます。パスワードは10文字以上にしてください。パスワードを変えたら、5つのファイルをすべて書き出し直してGitHubに上書きアップロードしてください。"], v:MANUAL_VER },
 ];
 const QA_ITEMS = [
   { q:"バックアップはどうやって取りますか？", a:"表紙（ホーム）画面の一番下にある「💾 バックアップ」ボタンをタップするだけです。保存したファイル名には日時が入ります（例：山菜手帳バックアップ_2026-10-06_14-30-25.json）。同じ名前で上書きされることはありません。", v:MANUAL_VER },
@@ -9346,6 +9367,11 @@ const QA_ITEMS = [
   { q:"管理者から「更新しました」と案内がありました。何をすればいいですか？", a:"インターネットにつながった状態で、アプリを一度完全に閉じて開き直してください（ログイン画面が出たらログインします）。「🌿 図鑑・カレンダー・メンバー名簿を最新版に更新しました」と表示されれば完了です。ボタンを押したり、ファイルを入れたりする必要はありません。", v:MANUAL_VER },
   { q:"アプリを開いたら「お知らせ」が出ました。どうすればいいですか？", a:"内容を読んで、いちばん下の「読みました（アプリを開く）」または「閉じる」を押してください。必読のお知らせは、最後までスクロールすると、ボタンが押せるようになります。", v:MANUAL_VER },
   { q:"前に読んだお知らせを、もう一度読みたいです", a:"表紙の「📢 お知らせ」を開くと、過去のお知らせを読み返せます。圏外でも読めます。", v:MANUAL_VER },
+  { q:"アプリの色を変えたいです", a:"表紙の「🎨 テーマ」から、森・春・夏・秋・冬、または「季節で自動」を選べます。管理者が「全員同じにする」に設定しているときは、変更できません。", v:MANUAL_VER },
+  { q:"上部の風景写真を消したいです", a:"表紙の「🎨 テーマ」を開き、「ヘッダーと表紙の上に、風景写真を表示する」のチェックを外してください。この端末だけで、写真が表示されなくなります。", v:MANUAL_VER },
+  { q:"入山の予定は、誰に送られますか？", a:"アプリが自動で送ることはありません。「LINEで送る」を押すと、LINEの送り先を選ぶ画面が開き、送る相手を自分で選びます。送るまでは、どこにも送られません。", v:MANUAL_VER },
+  { q:"現在地の情報は、勝手に誰かに見られますか？", a:"いいえ。「現在地を調べる」を押したときだけ、この端末で現在地を調べます。文章にした現在地は、自分でLINEなどに送らない限り、誰にも渡りません。", v:MANUAL_VER },
+  { q:"年間まとめの画像に、位置情報は入りますか？", a:"入りません。「いちばん行った場所」の名前も、チェックを入れたときだけ画像に入ります。", v:MANUAL_VER },
   { q:"更新すると、自分の記録は消えますか？", a:"消えません。自分で入力した記録・スポット・ブログ・山菜ごとの「おすすめスポット」は、そのまま端末に残ります。メンバー名簿だけは管理者の内容に置き換わりますが、この端末で「自分」に選んでいる人のプロフィールは端末側の内容が残ります。心配なときは、先にバックアップを取ってください。", v:MANUAL_VER },
   { q:"メンバー名簿の名前や人数が、管理者と違います", a:"管理者が名簿を更新して配信すると、次にアプリを開いたときに同じになります。まだ違うときは、アプリを一度完全に閉じて開き直してください。それでも変わらないときは、管理者がまだ更新していない可能性があるので、LINEなどで伝えてください。", v:MANUAL_VER },
   { q:"「配信データを開けませんでした」と表示されます", a:"管理者がパスワードを変えた可能性があります。管理者に新しいIDとパスワードを聞き、メンバータブの下の「🚪 この端末をログアウト」を押してから、入り直してください。", v:MANUAL_VER },
@@ -10392,6 +10418,484 @@ function NoticesView({ isAdmin }) {
   );
 }
 
+/* ===== 新しいメンバー用のQRコード（管理者の「メモ」タブから表示） ===== */
+const INVITE_URL = "https://tsurughi2999-alt.github.io/sansai-test-01/";
+const INVITE_QR = [
+  "111111100101011011111101001111111",
+  "100000100110011101001000001000001",
+  "101110101000010101101110001011101",
+  "101110101110001010011010001011101",
+  "101110101001100100100111001011101",
+  "100000101010001110101010001000001",
+  "111111101010101010101010101111111",
+  "000000001001001100000110000000000",
+  "101111100111011101000010001111100",
+  "111000000100000010110101001101101",
+  "010010111111000100101110100010110",
+  "111010001101001110000101111011110",
+  "111001100100100100110000110011001",
+  "001100000110001111001001001001011",
+  "001101111100011000010100111111010",
+  "001011010100010010111100011010100",
+  "010111101011110011011010010110001",
+  "011100010001100011010001011101101",
+  "101001101001010111001110000110110",
+  "100101010100010101100110010111101",
+  "001101111111011010010000010111011",
+  "101000011111000100100011001001001",
+  "101001100000000110001100010001010",
+  "100001000010110100111110000101101",
+  "110110100111100101111001111111000",
+  "000000001001111010110111100010101",
+  "111111100000110110101101101010100",
+  "100000101011100010000101100011101",
+  "101110101100010100110000111111000",
+  "101110101111101111010111010010111",
+  "101110101111110001001000111101000",
+  "100000100100100010100100001011100",
+  "111111101000000001001000110100010"
+];
+function inviteDrawQr(ctx, x, y, scale, quiet) {
+  const n = INVITE_QR.length, size = (n + quiet * 2) * scale;
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(x, y, size, size);
+  ctx.fillStyle = "#142814";
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (INVITE_QR[r][c] === "1") ctx.fillRect(x + (c + quiet) * scale, y + (r + quiet) * scale, scale, scale);
+}
+function inviteMakeCanvas() {
+  const W = 1240, H = 1754, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const g = cv.getContext("2d");
+  g.fillStyle = "#f6faf3"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#234623"; g.fillRect(0, 0, W, 270);
+  g.textAlign = "center"; g.textBaseline = "alphabetic";
+  const F = "'Noto Sans CJK JP','Hiragino Sans','Yu Gothic',sans-serif";
+  const t = (txt, y, size, bold, color) => { g.font = (bold ? "bold " : "") + size + "px " + F; g.fillStyle = color; g.fillText(txt, W / 2, y); };
+  t("山菜採り手帳", 140, 100, true, "#ffffff");
+  t("中部・北陸エリア｜グループ管理", 235, 38, false, "#c8e1be");
+  t("新しいメンバーの方へ", 385, 60, true, "#234623");
+  t("スマホのカメラで、下のQRコードを読み取ってください", 465, 38, false, "#3c3c3c");
+  inviteDrawQr(g, (W - 738) / 2, 510, 18, 4);
+  t("開いたら、ブラウザのメニューから", 1335, 44, true, "#234623");
+  t("「ホーム画面に追加」を選んでください", 1400, 44, true, "#234623");
+  t("ログインのIDとパスワードは、管理者に聞いてください", 1485, 36, false, "#3c3c3c");
+  t(INVITE_URL, 1585, 30, false, "#6e6e6e");
+  return cv;
+}
+function InviteQrModal({ onClose }) {
+  const ref = React.useRef(null);
+  const [msg, setMsg] = useState("");
+  useEffect(() => {
+    const cv = ref.current; if (!cv) return;
+    const sc = 8, q = 4; cv.width = cv.height = (INVITE_QR.length + q * 2) * sc;
+    inviteDrawQr(cv.getContext("2d"), 0, 0, sc, q);
+  }, []);
+  const getBlob = () => new Promise(res => inviteMakeCanvas().toBlob(res, "image/png"));
+  const save = async () => {
+    try {
+      const b = await getBlob(); const u = URL.createObjectURL(b);
+      const a = document.createElement("a"); a.href = u; a.download = "sansai_qr_card.png";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(u), 3000);
+      setMsg("✅ 画像を保存しました。LINEで送るときは、保存した画像を選んでください。");
+    } catch (e) { setMsg("❌ 保存できませんでした。"); }
+  };
+  const share = async () => {
+    try {
+      const b = await getBlob(); const f = new File([b], "sansai_qr_card.png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f] });
+      else setMsg("この端末では、直接送れません。「画像を保存」してから、LINEで送ってください。");
+    } catch (e) {}
+  };
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(INVITE_URL); setMsg("✅ URLをコピーしました。"); }
+    catch (e) { setMsg("コピーできませんでした。下のURLを長押ししてコピーしてください。"); }
+  };
+  const bt = { width: "100%", padding: "12px 14px", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", marginTop: 8 };
+  return _m('div', { onClick: onClose, style: { position: "fixed", inset: 0, zIndex: 8500, background: "rgba(15,35,15,0.9)", display: "flex", alignItems: "center", justifyContent: "center", padding: 12 } },
+    _m('div', { onClick: e => e.stopPropagation(), style: { background: "white", borderRadius: 18, width: "100%", maxWidth: 380, maxHeight: "94vh", overflowY: "auto", padding: 16, textAlign: "center" } },
+      _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 16 } }, "📱 新しいメンバー用のQRコード"),
+      _m('div', { style: { fontSize: 12, color: "#555", lineHeight: 1.7, margin: "6px 0 10px" } }, "別のスマホのカメラで読み取ると、アプリが開きます。この画面のQRは、このスマホ自身では読み取れません。"),
+      _m('canvas', { ref: ref, style: { width: "100%", maxWidth: 300, height: "auto", borderRadius: 8, border: "1px solid #ddd" } }),
+      _m('div', { style: { fontSize: 11, color: "#666", marginTop: 8, wordBreak: "break-all", userSelect: "text" } }, INVITE_URL),
+      _m('button', { onClick: save, style: { ...bt, background: "var(--forest)", color: "white" } }, "📥 案内カードの画像を保存"),
+      typeof navigator !== "undefined" && navigator.share && _m('button', { onClick: share, style: { ...bt, background: "#06c755", color: "white" } }, "💬 LINEなどで送る"),
+      _m('button', { onClick: copy, style: { ...bt, background: "var(--mist)", color: "var(--forest)" } }, "🔗 URLをコピー"),
+      msg && _m('div', { style: { fontSize: 12, color: "#444", lineHeight: 1.7, marginTop: 8 } }, msg),
+      _m('div', { style: { fontSize: 11, color: "#a15c00", lineHeight: 1.7, marginTop: 8 } }, "ログインのIDとパスワードは、画像には入っていません。別に伝えてください。"),
+      _m('button', { onClick: onClose, style: { ...bt, background: "#eee", color: "#333" } }, "閉じる")));
+}
+
+/* ===== カラーテーマ（季節で自動／各自で選ぶ／管理者が全員共通に固定） ===== */
+const THEMES = {
+  forest: { name: "森", icon: "🌲", v: { "--forest": "#2d4a2d", "--moss": "#4a7a3d", "--fern": "#6aab5e", "--spring": "#a8d86e", "--earth": "#7a5c3a", "--bark": "#c8a882", "--soil": "#f5efe6", "--cream": "#faf7f2", "--paper": "#fff9f0", "--ink": "#1a2e1a", "--mist": "#e8f0e4", "--hero1": "#1a3a1a", "--hero2": "#2d5a2d" } },
+  spring: { name: "春（桜）", icon: "🌸", v: { "--forest": "#7a3e5c", "--moss": "#a85a82", "--fern": "#d98aab", "--spring": "#ffd9e6", "--earth": "#7a5c3a", "--bark": "#e6c8b8", "--soil": "#fbf1f3", "--cream": "#fff8f9", "--paper": "#fffafb", "--ink": "#2e1a24", "--mist": "#f6e4ea", "--hero1": "#5a2a42", "--hero2": "#8a4b6b" } },
+  summer: { name: "夏（渓流）", icon: "💧", v: { "--forest": "#1f5f6b", "--moss": "#2f7f8c", "--fern": "#5fb3bf", "--spring": "#c9f0f2", "--earth": "#6b5a3a", "--bark": "#d2c3a0", "--soil": "#eef5f4", "--cream": "#f5fbfb", "--paper": "#fafefe", "--ink": "#12292e", "--mist": "#dff0f0", "--hero1": "#123f48", "--hero2": "#1f6f7c" } },
+  autumn: { name: "秋（紅葉）", icon: "🍁", v: { "--forest": "#7a3b1a", "--moss": "#a8541f", "--fern": "#d9822b", "--spring": "#ffd27a", "--earth": "#7a5c3a", "--bark": "#d8b48a", "--soil": "#f7efe3", "--cream": "#fbf6ee", "--paper": "#fffaf1", "--ink": "#2e1a0e", "--mist": "#f3e6d6", "--hero1": "#4a2210", "--hero2": "#8a4a1f" } },
+  snow: { name: "冬（雪）", icon: "❄️", v: { "--forest": "#3d4f66", "--moss": "#5b7391", "--fern": "#8fa8c4", "--spring": "#dbe9f7", "--earth": "#6b6b6b", "--bark": "#c4ccd6", "--soil": "#f1f4f8", "--cream": "#f7f9fc", "--paper": "#fbfcfe", "--ink": "#1c2733", "--mist": "#e3eaf2", "--hero1": "#232f40", "--hero2": "#455b78" } },
+};
+const THEME_ORDER = ["forest", "spring", "summer", "autumn", "snow"];
+const THEME_POLICY_KEY = "sansai_theme_policy";
+const THEME_PREF_KEY = "sansai_theme_pref";
+function themeSeason(d) { const m = (d || new Date()).getMonth() + 1; return (m >= 3 && m <= 5) ? "spring" : (m >= 6 && m <= 8) ? "summer" : (m >= 9 && m <= 11) ? "autumn" : "snow"; }
+function loadThemePolicy() {
+  try { const v = JSON.parse(localStorage.getItem(THEME_POLICY_KEY) || "null"); if (v && typeof v === "object") return { lock: !!v.lock, value: (v.value === "auto" || THEMES[v.value]) ? v.value : "forest" }; } catch (e) {}
+  return { lock: false, value: "forest" };
+}
+function loadThemePref() { try { const v = localStorage.getItem(THEME_PREF_KEY) || ""; return (v === "auto" || THEMES[v]) ? v : ""; } catch (e) { return ""; } }
+function themeEffective() {
+  const pol = loadThemePolicy();
+  let v = (pol.lock && !zukanIsAdminDevice()) ? pol.value : (loadThemePref() || pol.value);
+  if (v === "auto") v = themeSeason();
+  return THEMES[v] ? v : "forest";
+}
+function applyTheme() {
+  const id = themeEffective(), t = THEMES[id], st = document.documentElement.style;
+  Object.keys(t.v).forEach(k => st.setProperty(k, t.v[k]));
+  try { const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute("content", t.v["--forest"]); } catch (e) {}
+  try { applyHeaderImage(); } catch (e) {}
+  try { window.dispatchEvent(new Event("sansai-theme")); } catch (e) {}
+  return id;
+}
+function saveThemePolicy(p) { try { localStorage.setItem(THEME_POLICY_KEY, JSON.stringify({ lock: !!p.lock, value: p.value })); } catch (e) {} applyTheme(); }
+function saveThemePref(v) { try { if (v) localStorage.setItem(THEME_PREF_KEY, v); else localStorage.removeItem(THEME_PREF_KEY); } catch (e) {} applyTheme(); }
+const HEADER_IMG_KEY = "sansai_header_img";
+const HEADER_OFF_KEY = "sansai_header_off";
+function loadHeaderImg() { try { const v = localStorage.getItem(HEADER_IMG_KEY) || ""; return v.indexOf("data:image/") === 0 ? v : ""; } catch (e) { return ""; } }
+function headerImgOff() { try { return localStorage.getItem(HEADER_OFF_KEY) === "1"; } catch (e) { return false; } }
+function saveHeaderImg(data) {
+  try { if (data) localStorage.setItem(HEADER_IMG_KEY, data); else localStorage.removeItem(HEADER_IMG_KEY); }
+  catch (e) { return false; }
+  applyTheme();
+  return true;
+}
+function saveHeaderOff(off) { try { if (off) localStorage.setItem(HEADER_OFF_KEY, "1"); else localStorage.removeItem(HEADER_OFF_KEY); } catch (e) {} applyTheme(); }
+function applyHeaderImage() {
+  let el = document.getElementById("sansai-hdr-style");
+  const img = loadHeaderImg();
+  if (!img || headerImgOff()) { if (el) el.textContent = ""; return; }
+  if (!el) { el = document.createElement("style"); el.id = "sansai-hdr-style"; document.head.appendChild(el); }
+  const u = 'url("' + img + '")';
+  el.textContent = 'html .header{background-image:linear-gradient(rgba(10,25,10,.5),rgba(10,25,10,.5)),' + u + ';background-size:cover;background-position:center;}'
+    + 'html .header .header-title,html .header .header-subtitle{text-shadow:0 1px 4px rgba(0,0,0,.65);}'
+    + 'html .home-logo-area{background-image:linear-gradient(rgba(10,25,10,.4),rgba(10,25,10,.6)),' + u + ';background-size:cover;background-position:center;border-radius:0 0 26px 26px;}';
+}
+function ThemeView({ isAdmin }) {
+  const [, setTick] = useState(0);
+  useEffect(() => { const h = () => setTick(t => t + 1); window.addEventListener("sansai-theme", h); return () => window.removeEventListener("sansai-theme", h); }, []);
+  const pol = loadThemePolicy();
+  const [lockForm, setLockForm] = useState(pol.lock);
+  const [valForm, setValForm] = useState(pol.value);
+  const [msg, setMsg] = useState("");
+  const [hmsg, setHmsg] = useState("");
+  const hdrImg = loadHeaderImg();
+  const pickHeader = (file) => {
+    if (!file) return;
+    const tries = [[1000, 0.72], [800, 0.65], [640, 0.6]];
+    const run = (i) => compressImageFile(file, tries[i][0], tries[i][1], (data) => {
+      if (data.length > 380000 && i < tries.length - 1) { run(i + 1); return; }
+      if (saveHeaderImg(data)) setHmsg("✅ 写真を設定しました。「メモ」タブで図鑑を書き出して、GitHubに上書きアップロードすると、メンバーに届きます。");
+      else setHmsg("❌ 保存できませんでした（端末の保存容量が足りない可能性があります）。");
+    });
+    run(0);
+  };
+  const locked = pol.lock && !isAdmin;
+  const selected = locked ? pol.value : (loadThemePref() || pol.value);
+  const eff = themeEffective();
+  const nameOf = (v) => v === "auto" ? "季節で自動切り替え（いまは" + THEMES[themeSeason()].name + "）" : THEMES[v].name;
+  const swatch = (id) => { const t = THEMES[id === "auto" ? themeSeason() : id]; return _m('div', { style: { display: "flex", height: 26, borderRadius: 8, overflow: "hidden", marginBottom: 6 } }, ["--hero1", "--forest", "--moss", "--fern", "--spring", "--mist"].map(k => _m('div', { key: k, style: { flex: 1, background: t.v[k] } }))); };
+  const card = (id) => {
+    const on = selected === id;
+    return _m('button', { key: id, disabled: locked, onClick: () => { saveThemePref(id); }, style: { textAlign: "left", background: "white", border: on ? "3px solid var(--forest)" : "2px solid var(--mist)", borderRadius: 14, padding: 10, cursor: locked ? "default" : "pointer", opacity: locked && !on ? 0.45 : 1 } },
+      swatch(id),
+      _m('div', { style: { fontSize: 13, fontWeight: 700, color: "var(--forest)", lineHeight: 1.4 } }, (id === "auto" ? "🍃 " : THEMES[id].icon + " ") + (id === "auto" ? "季節で自動" : THEMES[id].name) + (on ? " ✓" : "")),
+      id === "auto" && _m('div', { style: { fontSize: 10, color: "#777", marginTop: 2 } }, "いまは" + THEMES[themeSeason()].name));
+  };
+  const btn = { padding: "11px 14px", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" };
+  return (
+    _m('div', null,
+      _m('div', { className: "section-title" }, "🎨 テーマ（色の変更）"),
+      _m('div', { className: "section-desc" }, "アプリの色を選べます。「季節で自動」にすると、春・夏・秋・冬で色が変わります。この設定は、この端末だけに保存されます。"),
+      _m('div', { style: { fontSize: 12, color: "#555", marginBottom: 10, lineHeight: 1.7 } }, "いまの表示：" + THEMES[eff].icon + " " + THEMES[eff].name + (selected === "auto" ? "（季節で自動）" : "")),
+      locked && _m('div', { style: { background: "#fff6e0", border: "1px solid #f0d58a", borderRadius: 10, padding: "10px 12px", fontSize: 12, color: "#7a5a00", lineHeight: 1.7, marginBottom: 12 } }, "管理者が、全員同じテーマ（" + nameOf(pol.value) + "）に設定しています。この設定の間は、変更できません。"),
+      _m('div', { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 } }, ["auto"].concat(THEME_ORDER).map(card)),
+      !locked && loadThemePref() && _m('button', { onClick: () => saveThemePref(""), style: { ...btn, width: "100%", background: "var(--mist)", color: "var(--forest)", marginBottom: 14 } }, "管理者のおすすめ（" + nameOf(pol.value).replace(/（いまは.*）/, "") + "）に戻す"),
+      hdrImg && _m('label', { style: { display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, marginBottom: 14, lineHeight: 1.6 } },
+        _m('input', { type: "checkbox", checked: !headerImgOff(), onChange: e => saveHeaderOff(!e.target.checked), style: { marginTop: 4 } }),
+        _m('span', null, "ヘッダーと表紙の上に、風景写真を表示する（この端末の設定です）")),
+      isAdmin && _m('div', { style: { background: "white", border: "2px solid var(--mist)", borderRadius: 14, padding: 14, marginBottom: 14 } },
+        _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 14, marginBottom: 6 } }, "🖼 ヘッダーの風景写真（管理者用）"),
+        _m('div', { style: { fontSize: 12, color: "#666", lineHeight: 1.7, marginBottom: 8 } }, "アプリの上部と表紙の上部に、全員共通で表示されます。横長の写真がおすすめです。文字が読みやすいように、写真は少し暗くして表示します。"),
+        hdrImg && _m('img', { src: hdrImg, alt: "", style: { width: "100%", height: 110, objectFit: "cover", borderRadius: 10, marginBottom: 8, display: "block" } }),
+        _m('div', { style: { display: "flex", gap: 8 } },
+          _m('label', { style: { ...btn, flex: 1, background: "var(--forest)", color: "white", textAlign: "center", cursor: "pointer", boxSizing: "border-box" } }, hdrImg ? "写真を変える" : "写真を選ぶ",
+            _m('input', { type: "file", accept: "image/*", style: { display: "none" }, onChange: e => { pickHeader(e.target.files && e.target.files[0]); e.target.value = ""; } })),
+          hdrImg && _m('button', { onClick: () => { saveHeaderImg(""); setHmsg("写真を外しました。「メモ」タブで図鑑を書き出して、GitHubに上書きアップロードすると、メンバーにも反映されます。"); }, style: { ...btn, background: "#fdecea", color: "#c0392b" } }, "写真を外す")),
+        hmsg && _m('div', { style: { fontSize: 12, color: "#444", lineHeight: 1.7, marginTop: 8 } }, hmsg)),
+      isAdmin && _m('div', { style: { background: "white", border: "2px solid var(--mist)", borderRadius: 14, padding: 14 } },
+        _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 14, marginBottom: 6 } }, "👑 全員への設定（管理者用）"),
+        _m('div', { style: { fontSize: 12, color: "#666", lineHeight: 1.7, marginBottom: 8 } }, "メンバーの初期のテーマを決めます。「全員同じにする」を選ぶと、メンバーは変更できなくなります。"),
+        _m('label', { style: { display: "flex", gap: 8, fontSize: 13, marginBottom: 6, lineHeight: 1.6 } }, _m('input', { type: "radio", checked: !lockForm, onChange: () => setLockForm(false), style: { marginTop: 4 } }), _m('span', null, "各自で選べる（下のテーマが、最初の設定になります）")),
+        _m('label', { style: { display: "flex", gap: 8, fontSize: 13, marginBottom: 10, lineHeight: 1.6 } }, _m('input', { type: "radio", checked: lockForm, onChange: () => setLockForm(true), style: { marginTop: 4 } }), _m('span', null, "全員同じにする（メンバーは変更できません）")),
+        _m('select', { value: valForm, onChange: e => setValForm(e.target.value), style: { width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ccc", fontSize: 14, marginBottom: 10 } }, ["auto"].concat(THEME_ORDER).map(id => _m('option', { key: id, value: id }, id === "auto" ? "🍃 季節で自動切り替え" : THEMES[id].icon + " " + THEMES[id].name))),
+        _m('button', { onClick: () => { saveThemePolicy({ lock: lockForm, value: valForm }); setMsg("✅ 保存しました。「メモ」タブで図鑑を書き出して、GitHubに上書きアップロードすると、メンバーに届きます。"); }, style: { ...btn, width: "100%", background: "var(--forest)", color: "white" } }, "この設定を保存"),
+        msg && _m('div', { style: { fontSize: 12, color: "#444", lineHeight: 1.7, marginTop: 8 } }, msg))
+    )
+  );
+}
+
+/* ===== 便利機能：今月の旬／入山の予定・現在地を送る／年間まとめ／検索 ===== */
+const lineLink = (t) => "https://line.me/R/msg/text/?" + encodeURIComponent(t);
+function featLoadSansai() { try { const v = JSON.parse(localStorage.getItem("sansai_list_v2") || "null"); if (Array.isArray(v) && v.length) return v; } catch (e) {} return SANSAI_DATA; }
+function featCopy(text, setMsg) {
+  const ng = () => setMsg("コピーできませんでした。文章を長押ししてコピーしてください。");
+  try { navigator.clipboard.writeText(text).then(() => setMsg("✅ 文章をコピーしました。"), ng); } catch (e) { ng(); }
+}
+function featShare(text, setMsg) {
+  if (navigator.share) navigator.share({ text: text }).catch(() => {});
+  else setMsg("この端末では、直接共有できません。「LINEで送る」か「コピー」を使ってください。");
+}
+const featCssVar = (k, d) => { try { return getComputedStyle(document.documentElement).getPropertyValue(k).trim() || d; } catch (e) { return d; } };
+const featBtn = { padding: "12px 14px", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer", textAlign: "center", textDecoration: "none", display: "block", boxSizing: "border-box" };
+const featCard = { background: "white", border: "2px solid var(--mist)", borderRadius: 14, padding: 14, marginBottom: 14 };
+const featInp = { width: "100%", padding: "10px 12px", border: "1px solid #ccc", borderRadius: 10, fontSize: 14, boxSizing: "border-box", marginBottom: 8, fontFamily: "inherit" };
+function featSendButtons(text, setMsg) {
+  return _m('div', null,
+    _m('a', { href: lineLink(text), target: "_blank", rel: "noopener noreferrer", style: { ...featBtn, background: "#06c755", color: "white", marginTop: 8 } }, "💬 LINEで送る（送る相手は自分で選びます）"),
+    _m('div', { style: { display: "flex", gap: 8, marginTop: 8 } },
+      _m('button', { onClick: () => featCopy(text, setMsg), style: { ...featBtn, flex: 1, background: "var(--mist)", color: "var(--forest)" } }, "📋 コピー"),
+      navigator.share && _m('button', { onClick: () => featShare(text, setMsg), style: { ...featBtn, flex: 1, background: "var(--mist)", color: "var(--forest)" } }, "📤 他のアプリで送る")));
+}
+
+/* --- 表紙：今月の旬 --- */
+function SeasonCard({ onGo }) {
+  const list = featLoadSansai();
+  const mo = new Date().getMonth() + 1, nx = mo === 12 ? 1 : mo + 1;
+  const inM = (s, m) => Array.isArray(s.months) && s.months.map(Number).indexOf(m) >= 0;
+  const now = list.filter(s => inM(s, mo)), next = list.filter(s => inM(s, nx) && !inM(s, mo));
+  const hv = shareLoadOwn("harvest").filter(h => h && h.date).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const yr = String(new Date().getFullYear()), cnt = hv.filter(h => String(h.date).slice(0, 4) === yr).length;
+  const last = hv[0];
+  const lastName = last ? ((list.find(s => s.id === Number(last.sansaiId)) || {}).name || "山菜") : "";
+  const chip = (s) => _m('span', { key: s.id, style: { display: "inline-block", background: "rgba(255,255,255,0.16)", borderRadius: 14, padding: "3px 10px", margin: "0 6px 6px 0", fontSize: 13, color: "white" } }, (s.emoji || "🌿") + " " + s.name);
+  return _m('div', { style: { padding: "0 16px 14px" } },
+    _m('div', { onClick: () => onGo && onGo("calendar"), style: { background: "rgba(255,255,255,0.1)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 16, padding: 14, cursor: "pointer" } },
+      _m('div', { style: { fontSize: 14, fontWeight: 700, color: "white", marginBottom: 8 } }, "🌿 今月（" + mo + "月）の旬"),
+      now.length ? _m('div', null, now.slice(0, 12).map(chip), now.length > 12 && _m('span', { style: { fontSize: 12, color: "rgba(255,255,255,0.75)" } }, "ほか" + (now.length - 12) + "種")) : _m('div', { style: { fontSize: 12, color: "rgba(255,255,255,0.75)" } }, "今月が旬の山菜は、登録されていません。"),
+      next.length > 0 && _m('div', { style: { fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 4, lineHeight: 1.7 } }, "来月（" + nx + "月）から：" + next.slice(0, 6).map(s => s.name).join("、") + (next.length > 6 ? "…" : "")),
+      _m('div', { style: { fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.18)", lineHeight: 1.7 } },
+        "今年の収穫：" + cnt + "回" + (last ? "　／　直近：" + String(last.date).slice(5).replace("-", "/") + " " + lastName : ""))));
+}
+
+/* --- 安全・連絡：入山の予定／現在地 --- */
+function SafetyView({ spots }) {
+  const today = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+  const [plan, setPlan] = useState(() => {
+    const base = { dest: "", date: today(), inTime: "", outTime: "", party: "", car: "", note: "" };
+    try { const v = JSON.parse(localStorage.getItem("sansai_trip_plan") || "null"); if (v && typeof v === "object") return { ...base, ...v, date: today() }; } catch (e) {}
+    return base;
+  });
+  useEffect(() => { try { localStorage.setItem("sansai_trip_plan", JSON.stringify(plan)); } catch (e) {} }, [plan]);
+  const [msg, setMsg] = useState("");
+  const [loc, setLoc] = useState(null);
+  const [locMsg, setLocMsg] = useState("");
+  const set = (k, v) => setPlan(p => ({ ...p, [k]: v }));
+  const planText = [
+    "【入山のお知らせ】", "日付：" + plan.date, "行き先：" + (plan.dest || "（未入力）"),
+    "入山：" + (plan.inTime || "未定") + "　／　下山予定：" + (plan.outTime || "未定"),
+    plan.party && "メンバー：" + plan.party, plan.car && "車の場所・目印：" + plan.car, plan.note && "備考：" + plan.note,
+    "※下山予定を過ぎても連絡がないときは、連絡をお願いします。"].filter(Boolean).join("\n");
+  const nowHM = () => { const d = new Date(); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
+  const downText = "【下山のお知らせ】\n無事に下山しました。\n" + (plan.dest ? "行き先：" + plan.dest + "\n" : "") + "時刻：" + nowHM();
+  const getLoc = () => {
+    if (!navigator.geolocation) { setLocMsg("この端末では、現在地を取得できません。"); return; }
+    setLocMsg("現在地を探しています…（最大20秒）");
+    navigator.geolocation.getCurrentPosition(pos => {
+      setLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy || 0), at: new Date() }); setLocMsg("");
+    }, () => { setLocMsg("現在地を取得できませんでした。位置情報の許可と、空が開けた場所かを確認して、もう一度お試しください。"); }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  };
+  const locText = loc ? ["【現在地の連絡】", "日時：" + (loc.at.getMonth() + 1) + "/" + loc.at.getDate() + " " + String(loc.at.getHours()).padStart(2, "0") + ":" + String(loc.at.getMinutes()).padStart(2, "0"),
+    "地図：https://www.google.com/maps?q=" + loc.lat.toFixed(6) + "," + loc.lng.toFixed(6), "緯度 " + loc.lat.toFixed(6) + "／経度 " + loc.lng.toFixed(6) + "（誤差 約" + loc.acc + "m）", plan.dest && "行き先：" + plan.dest].filter(Boolean).join("\n") : "";
+  return (
+    _m('div', null,
+      _m('div', { className: "section-title" }, "🛡️ 安全・連絡"),
+      _m('div', { className: "section-desc" }, "山に入る前の連絡と、いざというときの現在地の連絡に使います。文章を作るだけで、自動では送信されません。送る相手は、LINEの画面で自分で選びます。"),
+      _m('div', { style: { ...featCard, borderColor: "#f0b4ac" } },
+        _m('div', { style: { fontWeight: 700, color: "#c0392b", fontSize: 14, marginBottom: 6 } }, "🚨 緊急のときは、まず 119（救急・消防）または 110（警察）"),
+        _m('div', { style: { fontSize: 12, color: "#666", lineHeight: 1.7 } }, "圏外でも、緊急通報は他社の電波で通じることがあります。")),
+      _m('div', { style: featCard },
+        _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 15, marginBottom: 8 } }, "📝 入山の予定を送る"),
+        spots && spots.length > 0 && _m('select', { value: "", onChange: e => { if (e.target.value) set("dest", e.target.value); }, style: featInp }, _m('option', { value: "" }, "登録したスポットから選ぶ"), spots.map(s => _m('option', { key: s.id, value: s.name }, s.name))),
+        _m('input', { value: plan.dest, onChange: e => set("dest", e.target.value), placeholder: "行き先（例：○○沢）", style: featInp }),
+        _m('div', { style: { display: "flex", gap: 8 } },
+          _m('input', { type: "date", value: plan.date, onChange: e => set("date", e.target.value), style: { ...featInp, flex: 1.4 } }),
+          _m('input', { type: "time", value: plan.inTime, onChange: e => set("inTime", e.target.value), style: { ...featInp, flex: 1 } }),
+          _m('input', { type: "time", value: plan.outTime, onChange: e => set("outTime", e.target.value), style: { ...featInp, flex: 1 } })),
+        _m('div', { style: { fontSize: 11, color: "#777", marginTop: -4, marginBottom: 8 } }, "左から：日付／入山時刻／下山予定時刻"),
+        _m('input', { value: plan.party, onChange: e => set("party", e.target.value), placeholder: "メンバー（例：田中・鈴木）", style: featInp }),
+        _m('input', { value: plan.car, onChange: e => set("car", e.target.value), placeholder: "車の場所・目印", style: featInp }),
+        _m('input', { value: plan.note, onChange: e => set("note", e.target.value), placeholder: "備考（持ち物・連絡先など）", style: featInp }),
+        _m('div', { style: { background: "#f7faf5", borderRadius: 10, padding: "10px 12px", fontSize: 12, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap", userSelect: "text" } }, planText),
+        featSendButtons(planText, setMsg),
+        _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 13, margin: "14px 0 4px" } }, "下山したら"),
+        _m('a', { href: lineLink(downText), target: "_blank", rel: "noopener noreferrer", style: { ...featBtn, background: "var(--mist)", color: "var(--forest)" } }, "✅ 「無事に下山しました」をLINEで送る")),
+      _m('div', { style: featCard },
+        _m('div', { style: { fontWeight: 700, color: "#c0392b", fontSize: 15, marginBottom: 6 } }, "📍 現在地を送る"),
+        _m('div', { style: { fontSize: 12, color: "#666", lineHeight: 1.7, marginBottom: 8 } }, "ボタンを押したときだけ、現在地を調べて文章にします。地図のリンクつきです。圏外でも現在地は調べられるので、電波が戻ったときに送れます。"),
+        _m('button', { onClick: getLoc, style: { ...featBtn, width: "100%", background: "#c0392b", color: "white" } }, loc ? "📍 もう一度、現在地を調べる" : "📍 現在地を調べる"),
+        locMsg && _m('div', { style: { fontSize: 12, color: "#444", lineHeight: 1.7, marginTop: 8 } }, locMsg),
+        loc && _m('div', null,
+          _m('div', { style: { background: "#fdf3f1", borderRadius: 10, padding: "10px 12px", fontSize: 12, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap", userSelect: "text", marginTop: 10, wordBreak: "break-all" } }, locText),
+          featSendButtons(locText, setMsg))),
+      msg && _m('div', { style: { fontSize: 12, color: "#444", lineHeight: 1.7 } }, msg)
+    )
+  );
+}
+
+/* --- 年間まとめ・図鑑コンプリート --- */
+function featFmtG(g) { return g >= 1000 ? (g / 1000).toFixed(1) + "kg" : Math.round(g) + "g"; }
+function summaryStats(year, list, spots) {
+  const all = shareLoadOwn("harvest").filter(h => h && h.date);
+  const hv = all.filter(h => String(h.date).slice(0, 4) === String(year));
+  const toG = h => h.unit === "kg" ? Number(h.amount) * 1000 : (h.unit === "g" ? Number(h.amount) : 0);
+  const find = id => list.find(s => s.id === Number(id)) || {};
+  const by = {}, months = Array(12).fill(0), spotCnt = {}; let totalG = 0;
+  hv.forEach(h => {
+    const g = toG(h) || 0; totalG += g;
+    const k = String(h.sansaiId); by[k] = by[k] || { id: h.sansaiId, g: 0, n: 0 }; by[k].g += g; by[k].n++;
+    const m = Number(String(h.date).slice(5, 7)); if (m >= 1 && m <= 12) months[m - 1]++;
+    const sn = shareSpotName(spots, h.spotId); if (sn) spotCnt[sn] = (spotCnt[sn] || 0) + 1;
+  });
+  const top = Object.values(by).sort((a, b) => (b.g - a.g) || (b.n - a.n)).slice(0, 3).map(x => ({ name: find(x.id).name || "山菜", emoji: find(x.id).emoji || "🌿", g: x.g, n: x.n }));
+  const sorted = hv.slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const pick = h => h ? { date: h.date, name: find(h.sansaiId).name || "山菜" } : null;
+  const ts = Object.entries(spotCnt).sort((a, b) => b[1] - a[1])[0];
+  return { year: year, count: hv.length, totalG: totalG, kinds: Object.keys(by).length, top: top, months: months, first: pick(sorted[0]), last: pick(sorted[sorted.length - 1]), topSpot: ts ? { name: ts[0], n: ts[1] } : null };
+}
+function summaryCanvas(st, showSpot) {
+  const W = 1080, H = 1500, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const g = cv.getContext("2d"), F = "'Noto Sans CJK JP','Hiragino Sans','Yu Gothic',sans-serif";
+  const forest = featCssVar("--forest", "#2d4a2d"), moss = featCssVar("--moss", "#4a7a3d"), mist = featCssVar("--mist", "#e8f0e4"), cream = featCssVar("--cream", "#faf7f2"), spring = featCssVar("--spring", "#a8d86e");
+  g.fillStyle = cream; g.fillRect(0, 0, W, H);
+  g.fillStyle = forest; g.fillRect(0, 0, W, 230);
+  g.textAlign = "center"; g.textBaseline = "alphabetic";
+  const t = (txt, x, y, size, bold, color, align) => { g.textAlign = align || "center"; g.font = (bold ? "bold " : "") + size + "px " + F; g.fillStyle = color; g.fillText(txt, x, y); };
+  t(st.year + "年　山菜の収穫まとめ", W / 2, 110, 58, true, "#ffffff");
+  t("山菜採り手帳", W / 2, 180, 34, false, spring);
+  const box = (x, label, val) => { g.fillStyle = mist; g.fillRect(x, 270, 300, 170); t(label, x + 150, 322, 28, false, "#555"); t(val, x + 150, 400, 52, true, forest); };
+  box(60, "収穫回数", st.count + "回"); box(390, "合計の量", st.totalG > 0 ? featFmtG(st.totalG) : "−"); box(720, "山菜の種類", st.kinds + "種");
+  t("よく採れた山菜", 60, 520, 38, true, forest, "left");
+  const medals = ["🥇", "🥈", "🥉"];
+  if (!st.top.length) t("この年の収穫記録は、まだありません", W / 2, 600, 30, false, "#777");
+  st.top.forEach((x, i) => { const y = 590 + i * 84; t(medals[i] + " " + x.emoji + " " + x.name, 60, y, 40, true, "#222", "left"); t((x.g > 0 ? featFmtG(x.g) + "　" : "") + x.n + "回", W - 60, y, 34, false, moss, "right"); });
+  t("月ごとの収穫回数", 60, 880, 38, true, forest, "left");
+  const maxM = Math.max(1, ...st.months), bx = 80, bw = 62, gap = 20, base = 1150, mh = 210;
+  st.months.forEach((n, i) => { const h = Math.round(mh * n / maxM); g.fillStyle = n > 0 ? moss : mist; g.fillRect(bx + i * (bw + gap), base - Math.max(h, 6), bw, Math.max(h, 6)); t(String(i + 1), bx + i * (bw + gap) + bw / 2, base + 38, 28, false, "#555"); if (n > 0) t(String(n), bx + i * (bw + gap) + bw / 2, base - h - 10, 26, true, forest); });
+  t("（月）", W - 60, base + 38, 24, false, "#888", "right");
+  let y = 1290;
+  if (st.first) { t("最初の収穫：" + st.first.date + "　" + st.first.name, 60, y, 32, false, "#333", "left"); y += 52; }
+  if (st.last && st.count > 1) { t("最後の収穫：" + st.last.date + "　" + st.last.name, 60, y, 32, false, "#333", "left"); y += 52; }
+  if (showSpot && st.topSpot) { t("いちばん行った場所：" + st.topSpot.name + "（" + st.topSpot.n + "回）", 60, y, 32, false, "#333", "left"); y += 52; }
+  t("山菜採り手帳 ／ " + st.year + "年のふりかえり", W / 2, H - 40, 26, false, "#888");
+  return cv;
+}
+function SummaryView({ sansaiList, spots }) {
+  const list = sansaiList && sansaiList.length ? sansaiList : SANSAI_DATA;
+  const harvests = shareLoadOwn("harvest").filter(h => h && h.date);
+  const years = Array.from(new Set(harvests.map(h => String(h.date).slice(0, 4)).concat([String(new Date().getFullYear())]))).sort().reverse();
+  const [year, setYear] = useState(years[0]);
+  const [showSpot, setShowSpot] = useState(false);
+  const [msg, setMsg] = useState("");
+  const st = summaryStats(year, list, spots);
+  const got = new Set(harvests.map(h => Number(h.sansaiId)));
+  const done = list.filter(s => got.has(Number(s.id))).length;
+  const blob = () => new Promise(res => summaryCanvas(st, showSpot).toBlob(res, "image/png"));
+  const save = async () => {
+    try { const b = await blob(); const u = URL.createObjectURL(b); const a = document.createElement("a"); a.href = u; a.download = "sansai_" + year + ".png"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 3000); setMsg("✅ 画像を保存しました。"); } catch (e) { setMsg("❌ 保存できませんでした。"); }
+  };
+  const share = async () => {
+    try { const b = await blob(); const f = new File([b], "sansai_" + year + ".png", { type: "image/png" }); if (navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f] }); else setMsg("この端末では、直接送れません。「画像を保存」してから送ってください。"); } catch (e) {}
+  };
+  const stat = (label, val) => _m('div', { style: { flex: 1, background: "var(--mist)", borderRadius: 12, padding: "10px 6px", textAlign: "center" } }, _m('div', { style: { fontSize: 11, color: "#666" } }, label), _m('div', { style: { fontSize: 20, fontWeight: 700, color: "var(--forest)" } }, val));
+  const maxM = Math.max(1, ...st.months);
+  return (
+    _m('div', null,
+      _m('div', { className: "section-title" }, "📊 年間まとめ"),
+      _m('div', { className: "section-desc" }, "自分の収穫記録を、年ごとに集計します。画像にして、仲間と見せ合えます。位置情報（GPS）は入りません。"),
+      _m('select', { value: year, onChange: e => setYear(e.target.value), style: featInp }, years.map(y => _m('option', { key: y, value: y }, y + "年"))),
+      _m('div', { style: featCard },
+        _m('div', { style: { display: "flex", gap: 8, marginBottom: 12 } }, stat("収穫回数", st.count + "回"), stat("合計の量", st.totalG > 0 ? featFmtG(st.totalG) : "−"), stat("種類", st.kinds + "種")),
+        st.top.length === 0 ? _m('div', { style: { fontSize: 13, color: "#888" } }, "この年の収穫記録は、まだありません。") : _m('div', null,
+          _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 13, marginBottom: 4 } }, "よく採れた山菜"),
+          st.top.map((x, i) => _m('div', { key: i, style: { fontSize: 14, lineHeight: 1.9, color: "#333" } }, ["🥇", "🥈", "🥉"][i] + " " + x.emoji + " " + x.name + "　" + (x.g > 0 ? featFmtG(x.g) + "・" : "") + x.n + "回")),
+          _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 13, margin: "10px 0 4px" } }, "月ごと"),
+          _m('div', { style: { display: "flex", alignItems: "flex-end", gap: 3, height: 80 } }, st.months.map((n, i) => _m('div', { key: i, style: { flex: 1, textAlign: "center" } }, _m('div', { style: { height: Math.max(3, Math.round(60 * n / maxM)), background: n > 0 ? "var(--moss)" : "var(--mist)", borderRadius: 3 } }), _m('div', { style: { fontSize: 10, color: "#777", marginTop: 2 } }, i + 1)))),
+          st.first && _m('div', { style: { fontSize: 12, color: "#555", marginTop: 8, lineHeight: 1.7 } }, "最初の収穫：" + st.first.date + " " + st.first.name + (st.last && st.count > 1 ? "　／　最後：" + st.last.date + " " + st.last.name : "")),
+          st.topSpot && _m('div', { style: { fontSize: 12, color: "#555" } }, "いちばん行った場所：" + st.topSpot.name + "（" + st.topSpot.n + "回）")),
+        _m('label', { style: { display: "flex", gap: 8, fontSize: 12, margin: "12px 0 4px", lineHeight: 1.6 } }, _m('input', { type: "checkbox", checked: showSpot, onChange: e => setShowSpot(e.target.checked), style: { marginTop: 3 } }), _m('span', null, "画像に「いちばん行った場所」の名前を入れる")),
+        _m('button', { onClick: save, style: { ...featBtn, width: "100%", background: "var(--forest)", color: "white", marginTop: 8 } }, "📥 まとめの画像を保存"),
+        _m('button', { onClick: share, style: { ...featBtn, width: "100%", background: "#06c755", color: "white", marginTop: 8 } }, "💬 画像をLINEなどで送る"),
+        msg && _m('div', { style: { fontSize: 12, color: "#444", lineHeight: 1.7, marginTop: 8 } }, msg)),
+      _m('div', { style: featCard },
+        _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 15, marginBottom: 4 } }, "🏅 図鑑コンプリート　" + done + " / " + list.length + "種"),
+        _m('div', { style: { height: 10, background: "var(--mist)", borderRadius: 6, overflow: "hidden", marginBottom: 10 } }, _m('div', { style: { height: "100%", width: Math.round(100 * done / Math.max(1, list.length)) + "%", background: "var(--moss)" } })),
+        _m('div', { style: { fontSize: 11, color: "#777", marginBottom: 8 } }, "収穫記録に残した山菜に、色が付きます（全期間）。"),
+        _m('div', null, list.map(s => { const on = got.has(Number(s.id)); return _m('span', { key: s.id, style: { display: "inline-block", margin: "0 6px 6px 0", padding: "3px 10px", borderRadius: 14, fontSize: 12, background: on ? "var(--forest)" : "#eee", color: on ? "white" : "#999" } }, (s.emoji || "🌿") + " " + s.name + (on ? " ✓" : "")); })))
+    )
+  );
+}
+
+/* --- 全体検索 --- */
+const searchFold = (s) => String(s == null ? "" : s).normalize("NFKC").toLowerCase().replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+function searchText(o) {
+  const out = [];
+  Object.keys(o || {}).forEach(k => {
+    if (/^(id|photos?|photoId|gps|imgs|likes|shared|private|clothingChecks|toolsChecks)$/.test(k)) return;
+    const v = o[k];
+    if (typeof v === "string" && v.indexOf("data:") !== 0) out.push(v);
+    else if (typeof v === "number") out.push(String(v));
+    else if (Array.isArray(v)) v.forEach(x => { if (typeof x === "string" && x.indexOf("data:") !== 0) out.push(x); });
+  });
+  return out.join(" ");
+}
+function searchSnippet(text, q) {
+  const f = searchFold(text), i = f.indexOf(q); if (i < 0) return "";
+  const a = Math.max(0, i - 14), b = Math.min(text.length, i + q.length + 30);
+  return (a > 0 ? "…" : "") + text.slice(a, b) + (b < text.length ? "…" : "");
+}
+function SearchView({ sansaiList, spots, onGo }) {
+  const [q, setQ] = useState("");
+  const list = sansaiList && sansaiList.length ? sansaiList : SANSAI_DATA;
+  const key = searchFold(q.trim());
+  const sn = id => (list.find(s => s.id === Number(id)) || {}).name || "山菜";
+  const groups = [];
+  if (key) {
+    const add = (label, tab, items, title) => {
+      const hit = items.filter(r => searchFold(searchText(r)).indexOf(key) >= 0 || searchFold(title(r)).indexOf(key) >= 0);
+      if (hit.length) groups.push({ label: label, tab: tab, rows: hit.slice(0, 30).map(r => ({ id: r.id, title: title(r), snip: searchSnippet(searchText(r), key) })), total: hit.length });
+    };
+    add("📖 図鑑・カレンダー", "calendar", list, r => (r.emoji || "") + " " + r.name);
+    add("📍 スポット", "spots", spots || [], r => r.name || "(名前なし)");
+    add("🧺 収穫記録", "harvest", shareLoadOwn("harvest"), r => (r.date || "") + " " + sn(r.sansaiId) + (r.amount ? " " + r.amount + (r.unit || "") : ""));
+    add("🔍 パトロール", "patrol", shareLoadOwn("patrol"), r => (r.date || "") + " " + (shareSpotName(spots, r.spotId) || "パトロール"));
+    add("📒 忘備録", "memo", shareLoadOwn("memo"), r => r.title || "(無題)");
+    add("📝 ブログ", "blog", shareLoadOwn("blog"), r => r.title || "(無題)");
+  }
+  return (
+    _m('div', null,
+      _m('div', { className: "section-title" }, "🔎 検索"),
+      _m('div', { className: "section-desc" }, "図鑑・スポット・収穫記録・パトロール・忘備録・ブログを、まとめて探します。ひらがな・カタカナの違いは気にしなくて大丈夫です。"),
+      _m('input', { value: q, onChange: e => setQ(e.target.value), placeholder: "例：コシアブラ、沢、天ぷら", style: { ...featInp, fontSize: 16 }, autoFocus: true }),
+      key && groups.length === 0 && _m('div', { style: { color: "#888", fontSize: 13, padding: "16px 0" } }, "見つかりませんでした。"),
+      groups.map(g => _m('div', { key: g.label, style: featCard },
+        _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 14, marginBottom: 6 } }, g.label + "　" + g.total + "件"),
+        g.rows.map(r => _m('div', { key: r.id, onClick: () => onGo && onGo(g.tab), style: { padding: "8px 0", borderTop: "1px solid var(--mist)", cursor: "pointer" } },
+          _m('div', { style: { fontSize: 14, color: "#222", fontWeight: 600 } }, r.title),
+          r.snip && _m('div', { style: { fontSize: 12, color: "#666", lineHeight: 1.6, marginTop: 2 } }, r.snip))),
+        g.total > 30 && _m('div', { style: { fontSize: 11, color: "#888", marginTop: 6 } }, "ほか" + (g.total - 30) + "件（言葉を絞ってください）"))),
+      groups.length > 0 && _m('div', { style: { fontSize: 11, color: "#888", textAlign: "center" } }, "結果を押すと、そのタブが開きます。")
+    )
+  );
+}
+
 function ShareTab({ kind, isAdmin, spots, sansaiList, renderOwn, onOwnChanged }) {
   const cfg = SHARE_KINDS[kind];
   const { photos: photoStore, importPhotos } = usePhotos();
@@ -10601,6 +11105,8 @@ function App() {
       if (remote.manualImgs && typeof remote.manualImgs === "object") {
         try { localStorage.setItem(MANUAL_IMGS_KEY, JSON.stringify(remote.manualImgs)); localStorage.setItem(MANUAL_SENT_KEY, JSON.stringify(manualImgPids(remote.manualImgs))); window.dispatchEvent(new Event("sansai-manual-imgs")); } catch (e) {}
       }
+      if (typeof remote.headerImage === "string") saveHeaderImg(remote.headerImage);
+      if (remote.theme && typeof remote.theme === "object") saveThemePolicy(remote.theme);
       if (Array.isArray(remote.notices)) saveNotices(remote.notices);
       if (Array.isArray(remote.danger)) saveCustomDangers(remote.danger);
       if (remote.dangerOver && typeof remote.dangerOver === "object") saveDangerOver(remote.dangerOver);
@@ -10690,6 +11196,10 @@ function App() {
     { id: "harvest",  label: "\u53ce\u7a6b\u8a18\u9332",   icon: "\ud83e\uddfa" },
     { id: "memo",     label: "\u5fd8\u5099\u9332",     icon: "\ud83d\udcd2" },
     { id: "map",      label: "収穫マップ", icon: "🗺️" },
+    { id: "theme",    label: "テーマ", icon: "🎨" },
+    { id: "safety",   label: "安全・連絡", icon: "🛡️" },
+    { id: "summary",  label: "年間まとめ", icon: "📊" },
+    { id: "search",   label: "検索", icon: "🔎" },
     { id: "gear",     label: "\u670d\u88c5\u30fb\u9053\u5177", icon: "\ud83d\udc55" },
     { id: "links",    label: "リンク集",   icon: "🔗" },
     { id: "manual",   label: "使い方・Q&A", icon: "📖" },
@@ -10752,6 +11262,10 @@ function App() {
           , tab === "patrol"   && React.createElement(ShareTab, { kind: "patrol", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(PatrolView, { key: k, spots: spots, onScheduleSuccess: handleScheduleSuccess, showToast: showToast, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} ),} )
           , tab === "harvest"  && React.createElement(ShareTab, { kind: "harvest", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(HarvestView, { key: k, spots: spots, members: members, sansaiList: sansaiList,} ),} )
           , tab === "map"      && React.createElement(HarvestMapView, { spots: spots, sansaiList: sansaiList })
+          , tab === "theme"    && React.createElement(ThemeView, { isAdmin: (secretOn || zukanIsAdminDevice()) })
+          , tab === "safety"   && React.createElement(SafetyView, { spots: spots })
+          , tab === "summary"  && React.createElement(SummaryView, { sansaiList: sansaiList, spots: spots })
+          , tab === "search"   && React.createElement(SearchView, { sansaiList: sansaiList, spots: spots, onGo: setTab })
           , tab === "notices"  && React.createElement(NoticesView, { isAdmin: (secretOn || zukanIsAdminDevice()) })
           , tab === "memo"     && React.createElement(ShareTab, { kind: "memo", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(MemoView, { key: k, spots: spots, sansaiList: sansaiList,} ),} )
           , tab === "gear"     && React.createElement(GearView, { sansaiList: sansaiList,} )
@@ -11064,6 +11578,7 @@ window.App = App;
 
     try{
       var c=document.getElementById('root');
+      try { applyTheme(); } catch (e) {}
       var rt=ReactDOM.createRoot(c);
       rt.render(React.createElement(AppErrorBoundary, null, React.createElement(PhotoProvider, null, React.createElement(AuthGate, null, React.createElement(window.App))), React.createElement(OfflineBanner, null)));
     }catch(e){
