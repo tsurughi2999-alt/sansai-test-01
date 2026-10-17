@@ -2976,6 +2976,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
       )
 
       , React.createElement(SeasonCard, { onGo: onTabChange })
+      , React.createElement(LastYearCard, { onGo: onTabChange })
       /* \u30e1\u30cb\u30e5\u30fc\u30b0\u30ea\u30c3\u30c9 */
       , React.createElement('div', { style: {padding:"0 16px"},}
         , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:12},}
@@ -4312,6 +4313,18 @@ function SpotsView({ spots, setSpots, sansaiList }) {
             )
           )
         )
+      )
+      , React.createElement('div', { className: "form-group",}
+        , React.createElement('label', { className: "form-label",}, "🍳 下処理・アク抜き")
+        , React.createElement('textarea', { className: "form-textarea", style: {minHeight:60}, value: form.prep || "", onChange: e=>setForm(f=>({...f,prep:e.target.value})), placeholder: "例：たっぷりのお湯で2分ゆで、冷水にさらす",} )
+      )
+      , React.createElement('div', { className: "form-group",}
+        , React.createElement('label', { className: "form-label",}, "🍽️ おすすめの食べ方")
+        , React.createElement('textarea', { className: "form-textarea", style: {minHeight:60}, value: form.cook || "", onChange: e=>setForm(f=>({...f,cook:e.target.value})), placeholder: "例：天ぷら・おひたし・味噌和え",} )
+      )
+      , React.createElement('div', { className: "form-group",}
+        , React.createElement('label', { className: "form-label",}, "🧊 保存のしかた")
+        , React.createElement('textarea', { className: "form-textarea", style: {minHeight:60}, value: form.keep || "", onChange: e=>setForm(f=>({...f,keep:e.target.value})), placeholder: "例：ゆでて冷凍。塩漬けで1年もつ",} )
       )
     )
   );
@@ -6834,7 +6847,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
     if (!form.name.trim() || form.months.length === 0) return;
     const newEntry = { ...form, id: Date.now(), isCustom: true };
     setEntries(prev => [...prev, newEntry]);
-    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", photoId:newEntry.photoId||null, isCustom:true, category:newEntry.category||catTab, yomi:newEntry.yomi||"", wiki:newEntry.wiki||"", lookalikeIds:newEntry.lookalikeIds||[]}]);
+    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", photoId:newEntry.photoId||null, isCustom:true, category:newEntry.category||catTab, yomi:newEntry.yomi||"", wiki:newEntry.wiki||"", lookalikeIds:newEntry.lookalikeIds||[], prep:newEntry.prep||"", cook:newEntry.cook||"", keep:newEntry.keep||""}]);
     setForm(emptyForm);
     setShowAddForm(false);
   };
@@ -7210,6 +7223,19 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
                   , React.createElement('div', { style: {lineHeight:1.8, color:"#444"},}, selected.desc)
                 )
               )
+
+              /* 下処理・食べ方・保存 */
+              , (selected.prep || selected.cook || selected.keep) ? (
+                React.createElement('div', { style: {background:"var(--soil)", borderRadius:10, padding:"12px 14px"},}
+                  , React.createElement('div', { style: {fontWeight:700, color:"var(--forest)", marginBottom:6},}, "🍳 下処理・食べ方")
+                  , [["下処理・アク抜き", selected.prep], ["おすすめの食べ方", selected.cook], ["保存のしかた", selected.keep]].filter(x => x[1]).map(x => (
+                    React.createElement('div', { key: x[0], style: {marginBottom:8},}
+                      , React.createElement('div', { style: {fontSize:11, fontWeight:700, color:"var(--moss)"},}, x[0])
+                      , React.createElement('div', { style: {lineHeight:1.8, color:"#444", whiteSpace:"pre-wrap", fontSize:13},}, x[1])
+                    )
+                  ))
+                )
+              ) : (isAdmin ? React.createElement('div', { style: {color:"#bbb", fontSize:12},}, "🍳 下処理・食べ方は、まだ入っていません（編集画面から入れられます）") : null)
 
               /* Wikipedia */
               , React.createElement('div', null, wikiLink(selected))
@@ -9403,6 +9429,8 @@ const MANUAL_ITEMS = [
   { t:"お知らせ", i:"📢", b:["管理者が更新の案内を出すと、アプリを開いたときに「📢 お知らせ」が全画面で表示されます。何がどう変わったかを、画像つきで読めます。","【必読のお知らせ】最後までスクロールすると、「読みました（アプリを開く）」のボタンが押せるようになります。押すと、アプリが使えます。重要な変更のときだけ、この形になります。","【ふつうのお知らせ】「閉じる」を押すだけで、アプリが開きます。","読んだお知らせは、二度と自動では出ません。あとで読み返したいときは、表紙の「📢 お知らせ」を開いてください。新しいお知らせ（7日以内）には、「NEW」が付きます。","お知らせは、電波のあるところでアプリを開いたときに届きます。受け取ったあとは、圏外でも読み返せます。","更新を何回か飛ばしたときは、読んでいないお知らせ（30日以内）が、まとめて表示されます。"], v:MANUAL_VER },
   { t:"テーマ（色の変更）", i:"🎨", b:["アプリの色を、森・春（桜）・夏（渓流）・秋（紅葉）・冬（雪）から選べます。「季節で自動」にすると、春・夏・秋・冬で色が自動で変わります。","表紙の「🎨 テーマ」を開き、好きな色を押すとすぐ変わります。この設定は、自分のスマホだけに保存されます。","管理者が「全員同じにする」に設定しているときは、色を変えられません。そのときは、表紙のテーマの画面に、その旨が表示されます。","管理者が「各自で選べる」にしているときは、管理者のおすすめの色から始まります。「管理者のおすすめに戻す」ボタンで、いつでも戻せます。","管理者がヘッダーの風景写真を設定していると、アプリの上部と表紙の上部に表示されます。写真を表示したくないときは、「🎨 テーマ」の「風景写真を表示する」のチェックを外してください。","色の濃さは、「うすめ（明るい）」と「こい」から選べます。初めは「うすめ」です。この設定も、自分のスマホだけに保存されます。"], v:MANUAL_VER },
   { t:"今月の旬（表紙）", i:"🌿", b:["表紙の上のほうに、今月が旬の山菜が表示されます。来月から旬になる山菜も、あわせて出ます。","今年の収穫回数と、直近の収穫も表示されます。カードを押すと、山菜カレンダーが開きます。"], v:MANUAL_VER },
+  { t:"去年の今ごろ（表紙）", i:"📅", b:["表紙の「今月の旬」の下に、去年など前の年の同じ時期（前後1週間）の収穫記録が出ます。どこで何を採ったかを思い出すのに使えます。","今が旬の山菜は、年ごとに最初に採った日も並びます。年による旬のずれが分かります。","カードを押すと、収穫記録が開きます。収穫記録がたまるほど、役に立ちます。"], v:MANUAL_VER },
+  { t:"下処理・食べ方（山菜図鑑）", i:"🍳", b:["山菜図鑑の各項目を開くと、「下処理・アク抜き」「おすすめの食べ方」「保存のしかた」が出ます。","書き込めるのは管理者だけです。管理者が図鑑の編集画面で入れて、図鑑を配信すると、メンバーにも届きます。"], v:MANUAL_VER },
   { t:"出発前チェック", i:"✅", b:["山に行く前の持ち物の確認に使います。表紙の「✅ 出発前チェック」を開き、今日行く山菜を選びます。","選んだ山菜に合わせて、「服装・道具」リストから必要なものが自動で並びます。「専用」と書かれたものは、その山菜用の道具です。","持ち物を押すとチェックが入ります。全部そろうと「準備OK」と出ます。チェックは、この端末だけに保存されます。","「自分用の持ち物」に、自分だけのメモ（おやつ、タオルなど）を足せます。「チェックを全部外す」で、次の山行の前にやり直せます。"], v:MANUAL_VER },
   { t:"日の入りと下山の目安", i:"🌇", b:["「安全・連絡」を開くと、日の出・日の入りの時刻と、下山を始める目安の時刻が出ます。","行き先のスポットを選び、日付は「入山の予定」の日付が使われます。「現在地を使う」も選べます。","日の入りの何時間前に下山を始めるかを、1時間・1時間半・2時間・3時間から選べます。初めは2時間前です。","当日は、下山を始める目安までの残り時間が出ます。「この時刻を、下山予定に入れる」を押すと、入山の予定の下山時刻に入ります。","時刻は計算で出すので、圏外でも使えます。谷や森の中は、日の入りより早く暗くなります。余裕を持って下山してください。"], v:MANUAL_VER },
   { t:"安全・連絡", i:"🛡️", b:["【入山の予定を送る】行き先・入山時刻・下山予定時刻・メンバー・車の場所を入力すると、LINE用の文章ができます。「LINEで送る」を押すと、LINEの送り先を選ぶ画面が開きます。送る相手は、自分で選びます。アプリが自動で送ることはありません。","【下山したら】「無事に下山しました」を、ワンタップでLINEに送れます。","【現在地を送る】「現在地を調べる」を押したときだけ、現在地を調べて、地図のリンクつきの文章を作ります。圏外でも現在地は調べられるので、電波が戻ったときに送れます。","緊急のときは、まず119（救急・消防）または110（警察）に電話してください。"], v:MANUAL_VER },
@@ -10957,6 +10985,40 @@ function SunBadge({ style }) {
   const t = sunCalc(ds, 36.5, 137.2);
   if (!t) return null;
   return _m('div', { style: { whiteSpace: "nowrap", ...(style || {}) } }, "🌅 日の出 " + sunHM(t.sunrise) + "　🌇 日の入り " + sunHM(t.sunset));
+}
+
+/* --- 表紙：去年の今ごろ／初物の日くらべ --- */
+function LastYearCard({ onGo }) {
+  const list = featLoadSansai();
+  let spots = []; try { const v = JSON.parse(localStorage.getItem("sansai_spots") || "[]"); if (Array.isArray(v)) spots = v; } catch (e) {}
+  const now = new Date(), yr = now.getFullYear(), mo = now.getMonth() + 1;
+  const all = shareLoadOwn("harvest").filter(h => h && /^\d{4}-\d{2}-\d{2}/.test(String(h.date)));
+  const nameOf = (id) => { const s = list.find(x => x.id === Number(id)); return s ? ((s.emoji || "🌿") + s.name) : "山菜"; };
+  const near = all.filter(h => {
+    const y = Number(String(h.date).slice(0, 4)); if (y >= yr) return false;
+    const d = new Date(yr, Number(String(h.date).slice(5, 7)) - 1, Number(String(h.date).slice(8, 10)));
+    return Math.abs(d.getTime() - new Date(yr, now.getMonth(), now.getDate()).getTime()) <= 7 * 86400000;
+  }).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const inM = (s, m) => Array.isArray(s.months) && s.months.map(Number).indexOf(m) >= 0;
+  const firsts = [];
+  list.filter(s => inM(s, mo)).forEach(s => {
+    const rec = all.filter(h => Number(h.sansaiId) === s.id);
+    const by = {};
+    rec.forEach(h => { const y = String(h.date).slice(0, 4), md = String(h.date).slice(5, 10); if (!by[y] || md < by[y]) by[y] = md; });
+    const ys = Object.keys(by).sort().reverse();
+    if (ys.some(y => Number(y) < yr)) firsts.push({ name: (s.emoji || "🌿") + s.name, text: ys.slice(0, 3).map(y => y + "年 " + by[y].replace("-", "/")).join("　") });
+  });
+  const sub = { fontSize: 12, color: "rgba(255,255,255,0.88)", lineHeight: 1.8 };
+  const head = { fontSize: 14, fontWeight: 700, color: "white", marginBottom: 6 };
+  return _m('div', { style: { padding: "0 16px 14px" } },
+    _m('div', { onClick: () => onGo && onGo("harvest"), style: { background: "rgba(255,255,255,0.1)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 16, padding: 14, cursor: "pointer" } },
+      _m('div', { style: head }, "📅 去年の今ごろ"),
+      near.length ? near.slice(0, 5).map((h, i) => _m('div', { key: i, style: sub }, String(h.date).slice(0, 4) + "年" + Number(String(h.date).slice(5, 7)) + "月" + Number(String(h.date).slice(8, 10)) + "日　" + nameOf(h.sansaiId) + (h.amount ? "　" + h.amount + (h.unit || "") : "") + (shareSpotName(spots, h.spotId) ? "（" + shareSpotName(spots, h.spotId) + "）" : "")))
+        : _m('div', { style: sub }, all.length ? "去年の同じ時期（前後1週間）の収穫記録は、ありません。" : "収穫記録がたまると、ここに去年の同じ時期の記録が出ます。"),
+      firsts.length > 0 && _m('div', { style: { marginTop: 10, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.18)" } },
+        _m('div', { style: { ...head, fontSize: 13 } }, "🌱 初めて採った日（今が旬の山菜）"),
+        firsts.slice(0, 5).map((f, i) => _m('div', { key: i, style: sub }, f.name + "：" + f.text))),
+      all.length > 0 && _m('div', { style: { fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 6 } }, "押すと収穫記録が開きます")));
 }
 
 /* --- 安全・連絡：入山の予定／現在地 --- */
