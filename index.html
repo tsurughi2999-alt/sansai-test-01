@@ -4783,7 +4783,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
   return (
     React.createElement('div', null
       , React.createElement('div', { className: "section-title",}, "\ud83d\udd0d \u5c71\u83dc\u30d1\u30c8\u30ed\u30fc\u30eb" )
-      , React.createElement('div', { className: "section-desc",}, "\u30b9\u30dd\u30c3\u30c8\u306e\u5de1\u56de\u8a18\u9332\u30fb\u751f\u80b2\u72b6\u6cc1\u30fb\u30b9\u30b1\u30b8\u30e5\u30fc\u30eb\u7ba1\u7406 (ver 18c)")
+      , React.createElement('div', { className: "section-desc",}, "\u30b9\u30dd\u30c3\u30c8\u306e\u5de1\u56de\u8a18\u9332\u30fb\u751f\u80b2\u72b6\u6cc1\u30fb\u30b9\u30b1\u30b8\u30e5\u30fc\u30eb\u7ba1\u7406 (ver 18d)")
 
       /* \u30b5\u30de\u30ea\u30fc */
       , React.createElement('div', { style: {display:"flex", gap:10, marginBottom:20, flexWrap:"wrap"},}
@@ -4949,6 +4949,12 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
             const dayNames = ["\u65e5","\u6708","\u706b","\u6c34","\u6728","\u91d1","\u571f"];
             const daysSince = Math.floor((new Date(sch.date)-new Date(today))/(1000*60*60*24));
             const att = _nullishCoalesce(sch.attendance, () => ( {}));
+            const sendSchedLine = () => {
+              const lines = ["\ud83d\udcc5 \u5de1\u56de\u4e88\u5b9a\u306e\u304a\u77e5\u3089\u305b", "\u65e5\u4ed8\uff1a" + (d.getMonth()+1) + "/" + d.getDate() + "\uff08" + dayNames[d.getDay()] + "\uff09", "\u30b9\u30dd\u30c3\u30c8\uff1a" + spotName(sch.spotId)];
+              if (sch.assignee) lines.push("\u62c5\u5f53\uff1a" + sch.assignee);
+              if (sch.memo) lines.push("\u30e1\u30e2\uff1a" + sch.memo);
+              window.open("https://line.me/R/msg/text/?" + encodeURIComponent(lines.join("\n")), "_blank");
+            };
             const joinCount = Object.values(att).filter(v=>v==="\u53c2\u52a0").length;
             const absentCount = Object.values(att).filter(v=>v==="\u4e0d\u53c2\u52a0").length;
             const pendingCount = Object.values(att).filter(v=>v==="\u672a\u56de\u7b54").length;
@@ -4971,10 +4977,15 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
                 , React.createElement('div', { style: {marginTop:10, padding:"10px 12px", background:"var(--soil)", borderRadius:10},}
                   , React.createElement('div', { style: {display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8},}
                     , React.createElement('div', { style: {fontSize:12, fontWeight:700, color:"var(--forest)"},}, "\ud83d\udc65 \u51fa\u6b20\u72b6\u6cc1" )
+                    , React.createElement('div', { style: {display:"flex", gap:6},}
+                    , React.createElement('button', { onClick: sendSchedLine,
+                      style: {background:"#06c755", color:"white", border:"none", borderRadius:8,
+                        padding:"4px 12px", cursor:"pointer", fontSize:11, fontWeight:600},}, "\ud83d\udcac LINE\u3067\u9001\u308b")
                     , React.createElement('button', { onClick: ()=>setAttendanceModal(sch),
                       style: {background:"var(--forest)", color:"white", border:"none", borderRadius:8,
                         padding:"4px 12px", cursor:"pointer", fontSize:11, fontWeight:600},}, "\u270f\ufe0f \u51fa\u6b20\u3092\u7ba1\u7406"
 
+                    )
                     )
                   )
                   , React.createElement('div', { style: {display:"flex", gap:8, flexWrap:"wrap"},}
