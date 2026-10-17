@@ -2966,6 +2966,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
         , React.createElement('div', { style: {fontSize:14, color:"rgba(255,255,255,0.7)", letterSpacing:1},}, "\u4e2d\u90e8\u30fb\u5317\u9678\u30a8\u30ea\u30a2 | \u30b0\u30eb\u30fc\u30d7\u7ba1\u7406"
 
         )
+        , React.createElement(SunBadge, { style: {fontSize:13, color:"rgba(255,255,255,0.85)", marginTop:6, letterSpacing:0.5, textShadow:"0 1px 4px rgba(0,0,0,0.4)"} })
         /* \u88c5\u98fe\u30e9\u30a4\u30f3 */
         , React.createElement('div', { style: {display:"flex", alignItems:"center", justifyContent:"center", gap:12, margin:"20px 0 0"},}
           , React.createElement('div', { style: {height:1, width:60, background:"rgba(255,255,255,0.3)"},})
@@ -10945,6 +10946,17 @@ function SunCard({ spots, plan, onSetOut }) {
     status && _m('div', { style: { marginTop: 10, fontSize: 13, fontWeight: 700, color: status.c, lineHeight: 1.7 } }, status.m),
     _m('button', { onClick: () => { onSetOut && onSetOut(sunHM(down)); setDone(true); }, style: { ...featBtn, width: "100%", marginTop: 10, background: "var(--forest)", color: "white" } }, done ? "✅ 下山予定に入れました" : "この時刻を、下山予定に入れる"),
     _m('div', { style: { fontSize: 11, color: "#888", lineHeight: 1.7, marginTop: 8 } }, "※ 谷や森の中は、日の入りの1時間ほど前から暗くなります。曇りや雨の日は、さらに早く暗くなります。「暗くなる頃」は、日の入りの30分後（空が暗くなる目安）です。ヘッドライトは必ず持って行きましょう。"));
+}
+
+/* --- ヘッダー・表紙に出す、今日の日の出・日の入り（中部・北陸の目安。計算なので圏外でも出ます） --- */
+function SunBadge({ style }) {
+  const [, setTick] = useState(0);
+  useEffect(() => { const t = setInterval(() => setTick(x => x + 1), 60000); return () => clearInterval(t); }, []);
+  const n = new Date();
+  const ds = n.getFullYear() + "-" + String(n.getMonth() + 1).padStart(2, "0") + "-" + String(n.getDate()).padStart(2, "0");
+  const t = sunCalc(ds, 36.5, 137.2);
+  if (!t) return null;
+  return _m('div', { style: { whiteSpace: "nowrap", ...(style || {}) } }, "🌅 日の出 " + sunHM(t.sunrise) + "　🌇 日の入り " + sunHM(t.sunset));
 }
 
 /* --- 安全・連絡：入山の予定／現在地 --- */
