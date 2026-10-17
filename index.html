@@ -52,8 +52,8 @@ body{margin:0;padding:0;}
 
   /* Header */
   .header {
-    background: var(--forest);
-    color: var(--spring);
+    background: var(--header-bg, var(--forest));
+    color: var(--header-fg, var(--spring));
     padding: 0 24px;
     display: flex;
     align-items: center;
@@ -75,7 +75,7 @@ body{margin:0;padding:0;}
   }
   .header-subtitle {
     font-size: 11px;
-    color: var(--bark);
+    color: var(--header-sub, var(--bark));
     letter-spacing: 0.15em;
   }
 
@@ -993,8 +993,8 @@ const styles = `
 
   /* Header */
   .header {
-    background: var(--forest);
-    color: var(--spring);
+    background: var(--header-bg, var(--forest));
+    color: var(--header-fg, var(--spring));
     padding: 0 24px;
     display: flex;
     align-items: center;
@@ -1016,7 +1016,7 @@ const styles = `
   }
   .header-subtitle {
     font-size: 11px;
-    color: var(--bark);
+    color: var(--header-sub, var(--bark));
     letter-spacing: 0.15em;
   }
 
@@ -2468,23 +2468,64 @@ const INITIAL_TOOLS = [
 
 // ===== 服装・道具のアイコン（名前・カテゴリから自動で選ぶ） =====
 const GEAR_NAME_ICONS = [
-  ["ゴーグル","🥽"],["保護メガネ","🥽"],["メガネ","🥽"],["マスク","😷"],["靴下","🧦"],["虫除け","🦟"],["日焼け","🧴"],["熊撃退","🐻"],
-  ["ヘルメット","⛑️"],["ヘッドランプ","🔦"],["ライト","🔦"],["ファーストエイド","🩹"],["救急","🩹"],["熊鈴","🔔"],["スプレー","🧴"],
+  ["火バサミ","🥢"],["トング","🥢"],["コンテナ","🧺"],["鍬","⛏️"],["カート","🛒"],["笛","🪈"],["ホイッスル","🪈"],
+  ["ヘルメット","⛑️"],["ヘッドランプ","🔦"],["ライト","🔦"],["ファーストエイド","🩹"],["救急","🩹"],["熊鈴","🔔"],["熊撃退","🧴"],["スプレー","🧴"],
   ["長袖","👕"],["シャツ","👕"],["長ズボン","👖"],["ズボン","👖"],["パンツ","👖"],["長靴","👢"],["登山靴","🥾"],["靴","🥾"],
   ["軍手","🧤"],["手袋","🧤"],["帽子","🧢"],["レインウェア","☔"],["雨具","☔"],["ヤッケ","🧥"],["防風","🧥"],["ジャケット","🧥"],["スパッツ","🧦"],["ゲイター","🧦"],["靴下","🧦"],
-  ["ナイフ","🔪"],["鎌","🔪"],["ハサミ","✂️"],["スコップ","⛏️"],["移植ゴテ","⛏️"],["ザル","🧺"],["カゴ","🧺"],["籠","🧺"],["ビニール","🛍️"],["新聞","📰"],
+  ["ナイフ","🔪"],["鎌","🔪"],["ハサミ","✂️"],["スコップ","🪏"],["移植ゴテ","⛏️"],["ザル","🧺"],["カゴ","🧺"],["籠","🧺"],["ビニール","🛍️"],["新聞","📰"],
   ["GPS","📱"],["スマートフォン","📱"],["スマホ","📱"],["コンパス","🧭"],["地図","🗺️"],["水筒","🥤"],["飲み水","🥤"],["タオル","🧣"],["虫除け","🦟"],["日焼け","🧴"],["食","🍙"]
 ];
 const GEAR_CAT_ICONS = {
-  "上着":"🧥","ズボン":"👖","靴":"🥾","手袋":"🧤","帽子":"🧢","雨具":"☔","脚":"🦵","頭":"👷",
+  "上着":"🧥","ズボン":"👖","靴":"🥾","手袋":"🧤","帽子":"🧢","雨具":"☔","脚":"🧦","頭":"⛑️",
   "採取道具":"🔪","収納":"🧺","安全":"🦺","照明":"🔦","救急":"🩹","ナビ":"🧭","携行食":"🍙","その他":"🎒"
 };
+const GEAR_EXTRA_ICONS = [
+  ["防寒","🧥"],["ダウン","🧥"],["フリース","🧥"],["セーター","🧥"],["カッパ","☔"],["ポンチョ","☔"],["傘","☂️"],["雨","☔"],
+  ["マスク","😷"],["ネックウォーマー","🧣"],["マフラー","🧣"],["手ぬぐい","🧣"],["バンダナ","🧣"],["サングラス","🕶️"],["メガネ","👓"],["眼鏡","👓"],["ゴーグル","🥽"],
+  ["ヘアネット","🧢"],["防虫ネット","🦟"],["ネット","🦟"],["日焼け止め","🧴"],["虫除けスプレー","🦟"],["虫除け","🦟"],["蚊","🦟"],["ダニ","🦟"],["ヒル","🐛"],
+  ["ハチ","🐝"],["蜂","🐝"],["ヘビ","🐍"],["蛇","🐍"],["熊","🐻"],["鈴","🔔"],["ホイッスル","🪈"],["笛","🪈"],
+  ["リュック","🎒"],["ザック","🎒"],["バッグ","🎒"],["ナップサック","🎒"],["ウエストポーチ","👝"],["ポーチ","👝"],["腰袋","👝"],["袋","🛍️"],["ポリ","🛍️"],["ゴミ","🗑️"],
+  ["コンテナ","🧺"],["バスケット","🧺"],["ネットバッグ","🧺"],["クーラー","🧊"],["保冷","🧊"],["氷","🧊"],
+  ["カート","🛒"],["台車","🛒"],["一輪車","🛒"],["キャリー","🛒"],
+  ["トング","🥢"],["火バサミ","🥢"],["ピンセット","🥢"],["鍬","⛏️"],["クワ","⛏️"],["ツルハシ","⛏️"],["ピッケル","⛏️"],["スコップ","🪏"],["シャベル","🪏"],["ショベル","🪏"],["移植ゴテ","🪏"],
+  ["ナタ","🪓"],["鉈","🪓"],["斧","🪓"],["ノコギリ","🪚"],["鋸","🪚"],["剪定","✂️"],["枝切り","✂️"],["包丁","🔪"],["カッター","🔪"],["鎌","🔪"],
+  ["ロープ","🪢"],["紐","🪢"],["ひも","🪢"],["ワイヤー","🪢"],["ブルーシート","🟦"],["シート","🟦"],["テント","⛺"],["イス","🪑"],["椅子","🪑"],
+  ["ランタン","🏮"],["懐中電灯","🔦"],["ヘッドライト","🔦"],["電池","🔋"],["バッテリー","🔋"],["充電","🔋"],["モバイル","🔋"],
+  ["カメラ","📷"],["双眼鏡","🔭"],["時計","⌚"],["高度計","⌚"],["無線","📻"],["トランシーバー","📻"],["ラジオ","📻"],["衛星","📡"],
+  ["ライター","🔥"],["マッチ","🔥"],["バーナー","🔥"],["コンロ","🔥"],["ストーブ","🔥"],["鍋","🍲"],["カップ","🥣"],["食器","🍽️"],["箸","🥢"],
+  ["ペットボトル","🥤"],["水","💧"],["お茶","🍵"],["コーヒー","☕"],["ジュース","🥤"],["塩","🧂"],["塩分","🧂"],["飴","🍬"],["アメ","🍬"],["チョコ","🍫"],["お菓子","🍫"],["行動食","🍫"],["おにぎり","🍙"],["弁当","🍱"],["パン","🍞"],["カップ麺","🍜"],["果物","🍎"],["バナナ","🍌"],
+  ["絆創膏","🩹"],["バンドエイド","🩹"],["包帯","🩹"],["三角巾","🩹"],["消毒","🧴"],["薬","💊"],["ポイズンリムーバー","💉"],["ティッシュ","🧻"],["ウェットティッシュ","🧻"],["トイレ","🧻"],
+  ["保険証","🪪"],["身分証","🪪"],["免許","🪪"],["連絡","📞"],["電話","📞"],["入山届","📝"],["登山届","📝"],["メモ","📝"],["ノート","📝"],["ペン","🖊️"],["鉛筆","🖊️"],["図鑑","📖"],["本","📖"],["地形図","🗺️"],
+  ["はかり","⚖️"],["秤","⚖️"],["定規","📏"],["メジャー","📏"],["タッパー","🥡"],["ジップ","🛍️"],["ビン","🫙"],["瓶","🫙"],
+  ["ベスト","🦺"],["反射","🦺"],["オレンジ","🦺"],["杖","🦯"],["ストック","🦯"],["ステッキ","🦯"],
+  ["長袖","👕"],["半袖","👕"],["Tシャツ","👕"],["インナー","👕"],["下着","🩲"],["タイツ","🧦"],["レギンス","🧦"],["サンダル","🩴"],["スニーカー","👟"],["ブーツ","👢"],["足袋","🧦"],["地下足袋","🥾"],
+  ["ゴム手","🧤"],["作業手袋","🧤"],["グローブ","🧤"],["キャップ","🧢"],["ハット","👒"],["麦わら","👒"],["笠","👒"],["日よけ","👒"]
+];
+let GEAR_ICON_TABLE = null;
+function gearNorm(str) {
+  let t = String(str || "").normalize("NFKC").toLowerCase();
+  t = t.replace(/[\u3041-\u3096]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
+  return t.replace(/[\u30fc\s\u30fb\u3000]/g, "");
+}
+function gearAutoIcon(name, category, isClothing) {
+  if (!GEAR_ICON_TABLE) {
+    GEAR_ICON_TABLE = GEAR_NAME_ICONS.concat(GEAR_EXTRA_ICONS).map(e => [gearNorm(e[0]), e[1]]).filter(e => e[0]);
+  }
+  const n = gearNorm(name);
+  let best = null, bestLen = 0;
+  if (n) {
+    for (let i = 0; i < GEAR_ICON_TABLE.length; i++) {
+      const k = GEAR_ICON_TABLE[i][0];
+      if (k.length > bestLen && n.indexOf(k) >= 0) { best = GEAR_ICON_TABLE[i][1]; bestLen = k.length; }
+    }
+  }
+  if (best) return best;
+  if (category && GEAR_CAT_ICONS[category]) return GEAR_CAT_ICONS[category];
+  return isClothing ? "👕" : "🎒";
+}
 function gearIcon(item, isClothing) {
   if (item && item.icon) return item.icon;
-  const name = (item && item.name) || "";
-  for (let i = 0; i < GEAR_NAME_ICONS.length; i++) { if (name.indexOf(GEAR_NAME_ICONS[i][0]) >= 0) return GEAR_NAME_ICONS[i][1]; }
-  if (item && GEAR_CAT_ICONS[item.category]) return GEAR_CAT_ICONS[item.category];
-  return isClothing ? "👕" : "🎒";
+  return gearAutoIcon(item && item.name, item && item.category, isClothing);
 }
 function gearCatIcon(cat, isClothing) { return GEAR_CAT_ICONS[cat] || (isClothing ? "👕" : "🎒"); }
 
@@ -2541,7 +2582,7 @@ function GearView({ sansaiList }) {
   };
 
   const openEdit = (item) => {
-    setForm({ name:item.name, category:item.category, desc:item.desc||"", sansai:item.sansai||[] });
+    setForm({ name:item.name, category:item.category, desc:item.desc||"", sansai:item.sansai||[], ...(item.icon ? {icon:item.icon} : {}) });
     setEditTarget(item);
     setShowForm(true);
   };
@@ -2549,7 +2590,7 @@ function GearView({ sansaiList }) {
   const handleSave = () => {
     if (!form.name.trim()) return;
     if (editTarget) {
-      setCurrentList(prev => prev.map(i => i.id === editTarget.id ? {...i, ...form} : i));
+      setCurrentList(prev => prev.map(i => { if (i.id !== editTarget.id) return i; const n = {...i, ...form}; if (!form.icon) delete n.icon; return n; }));
     } else {
       setCurrentList(prev => [...prev, { id: Date.now(), ...form }]);
     }
@@ -2649,6 +2690,22 @@ function GearView({ sansaiList }) {
               , React.createElement('input', { className: "form-input", value: form.name,
                 onChange: e => setForm(f => ({...f, name:e.target.value})),
                 placeholder: mainTab==="clothing" ? "\u4f8b\uff1a\u9577\u9774" : "\u4f8b\uff1a\u718a\u9234",} )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "アイコン（名前から自動で選ばれます）")
+              , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:10, marginBottom:8},}
+                , React.createElement('div', { style: {fontSize:34, lineHeight:1},}, form.icon || gearAutoIcon(form.name, form.category, mainTab==="clothing"))
+                , React.createElement('div', { style: {fontSize:12, color:"#777", flex:1},}, form.icon ? "手動で選択中" : "自動")
+                , form.icon && React.createElement('button', { type:"button", onClick: () => setForm(f => { const g={...f}; delete g.icon; return g; }),
+                    style: {border:"none", background:"var(--mist)", borderRadius:8, padding:"6px 10px", fontSize:12, cursor:"pointer"},}, "自動に戻す")
+              )
+              , React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6},}
+                , ["🧥","👕","👖","🥾","👢","🧤","🧢","☔","🧣","🔪","✂️","⛏️","🪏","🪓","🧺","🛒","🎒","🔦","🔔","🪈","🧭","📱","🔋","🥤","🍙","🩹","💊","🦟","🧴","🪢","🛍️","📝"].map(ic => (
+                  React.createElement('button', { key: ic, type:"button", onClick: () => setForm(f => ({...f, icon: ic})),
+                    style: {fontSize:20, width:38, height:38, borderRadius:8, cursor:"pointer",
+                      border: form.icon===ic ? "2px solid var(--forest)" : "1px solid #ddd", background:"white"},}, ic)
+                ))
+              )
             )
             , React.createElement('div', { className: "form-group",}
               , React.createElement('label', { className: "form-label",}, "\u30ab\u30c6\u30b4\u30ea")
@@ -2797,7 +2854,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
   const [backupStatus, setBackupStatus] = useState("");
   const [lastBackup, setLastBackup] = useState(() => { try { return Number(localStorage.getItem("sansai_last_backup")) || 0; } catch (e) { return 0; } });
   const importInputRef = useRef(null);
-  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1","sansai_danger_custom_v1","sansai_danger_over_v1","sansai_notices","sansai_theme_pref","sansai_theme_policy","sansai_header_img","sansai_header_off"];
+  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1","sansai_danger_custom_v1","sansai_danger_over_v1","sansai_notices","sansai_theme_pref","sansai_theme_policy","sansai_theme_dark","sansai_header_img","sansai_header_off"];
 
   const handleExport = async () => {
     const FOLDER_NAME = "\u5c71\u83dc\u624b\u5e33\u30d0\u30c3\u30af\u30a2\u30c3\u30d7";
@@ -2891,6 +2948,8 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
     { id:"links",    icon:"🔗", label:"リンク集",     desc:"SNS・おすすめWeb", color:"#2c7a7b" },
     { id:"manual",   icon:"📖", label:"使い方・Q&A",  desc:"操作説明・よくある質問", color:"#b7791f" },
   ];
+  const MENU_ICON_FIX = { calendar:"🗓️", plan:"🌤️", info:"📖", patrol:"🥾", gear:"🎒", manual:"❓" };
+  menuItems.forEach(m => { if (MENU_ICON_FIX[m.id]) m.icon = MENU_ICON_FIX[m.id]; });
   if (secretOn) menuItems.push({ id:"secret", icon:"📝", label:"メモ", desc:"作成者専用・非公開", color:"#6b46c1" });
 
   return (
@@ -9340,7 +9399,7 @@ const MANUAL_ITEMS = [
   { t:"記録の共有（パトロール・収穫記録・忘備録・ブログ）", i:"🔗", b:["この4つのタブには、「✏️ 自分の〜」と「👥 みんなの〜」の2つの画面があります（〜にはパトロール・採取記録・メモ・ブログが入ります）。","「自分の〜」に入力した内容は、これまで通り自分のスマホの中にだけ保存されます。","【メンバー】「共有する記録を選ぶ」で、みんなに見せたい記録にチェックを入れ、「📤 管理者に提出する」を押します。できた提出ファイルを、LINEなどで管理者に送ってください。初めて提出するときは、名前の入力を求められます。","【管理者】メンバーの提出ファイルを「📥 メンバーの提出ファイルを取り込む」で追加し、内容を確認したら「🌿 配信用に書き出す」でファイルを作り、GitHubに上書きアップロードします。","共有された内容は「👥 みんなの〜」に表示されます。見るだけの画面なので、編集や削除はできません。","位置情報（GPS）は、共有されません。"], v:MANUAL_VER },
   { t:"更新のお知らせがあったとき（データの更新）", i:"🔄", b:["管理者が図鑑・カレンダー・メンバー名簿などを更新すると、LINEなどで「更新しました」と案内が届きます。メンバーが、ボタンを押したりファイルを入れたりする必要はありません。","【更新のしかた】①インターネットにつながった状態で、アプリを一度完全に閉じます（最近使ったアプリの一覧から上にスワイプして終了）。②もう一度アプリを開き、ログイン画面が出たらログインします。③画面に「🌿 図鑑・カレンダー・メンバー名簿を最新版に更新しました」と表示されれば完了です。","【更新される内容】山菜図鑑（危険植物・危険キノコを含む）、山菜カレンダー、メンバー名簿、使い方・Q&Aの画像、お知らせです。","【みんなの〜（パトロール・収穫記録・忘備録・ブログ）】それぞれのタブの「👥 みんなの〜」を開くたびに、最新の内容を読み込みます。画面に「最終更新」の日時が出ます。","【自分の記録は消えません】自分で入力した記録・スポット・ブログや、山菜ごとの「おすすめスポット」は、更新しても自分の端末に残ります。メンバー名簿は管理者の内容に置き換わりますが、この端末で「自分」に選んでいる人のプロフィールは端末側の内容が残ります。","【表示が変わらないとき】管理者がまだアップロードしていないか、すでに最新の状態です。少し待ってから、もう一度アプリを開き直してください。「ストレージを消去」「サイトデータの削除」は保存データも消えるので押さないでください。","【「🔒 配信データを開けませんでした」と出たとき】管理者がパスワードを変えた可能性があります。管理者に新しいIDとパスワードを聞き、メンバータブの下の「🚪 この端末をログアウト」を押してから、入り直してください。","※管理者の端末は、自動では更新されません（管理者の端末が元データのためです）。"], v:MANUAL_VER },
   { t:"お知らせ", i:"📢", b:["管理者が更新の案内を出すと、アプリを開いたときに「📢 お知らせ」が全画面で表示されます。何がどう変わったかを、画像つきで読めます。","【必読のお知らせ】最後までスクロールすると、「読みました（アプリを開く）」のボタンが押せるようになります。押すと、アプリが使えます。重要な変更のときだけ、この形になります。","【ふつうのお知らせ】「閉じる」を押すだけで、アプリが開きます。","読んだお知らせは、二度と自動では出ません。あとで読み返したいときは、表紙の「📢 お知らせ」を開いてください。新しいお知らせ（7日以内）には、「NEW」が付きます。","お知らせは、電波のあるところでアプリを開いたときに届きます。受け取ったあとは、圏外でも読み返せます。","更新を何回か飛ばしたときは、読んでいないお知らせ（30日以内）が、まとめて表示されます。"], v:MANUAL_VER },
-  { t:"テーマ（色の変更）", i:"🎨", b:["アプリの色を、森・春（桜）・夏（渓流）・秋（紅葉）・冬（雪）から選べます。「季節で自動」にすると、春・夏・秋・冬で色が自動で変わります。","表紙の「🎨 テーマ」を開き、好きな色を押すとすぐ変わります。この設定は、自分のスマホだけに保存されます。","管理者が「全員同じにする」に設定しているときは、色を変えられません。そのときは、表紙のテーマの画面に、その旨が表示されます。","管理者が「各自で選べる」にしているときは、管理者のおすすめの色から始まります。「管理者のおすすめに戻す」ボタンで、いつでも戻せます。","管理者がヘッダーの風景写真を設定していると、アプリの上部と表紙の上部に表示されます。写真を表示したくないときは、「🎨 テーマ」の「風景写真を表示する」のチェックを外してください。"], v:MANUAL_VER },
+  { t:"テーマ（色の変更）", i:"🎨", b:["アプリの色を、森・春（桜）・夏（渓流）・秋（紅葉）・冬（雪）から選べます。「季節で自動」にすると、春・夏・秋・冬で色が自動で変わります。","表紙の「🎨 テーマ」を開き、好きな色を押すとすぐ変わります。この設定は、自分のスマホだけに保存されます。","管理者が「全員同じにする」に設定しているときは、色を変えられません。そのときは、表紙のテーマの画面に、その旨が表示されます。","管理者が「各自で選べる」にしているときは、管理者のおすすめの色から始まります。「管理者のおすすめに戻す」ボタンで、いつでも戻せます。","管理者がヘッダーの風景写真を設定していると、アプリの上部と表紙の上部に表示されます。写真を表示したくないときは、「🎨 テーマ」の「風景写真を表示する」のチェックを外してください。","色の濃さは、「うすめ（明るい）」と「こい」から選べます。初めは「うすめ」です。この設定も、自分のスマホだけに保存されます。"], v:MANUAL_VER },
   { t:"今月の旬（表紙）", i:"🌿", b:["表紙の上のほうに、今月が旬の山菜が表示されます。来月から旬になる山菜も、あわせて出ます。","今年の収穫回数と、直近の収穫も表示されます。カードを押すと、山菜カレンダーが開きます。"], v:MANUAL_VER },
   { t:"安全・連絡", i:"🛡️", b:["【入山の予定を送る】行き先・入山時刻・下山予定時刻・メンバー・車の場所を入力すると、LINE用の文章ができます。「LINEで送る」を押すと、LINEの送り先を選ぶ画面が開きます。送る相手は、自分で選びます。アプリが自動で送ることはありません。","【下山したら】「無事に下山しました」を、ワンタップでLINEに送れます。","【現在地を送る】「現在地を調べる」を押したときだけ、現在地を調べて、地図のリンクつきの文章を作ります。圏外でも現在地は調べられるので、電波が戻ったときに送れます。","緊急のときは、まず119（救急・消防）または110（警察）に電話してください。"], v:MANUAL_VER },
   { t:"年間まとめ・図鑑コンプリート", i:"📊", b:["自分の収穫記録を、年ごとに集計します。収穫回数、合計の量、山菜の種類、よく採れた山菜、月ごとの収穫回数が出ます。","「まとめの画像を保存」や「画像をLINEなどで送る」で、1枚の画像にして共有できます。位置情報（GPS）は入りません。「いちばん行った場所」の名前は、チェックを入れたときだけ画像に入ります。","「図鑑コンプリート」では、収穫記録に残した山菜に色が付きます。何種類採ったかが分かります。","元になるのは、自分のスマホに入っている収穫記録だけです。"], v:MANUAL_VER },
@@ -10533,6 +10592,21 @@ const THEMES = {
   autumn: { name: "秋（紅葉）", icon: "🍁", v: { "--forest": "#7a3b1a", "--moss": "#a8541f", "--fern": "#d9822b", "--spring": "#ffd27a", "--earth": "#7a5c3a", "--bark": "#d8b48a", "--soil": "#f7efe3", "--cream": "#fbf6ee", "--paper": "#fffaf1", "--ink": "#2e1a0e", "--mist": "#f3e6d6", "--hero1": "#4a2210", "--hero2": "#8a4a1f" } },
   snow: { name: "冬（雪）", icon: "❄️", v: { "--forest": "#3d4f66", "--moss": "#5b7391", "--fern": "#8fa8c4", "--spring": "#dbe9f7", "--earth": "#6b6b6b", "--bark": "#c4ccd6", "--soil": "#f1f4f8", "--cream": "#f7f9fc", "--paper": "#fbfcfe", "--ink": "#1c2733", "--mist": "#e3eaf2", "--hero1": "#232f40", "--hero2": "#455b78" } },
 };
+const THEME_LIGHT = {
+  forest: { "--forest": "#3f7340", "--moss": "#5b9a4c", "--fern": "#7fc06f", "--spring": "#b9e07e", "--mist": "#eaf3e5", "--hero1": "#3f7f45", "--hero2": "#55945a", "--header-bg": "#dfeed6", "--header-fg": "#2b4a2b", "--header-sub": "#4f7a45", "--header-accent": "#3f7340" },
+  spring: { "--forest": "#a14d78", "--moss": "#c0709a", "--fern": "#e6a3c0", "--spring": "#ffe0ec", "--mist": "#f9e9ef", "--hero1": "#a8537d", "--hero2": "#bf6c94", "--header-bg": "#fbe4ee", "--header-fg": "#6e2f50", "--header-sub": "#a14d78", "--header-accent": "#a14d78" },
+  summer: { "--forest": "#237480", "--moss": "#3f9aa8", "--fern": "#74c4cf", "--spring": "#d6f4f6", "--mist": "#eaf7f8", "--hero1": "#2a8190", "--hero2": "#3c97a5", "--header-bg": "#d9f0f2", "--header-fg": "#14505a", "--header-sub": "#217480", "--header-accent": "#237480" },
+  autumn: { "--forest": "#a2531f", "--moss": "#c26a2a", "--fern": "#e0954a", "--spring": "#ffe0a0", "--mist": "#f7eadb", "--hero1": "#a85a26", "--hero2": "#c3722f", "--header-bg": "#fbe7d0", "--header-fg": "#6b3410", "--header-sub": "#a2531f", "--header-accent": "#a2531f" },
+  snow: { "--forest": "#4f6a8a", "--moss": "#6d89aa", "--fern": "#9fb7d2", "--spring": "#e4effa", "--mist": "#e9eff6", "--hero1": "#4f6a8a", "--hero2": "#6784a6", "--header-bg": "#e1ebf6", "--header-fg": "#2c3f57", "--header-sub": "#4f6a8a", "--header-accent": "#4f6a8a" },
+};
+const THEME_DARK_KEY = "sansai_theme_dark";
+function themeDark() { try { return localStorage.getItem(THEME_DARK_KEY) === "1"; } catch (e) { return false; } }
+function saveThemeDark(b) { try { if (b) localStorage.setItem(THEME_DARK_KEY, "1"); else localStorage.removeItem(THEME_DARK_KEY); } catch (e) {} applyTheme(); }
+function themeVars(id, dark) {
+  const t = THEMES[id].v;
+  if (dark) return { ...t, "--header-bg": t["--forest"], "--header-fg": t["--spring"], "--header-sub": t["--bark"], "--header-accent": t["--spring"] };
+  return { ...t, ...THEME_LIGHT[id] };
+}
 const THEME_ORDER = ["forest", "spring", "summer", "autumn", "snow"];
 const THEME_POLICY_KEY = "sansai_theme_policy";
 const THEME_PREF_KEY = "sansai_theme_pref";
@@ -10549,9 +10623,9 @@ function themeEffective() {
   return THEMES[v] ? v : "forest";
 }
 function applyTheme() {
-  const id = themeEffective(), t = THEMES[id], st = document.documentElement.style;
-  Object.keys(t.v).forEach(k => st.setProperty(k, t.v[k]));
-  try { const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute("content", t.v["--forest"]); } catch (e) {}
+  const id = themeEffective(), vars = themeVars(id, themeDark()), st = document.documentElement.style;
+  Object.keys(vars).forEach(k => st.setProperty(k, vars[k]));
+  try { const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute("content", vars["--header-bg"]); } catch (e) {}
   try { applyHeaderImage(); } catch (e) {}
   try { window.dispatchEvent(new Event("sansai-theme")); } catch (e) {}
   return id;
@@ -10575,7 +10649,7 @@ function applyHeaderImage() {
   if (!img || headerImgOff()) { if (el) el.textContent = ""; return; }
   if (!el) { el = document.createElement("style"); el.id = "sansai-hdr-style"; document.head.appendChild(el); }
   const u = 'url("' + img + '")';
-  el.textContent = 'html .header{background-image:linear-gradient(rgba(10,25,10,.5),rgba(10,25,10,.5)),' + u + ';background-size:cover;background-position:center;}'
+  el.textContent = 'html .header{--header-fg:#fff;--header-sub:rgba(255,255,255,.9);--header-accent:#ffe9a8;color:#fff;background-image:linear-gradient(rgba(10,25,10,.5),rgba(10,25,10,.5)),' + u + ';background-size:cover;background-position:center;}'
     + 'html .header .header-title,html .header .header-subtitle{text-shadow:0 1px 4px rgba(0,0,0,.65);}'
     + 'html .home-logo-area{background-image:linear-gradient(rgba(10,25,10,.4),rgba(10,25,10,.6)),' + u + ';background-size:cover;background-position:center;border-radius:0 0 26px 26px;}';
 }
@@ -10602,7 +10676,7 @@ function ThemeView({ isAdmin }) {
   const selected = locked ? pol.value : (loadThemePref() || pol.value);
   const eff = themeEffective();
   const nameOf = (v) => v === "auto" ? "季節で自動切り替え（いまは" + THEMES[themeSeason()].name + "）" : THEMES[v].name;
-  const swatch = (id) => { const t = THEMES[id === "auto" ? themeSeason() : id]; return _m('div', { style: { display: "flex", height: 26, borderRadius: 8, overflow: "hidden", marginBottom: 6 } }, ["--hero1", "--forest", "--moss", "--fern", "--spring", "--mist"].map(k => _m('div', { key: k, style: { flex: 1, background: t.v[k] } }))); };
+  const swatch = (id) => { const tv = themeVars(id === "auto" ? themeSeason() : id, themeDark()); return _m('div', { style: { display: "flex", height: 26, borderRadius: 8, overflow: "hidden", marginBottom: 6 } }, ["--hero1", "--forest", "--moss", "--fern", "--spring", "--mist"].map(k => _m('div', { key: k, style: { flex: 1, background: tv[k] } }))); };
   const card = (id) => {
     const on = selected === id;
     return _m('button', { key: id, disabled: locked, onClick: () => { saveThemePref(id); }, style: { textAlign: "left", background: "white", border: on ? "3px solid var(--forest)" : "2px solid var(--mist)", borderRadius: 14, padding: 10, cursor: locked ? "default" : "pointer", opacity: locked && !on ? 0.45 : 1 } },
@@ -10616,6 +10690,8 @@ function ThemeView({ isAdmin }) {
       _m('div', { className: "section-title" }, "🎨 テーマ（色の変更）"),
       _m('div', { className: "section-desc" }, "アプリの色を選べます。「季節で自動」にすると、春・夏・秋・冬で色が変わります。この設定は、この端末だけに保存されます。"),
       _m('div', { style: { fontSize: 12, color: "#555", marginBottom: 10, lineHeight: 1.7 } }, "いまの表示：" + THEMES[eff].icon + " " + THEMES[eff].name + (selected === "auto" ? "（季節で自動）" : "")),
+      _m('div', { style: { display: "flex", gap: 8, marginBottom: 12 } },
+        [[false, "☀️ うすめ（明るい）"], [true, "🌑 こい（これまでの色）"]].map(o => _m('button', { key: String(o[0]), onClick: () => saveThemeDark(o[0]), style: { flex: 1, padding: "10px 8px", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", border: themeDark() === o[0] ? "3px solid var(--forest)" : "2px solid var(--mist)", background: "white", color: "var(--forest)" } }, o[1] + (themeDark() === o[0] ? " ✓" : "")))),
       locked && _m('div', { style: { background: "#fff6e0", border: "1px solid #f0d58a", borderRadius: 10, padding: "10px 12px", fontSize: 12, color: "#7a5a00", lineHeight: 1.7, marginBottom: 12 } }, "管理者が、全員同じテーマ（" + nameOf(pol.value) + "）に設定しています。この設定の間は、変更できません。"),
       _m('div', { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 } }, ["auto"].concat(THEME_ORDER).map(card)),
       !locked && loadThemePref() && _m('button', { onClick: () => saveThemePref(""), style: { ...btn, width: "100%", background: "var(--mist)", color: "var(--forest)", marginBottom: 14 } }, "管理者のおすすめ（" + nameOf(pol.value).replace(/（いまは.*）/, "") + "）に戻す"),
@@ -10645,7 +10721,39 @@ function ThemeView({ isAdmin }) {
 
 /* ===== 便利機能：今月の旬／入山の予定・現在地を送る／年間まとめ／検索 ===== */
 const lineLink = (t) => "https://line.me/R/msg/text/?" + encodeURIComponent(t);
-function featLoadSansai() { try { const v = JSON.parse(localStorage.getItem("sansai_list_v2") || "null"); if (Array.isArray(v) && v.length) return v; } catch (e) {} return SANSAI_DATA; }
+const SANSAI_EMOJI_DICT = [
+  ["栗","🌰"],["クリ","🌰"],["クルミ","🌰"],["ドングリ","🌰"],["トチ","🌰"],["銀杏","🍂"],["ギンナン","🍂"],
+  ["イチジク","🍑"],["山ブドウ","🍇"],["ヤマブドウ","🍇"],["ブドウ","🍇"],["アケビ","🟣"],["木通","🟣"],["通草","🟣"],["コケモモ","🍒"],["アキグミ","🍒"],["グミ","🍒"],
+  ["クロマメノキ","🫐"],["ブルーベリー","🫐"],["ナツハゼ","🫐"],["ヤマモモ","🍓"],["キイチゴ","🍓"],["ラズベリー","🍓"],["ヤマボウシ","🍓"],
+  ["サルナシ","🥝"],["コクワ","🥝"],["マタタビ","🥝"],["ユズ","🍋"],["カリン","🍋"],["リンゴ","🍎"],
+  ["むかご","🥔"],["ムカゴ","🥔"],["自然薯","🍠"],["ジネンジョ","🍠"],["ヤマイモ","🍠"],["山芋","🍠"],["長芋","🍠"],["ヤマノイモ","🍠"],
+  ["紫蘇","🌿"],["シソ","🌿"],["エゴマ","🌿"],["タケノコ","🥕"],["筍","🥕"],["竹の子","🥕"],["根曲がり竹","🎋"],
+  ["キノコ","🍄"],["茸","🍄"],["タケ","🍄"],["シメジ","🍄"],["シイタケ","🍄"],["マイタケ","🍄"],["ナメコ","🍄"],["エノキ","🍄"],["ヒラタケ","🍄"],["ナラタケ","🍄"],["ムキタケ","🍄"],
+  ["ニンニク","🧄"],["ノビル","🧅"],["ウド","🪴"],["ワラビ","🌾"],["ゼンマイ","🌀"],["コゴミ","🌀"],["ミョウガ","🌺"],["ワサビ","🍃"]
+];
+let SANSAI_EMOJI_TABLE = null;
+function sansaiAutoEmoji(name) {
+  if (!SANSAI_EMOJI_TABLE) SANSAI_EMOJI_TABLE = SANSAI_EMOJI_DICT.map(e => [gearNorm(e[0]), e[1]]).filter(e => e[0]);
+  const n = gearNorm(name);
+  let best = null, bestLen = 0;
+  if (n) for (let i = 0; i < SANSAI_EMOJI_TABLE.length; i++) {
+    const k = SANSAI_EMOJI_TABLE[i][0];
+    if (k.length > bestLen && n.indexOf(k) >= 0) { best = SANSAI_EMOJI_TABLE[i][1]; bestLen = k.length; }
+  }
+  return best;
+}
+function fixSansaiEmojis(list) {
+  if (!Array.isArray(list)) return list;
+  let changed = false;
+  const out = list.map(s => {
+    if (!s || typeof s !== "object") return s;
+    const e = sansaiAutoEmoji(s.name);
+    if (e && s.emoji !== e) { changed = true; return { ...s, emoji: e }; }
+    return s;
+  });
+  return changed ? out : list;
+}
+function featLoadSansai() { try { const v = JSON.parse(localStorage.getItem("sansai_list_v2") || "null"); if (Array.isArray(v) && v.length) return fixSansaiEmojis(v); } catch (e) {} return fixSansaiEmojis(SANSAI_DATA); }
 function featCopy(text, setMsg) {
   const ng = () => setMsg("コピーできませんでした。文章を長押ししてコピーしてください。");
   try { navigator.clipboard.writeText(text).then(() => setMsg("✅ 文章をコピーしました。"), ng); } catch (e) { ng(); }
@@ -11075,11 +11183,13 @@ function App() {
   const [sansaiList, setSansaiList] = useState(() => {
     try {
       const saved = localStorage.getItem("sansai_list_v2");
-      if (saved) return JSON.parse(saved);
+      if (saved) return fixSansaiEmojis(JSON.parse(saved));
     } catch(e) {}
-    return SANSAI_DATA;
+    return fixSansaiEmojis(SANSAI_DATA);
   });
   useEffect(() => {
+    const fixed = fixSansaiEmojis(sansaiList);
+    if (fixed !== sansaiList) { setSansaiList(fixed); return; }
     try { localStorage.setItem("sansai_list_v2", JSON.stringify(sansaiList)); } catch(e) {}
   }, [sansaiList]);
 
@@ -11232,10 +11342,10 @@ function App() {
               , React.createElement('div', { className: "header-subtitle",}, "\u4e2d\u90e8\u30fb\u5317\u9678\u30a8\u30ea\u30a2 | \u30b0\u30eb\u30fc\u30d7\u7ba1\u7406"  )
             )
           )
-          , React.createElement('div', { style: {fontSize:12, color:"var(--bark)", textAlign:"right"},}
+          , React.createElement('div', { style: {fontSize:12, color:"var(--header-sub, var(--bark))", textAlign:"right"},}
             , React.createElement('div', null, "\ud83d\udc65 " , members.length, "\u540d")
             , React.createElement('div', null, "\ud83d\udccd " , spots.length, "\u30b9\u30dd\u30c3\u30c8")
-            , calEvents.length > 0 && React.createElement('div', { style: {color:"var(--spring)"},}, "\ud83d\udcc5 " , calEvents.length, "\u4ef6\u4e88\u5b9a")
+            , calEvents.length > 0 && React.createElement('div', { style: {color:"var(--header-accent, var(--spring))"},}, "\ud83d\udcc5 " , calEvents.length, "\u4ef6\u4e88\u5b9a")
           )
         )
 
