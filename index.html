@@ -1942,7 +1942,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
   const [backupStatus, setBackupStatus] = useState("");
   const [lastBackup, setLastBackup] = useState(() => { try { return Number(localStorage.getItem("sansai_last_backup")) || 0; } catch (e) { return 0; } });
   const importInputRef = useRef(null);
-  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1","sansai_danger_custom_v1","sansai_danger_over_v1","sansai_notices","sansai_theme_pref","sansai_theme_policy","sansai_theme_dark","sansai_header_img","sansai_header_off"];
+  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_patrol_sched","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1","sansai_danger_custom_v1","sansai_danger_over_v1","sansai_notices","sansai_theme_pref","sansai_theme_policy","sansai_theme_dark","sansai_header_img","sansai_header_off"];
 
   const handleExport = async () => {
     const FOLDER_NAME = "\u5c71\u83dc\u624b\u5e33\u30d0\u30c3\u30af\u30a2\u30c3\u30d7";
@@ -4565,7 +4565,7 @@ function MembersView({ members, setMembers, isAdmin }) {
 function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, clothing, tools }) {
   const { photos: photoStore, savePhoto, removePhoto } = usePhotos();
   const resolveSrc = (entry) => photoStore[entry] || entry;
-  const today = new Date().toISOString().split("T")[0];
+  const today = (() => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); })();
   const currentMonth = new Date().getMonth() + 1;
 
   // ===== STATE =====
@@ -4594,14 +4594,13 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
   useEffect(() => {
     try { safeLocalSave("sansai_patrol", records); } catch(e) {}
   }, [records]);
-  const [schedules, setSchedules] = useState([
-    { id: 1, spotId: 1, date: "2026-06-05", assignee: "\u7530\u4e2d", memo: "\u30b3\u30b7\u30a2\u30d6\u30e9\u7d42\u76e4\u78ba\u8a8d",
-      attendance: { "\u7530\u4e2d":"\u53c2\u52a0", "\u9234\u6728":"\u672a\u56de\u7b54", "\u4f50\u85e4":"\u4e0d\u53c2\u52a0", "\u4f0a\u85e4":"\u672a\u56de\u7b54", "\u5c71\u672c":"\u53c2\u52a0" } },
-    { id: 2, spotId: 2, date: "2026-06-10", assignee: "\u9234\u6728", memo: "\u30bc\u30f3\u30de\u30a4\u72b6\u6cc1\u78ba\u8a8d",
-      attendance: { "\u7530\u4e2d":"\u672a\u56de\u7b54", "\u9234\u6728":"\u53c2\u52a0", "\u4f50\u85e4":"\u672a\u56de\u7b54", "\u4f0a\u85e4":"\u53c2\u52a0", "\u5c71\u672c":"\u4e0d\u53c2\u52a0" } },
-    { id: 3, spotId: 3, date: "2026-06-15", assignee: "\u4f50\u85e4", memo: "\u30ef\u30e9\u30d3\u63a1\u53d6\u53ef\u5426\u30c1\u30a7\u30c3\u30af",
-      attendance: {} },
-  ]);
+  const [schedules, setSchedules] = useState(() => {
+    try { const raw = localStorage.getItem("sansai_patrol_sched"); if (raw) { const v = JSON.parse(raw); if (Array.isArray(v)) return v; } } catch(e) {}
+    return [];
+  });
+  useEffect(() => {
+    try { safeLocalSave("sansai_patrol_sched", schedules); } catch(e) {}
+  }, [schedules]);
   const [attendanceModal, setAttendanceModal] = useState(null); // \u51fa\u6b20\u7ba1\u7406\u4e2d\u306e\u30b9\u30b1\u30b8\u30e5\u30fc\u30eb
 
   // \u30d5\u30a9\u30fc\u30e0
@@ -5002,17 +5001,17 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
           , React.createElement(PatrolMonthCalendar, { schedules: schedules, records: records, spotName: spotName, onManage: setAttendanceModal,} )
           , schedules.filter(s=>s.date<today).length > 0 && (
             React.createElement(React.Fragment, null
-              , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"#aaa", margin:"16px 0 10px"},}, "\ud83d\udcc1 \u904e\u53bb\u306e\u4e88\u5b9a" )
+              , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:"var(--forest)", margin:"16px 0 10px"},}, "\ud83d\udcc1 \u904e\u53bb\u306e\u4e88\u5b9a" )
               , schedules.filter(s=>s.date<today).sort((a,b)=>b.date.localeCompare(a.date)).map(sch=>(
-                React.createElement('div', { key: sch.id, style: {...cardStyle, display:"flex", alignItems:"center", gap:12, marginBottom:8, opacity:0.6},}
+                React.createElement('div', { key: sch.id, style: {...cardStyle, display:"flex", alignItems:"center", gap:12, marginBottom:8},}
                   , React.createElement('div', { style: {width:48, textAlign:"center", flexShrink:0},}
-                    , React.createElement('div', { style: {fontSize:11, color:"#bbb"},}, sch.date.slice(5).replace("-","\u6708"), "\u65e5")
+                    , React.createElement('div', { style: {fontSize:11, color:"#888"},}, sch.date.slice(5).replace("-","\u6708"), "\u65e5")
                   )
                   , React.createElement('div', { style: {flex:1},}
-                    , React.createElement('div', { style: {fontSize:13, color:"#666"},}, spotName(sch.spotId), " \u30fb "  , sch.assignee)
-                    , sch.memo && React.createElement('div', { style: {fontSize:11, color:"#aaa"},}, sch.memo)
+                    , React.createElement('div', { style: {fontSize:13, color:"#333"},}, spotName(sch.spotId), " \u30fb "  , sch.assignee)
+                    , sch.memo && React.createElement('div', { style: {fontSize:11, color:"#777"},}, sch.memo)
                   )
-                  , React.createElement('button', { onClick: ()=>deleteSchedule(sch.id), style: {background:"#f5f5f5", border:"none", borderRadius:8, padding:"4px 8px", cursor:"pointer", color:"#bbb", fontSize:11},}, "\u524a\u9664")
+                  , React.createElement('button', { onClick: ()=>deleteSchedule(sch.id), style: {background:"#f5f5f5", border:"none", borderRadius:8, padding:"4px 8px", cursor:"pointer", color:"#888", fontSize:11},}, "\u524a\u9664")
                 )
               ))
             )
@@ -7966,7 +7965,7 @@ function LinkView() {
 }
 
 // ===== MANUAL / QA =====
-const MANUAL_VER = "2026-10-17b";
+const MANUAL_VER = "2026-10-18";
 const MANUAL_LEGACY = ["はじめに", "カレンダー", "採取プラン", "スポット", "ブログ", "山菜図鑑", "メンバー", "パトロール", "収穫記録", "忘備録", "服装・道具", "リンク集", "バックアップ・復元"];
 const QA_LEGACY = ["バックアップはどうやって取りますか？", "バックアップファイルはどこに保存されますか？", "バックアップから元に戻すには？", "いつバックアップを取ればいいですか？", "復元するとデータが上書きされますか？", "作成者用の「メモ」タブはどこにありますか？", "入力したデータはどこに保存されますか？", "データが消えることはありますか？", "機種変更したらデータは引き継げますか？", "仲間と記録を共有するには？", "アプリを更新したのに表示が変わりません", "ホーム画面に追加するには？", "GPS（位置情報）が取得できません", "写真がアップロードできません", "Googleカレンダーに予定が自動で入りません", "リンク集のリンクを間違って削除しました", "山菜やきのこが食べられるか、アプリで判断できますか？", "入山するときの注意点は？"];
 // 保存済みの内容に最新版（MANUAL_VER）が入っていなければ、標準の内容を最新にして、
