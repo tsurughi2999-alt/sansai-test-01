@@ -4727,7 +4727,9 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
     // MEMBERS_LIST\u304b\u3089\u5168\u54e1\u3092\u672a\u56de\u7b54\u3067\u8a2d\u5b9a
     MEMBERS_LIST.forEach(name => { initAttendance[name] = "\u672a\u56de\u7b54"; });
     const newSch = { id: Date.now(), ...schForm, spotId: Number(schForm.spotId), attendance: initAttendance };
-    setSchedules(prev => [...prev, newSch]);
+    const nextSchedules = [...schedules, newSch];
+    try { safeLocalSave("sansai_patrol_sched", nextSchedules); } catch(e) {}
+    setSchedules(nextSchedules);
     setSchForm(emptySchedule);
     setShowScheduleForm(false);
 
