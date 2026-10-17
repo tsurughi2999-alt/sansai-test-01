@@ -2979,16 +2979,16 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
         , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:12},}
           , menuItems.map(item => (
             React.createElement('button', { key: item.id, onClick: () => onTabChange(item.id),
-              style: {background:"rgba(255,255,255,0.1)", backdropFilter:"blur(10px)",
-                border:"1px solid rgba(255,255,255,0.2)", borderRadius:16, padding:"20px 14px",
+              style: {background:"rgba(255,255,255,0.24)", backdropFilter:"blur(10px)",
+                border:"1px solid rgba(255,255,255,0.38)", borderRadius:16, padding:"20px 14px",
                 cursor:"pointer", textAlign:"left", transition:"all 0.2s",
-                boxShadow:"0 4px 16px rgba(0,0,0,0.2)"},}
+                boxShadow:"0 3px 12px rgba(0,0,0,0.12)"},}
               , React.createElement('div', { style: {fontSize:32, marginBottom:8},}, item.icon)
-              , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"white",
+              , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"white", textShadow:"0 1px 3px rgba(0,0,0,0.35)",
                 fontFamily:"'Noto Serif JP',serif", marginBottom:4},}
                 , item.label
               )
-              , React.createElement('div', { style: {fontSize:11, color:"rgba(255,255,255,0.6)"},}
+              , React.createElement('div', { style: {fontSize:11, color:"rgba(255,255,255,0.92)", textShadow:"0 1px 2px rgba(0,0,0,0.3)"},}
                 , item.desc
               )
             )
