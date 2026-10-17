@@ -2948,6 +2948,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
     { id:"links",    icon:"🔗", label:"リンク集",     desc:"SNS・おすすめWeb", color:"#2c7a7b" },
     { id:"manual",   icon:"📖", label:"使い方・Q&A",  desc:"操作説明・よくある質問", color:"#b7791f" },
   ];
+  { const pi = menuItems.findIndex(m => m.id === "plan"); menuItems.splice(pi >= 0 ? pi + 1 : 2, 0, { id:"checklist", icon:"✅", label:"出発前チェック", desc:"持ち物・安全の最終確認", color:"#27ae60" }); }
   const MENU_ICON_FIX = { calendar:"🗓️", plan:"🌤️", info:"📖", patrol:"🥾", gear:"🎒", manual:"❓" };
   menuItems.forEach(m => { if (MENU_ICON_FIX[m.id]) m.icon = MENU_ICON_FIX[m.id]; });
   if (secretOn) menuItems.push({ id:"secret", icon:"📝", label:"メモ", desc:"作成者専用・非公開", color:"#6b46c1" });
@@ -9401,6 +9402,8 @@ const MANUAL_ITEMS = [
   { t:"お知らせ", i:"📢", b:["管理者が更新の案内を出すと、アプリを開いたときに「📢 お知らせ」が全画面で表示されます。何がどう変わったかを、画像つきで読めます。","【必読のお知らせ】最後までスクロールすると、「読みました（アプリを開く）」のボタンが押せるようになります。押すと、アプリが使えます。重要な変更のときだけ、この形になります。","【ふつうのお知らせ】「閉じる」を押すだけで、アプリが開きます。","読んだお知らせは、二度と自動では出ません。あとで読み返したいときは、表紙の「📢 お知らせ」を開いてください。新しいお知らせ（7日以内）には、「NEW」が付きます。","お知らせは、電波のあるところでアプリを開いたときに届きます。受け取ったあとは、圏外でも読み返せます。","更新を何回か飛ばしたときは、読んでいないお知らせ（30日以内）が、まとめて表示されます。"], v:MANUAL_VER },
   { t:"テーマ（色の変更）", i:"🎨", b:["アプリの色を、森・春（桜）・夏（渓流）・秋（紅葉）・冬（雪）から選べます。「季節で自動」にすると、春・夏・秋・冬で色が自動で変わります。","表紙の「🎨 テーマ」を開き、好きな色を押すとすぐ変わります。この設定は、自分のスマホだけに保存されます。","管理者が「全員同じにする」に設定しているときは、色を変えられません。そのときは、表紙のテーマの画面に、その旨が表示されます。","管理者が「各自で選べる」にしているときは、管理者のおすすめの色から始まります。「管理者のおすすめに戻す」ボタンで、いつでも戻せます。","管理者がヘッダーの風景写真を設定していると、アプリの上部と表紙の上部に表示されます。写真を表示したくないときは、「🎨 テーマ」の「風景写真を表示する」のチェックを外してください。","色の濃さは、「うすめ（明るい）」と「こい」から選べます。初めは「うすめ」です。この設定も、自分のスマホだけに保存されます。"], v:MANUAL_VER },
   { t:"今月の旬（表紙）", i:"🌿", b:["表紙の上のほうに、今月が旬の山菜が表示されます。来月から旬になる山菜も、あわせて出ます。","今年の収穫回数と、直近の収穫も表示されます。カードを押すと、山菜カレンダーが開きます。"], v:MANUAL_VER },
+  { t:"出発前チェック", i:"✅", b:["山に行く前の持ち物の確認に使います。表紙の「✅ 出発前チェック」を開き、今日行く山菜を選びます。","選んだ山菜に合わせて、「服装・道具」リストから必要なものが自動で並びます。「専用」と書かれたものは、その山菜用の道具です。","持ち物を押すとチェックが入ります。全部そろうと「準備OK」と出ます。チェックは、この端末だけに保存されます。","「自分用の持ち物」に、自分だけのメモ（おやつ、タオルなど）を足せます。「チェックを全部外す」で、次の山行の前にやり直せます。"], v:MANUAL_VER },
+  { t:"日の入りと下山の目安", i:"🌇", b:["「安全・連絡」を開くと、日の出・日の入りの時刻と、下山を始める目安の時刻が出ます。","行き先のスポットを選び、日付は「入山の予定」の日付が使われます。「現在地を使う」も選べます。","日の入りの何時間前に下山を始めるかを、1時間・1時間半・2時間・3時間から選べます。初めは2時間前です。","当日は、下山を始める目安までの残り時間が出ます。「この時刻を、下山予定に入れる」を押すと、入山の予定の下山時刻に入ります。","時刻は計算で出すので、圏外でも使えます。谷や森の中は、日の入りより早く暗くなります。余裕を持って下山してください。"], v:MANUAL_VER },
   { t:"安全・連絡", i:"🛡️", b:["【入山の予定を送る】行き先・入山時刻・下山予定時刻・メンバー・車の場所を入力すると、LINE用の文章ができます。「LINEで送る」を押すと、LINEの送り先を選ぶ画面が開きます。送る相手は、自分で選びます。アプリが自動で送ることはありません。","【下山したら】「無事に下山しました」を、ワンタップでLINEに送れます。","【現在地を送る】「現在地を調べる」を押したときだけ、現在地を調べて、地図のリンクつきの文章を作ります。圏外でも現在地は調べられるので、電波が戻ったときに送れます。","緊急のときは、まず119（救急・消防）または110（警察）に電話してください。"], v:MANUAL_VER },
   { t:"年間まとめ・図鑑コンプリート", i:"📊", b:["自分の収穫記録を、年ごとに集計します。収穫回数、合計の量、山菜の種類、よく採れた山菜、月ごとの収穫回数が出ます。","「まとめの画像を保存」や「画像をLINEなどで送る」で、1枚の画像にして共有できます。位置情報（GPS）は入りません。「いちばん行った場所」の名前は、チェックを入れたときだけ画像に入ります。","「図鑑コンプリート」では、収穫記録に残した山菜に色が付きます。何種類採ったかが分かります。","元になるのは、自分のスマホに入っている収穫記録だけです。"], v:MANUAL_VER },
   { t:"検索", i:"🔎", b:["図鑑・スポット・収穫記録・パトロール・忘備録・ブログを、1つの検索欄でまとめて探せます。","ひらがな・カタカナの違いは気にしなくて大丈夫です。結果を押すと、そのタブが開きます。","検索できるのは、自分のスマホに入っている内容です。"], v:MANUAL_VER },
@@ -10794,6 +10797,156 @@ function SeasonCard({ onGo }) {
         "今年の収穫：" + cnt + "回" + (last ? "　／　直近：" + String(last.date).slice(5).replace("-", "/") + " " + lastName : ""))));
 }
 
+/* --- 出発前チェック --- */
+const CHK_KEY = "sansai_checklist_v1";
+const CHK_FIXED = [
+  { k: "s1", t: "行き先と下山予定を、家族や仲間に伝えた", go: "safety", goLabel: "入山の予定を送る →" },
+  { k: "s2", t: "天気とクマの出没情報を確認した" },
+  { k: "s3", t: "スマホを充電した（モバイルバッテリーも）" },
+  { k: "s4", t: "水・食べ物・ヘッドライトを持った" },
+  { k: "s5", t: "入ってよい場所か確認した（私有地・国有林・立入規制）" }
+];
+function chkLoad() {
+  try {
+    const v = JSON.parse(localStorage.getItem(CHK_KEY) || "null");
+    if (v && typeof v === "object") return { sel: Array.isArray(v.sel) ? v.sel.map(Number) : [], checked: (v.checked && typeof v.checked === "object") ? v.checked : {}, extra: Array.isArray(v.extra) ? v.extra : [] };
+  } catch (e) {}
+  return { sel: [], checked: {}, extra: [] };
+}
+function ChecklistView({ sansaiList, clothing, tools, onGo }) {
+  const [st, setSt] = useState(chkLoad);
+  const [txt, setTxt] = useState("");
+  useEffect(() => { try { localStorage.setItem(CHK_KEY, JSON.stringify(st)); } catch (e) {} }, [st]);
+  const list = Array.isArray(sansaiList) ? sansaiList : [];
+  const pick = (arr) => (Array.isArray(arr) ? arr : []).filter(i => !i.sansai || i.sansai.length === 0 || i.sansai.some(id => st.sel.indexOf(Number(id)) >= 0));
+  const group = (arr, kind) => {
+    const g = [];
+    pick(arr).forEach(i => {
+      let b = g.find(x => x.cat === i.category);
+      if (!b) { b = { cat: i.category, items: [] }; g.push(b); }
+      b.items.push({ key: kind + i.id, item: i, kind: kind });
+    });
+    return g;
+  };
+  const gc = group(clothing, "c"), gt = group(tools, "t");
+  const keys = CHK_FIXED.map(f => f.k).concat(...gc.map(b => b.items.map(x => x.key)), ...gt.map(b => b.items.map(x => x.key)), st.extra.map(x => "x" + x.id));
+  const total = keys.length, done = keys.filter(k => st.checked[k]).length;
+  const toggle = (k) => setSt(p => ({ ...p, checked: { ...p.checked, [k]: !p.checked[k] } }));
+  const toggleSel = (id) => setSt(p => ({ ...p, sel: p.sel.indexOf(id) >= 0 ? p.sel.filter(x => x !== id) : p.sel.concat(id) }));
+  const addExtra = () => { const t = txt.trim(); if (!t) return; setSt(p => ({ ...p, extra: p.extra.concat({ id: Date.now(), t: t }) })); setTxt(""); };
+  const delExtra = (id) => setSt(p => ({ ...p, extra: p.extra.filter(x => x.id !== id), checked: (() => { const c = { ...p.checked }; delete c["x" + id]; return c; })() }));
+  const resetChecks = () => { if (window.confirm("チェックを全部外しますか？（選んだ山菜と、自分用の持ち物は残ります）")) setSt(p => ({ ...p, checked: {} })); };
+  const row = (key, icon, title, sub, extraEl) => _m('div', { key: key, style: { display: "flex", alignItems: "center", gap: 10, padding: "10px 4px", borderBottom: "1px solid var(--mist)" } },
+    _m('button', { onClick: () => toggle(key), style: { display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0, background: "none", border: "none", textAlign: "left", cursor: "pointer", padding: 0, fontFamily: "inherit" } },
+      _m('span', { style: { width: 28, height: 28, flexShrink: 0, borderRadius: 8, border: "2px solid " + (st.checked[key] ? "var(--forest)" : "#bbb"), background: st.checked[key] ? "var(--forest)" : "white", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700 } }, st.checked[key] ? "✓" : ""),
+      icon && _m('span', { style: { fontSize: 22, flexShrink: 0 } }, icon),
+      _m('span', { style: { minWidth: 0 } },
+        _m('span', { style: { display: "block", fontSize: 14, fontWeight: 600, color: st.checked[key] ? "#999" : "#222", textDecoration: st.checked[key] ? "line-through" : "none", lineHeight: 1.5 } }, title),
+        sub && _m('span', { style: { display: "block", fontSize: 11, color: "#888", lineHeight: 1.5 } }, sub))),
+    extraEl);
+  const section = (title, rows) => _m('div', { style: featCard }, _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 14, marginBottom: 4 } }, title), rows);
+  const gearSection = (label, groups, isCl) => groups.length > 0 && section(label, groups.map(b => _m('div', { key: b.cat },
+    _m('div', { style: { fontSize: 11, fontWeight: 700, color: "var(--moss)", margin: "8px 0 0" } }, b.cat),
+    b.items.map(x => row(x.key, gearIcon(x.item, isCl), x.item.name, x.item.desc, (x.item.sansai && x.item.sansai.length > 0) ? _m('span', { style: { fontSize: 10, background: "var(--mist)", color: "var(--forest)", borderRadius: 8, padding: "2px 6px", flexShrink: 0 } }, "専用") : null)))));
+  return (
+    _m('div', null,
+      _m('div', { className: "section-title" }, "✅ 出発前チェック"),
+      _m('div', { className: "section-desc" }, "行く山菜を選ぶと、服装・道具リストから必要なものが自動で並びます。チェックは、この端末に保存されます。"),
+      _m('div', { style: featCard },
+        _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 14, marginBottom: 8 } }, "今日行く山菜（複数選べます）"),
+        _m('div', { style: { display: "flex", flexWrap: "wrap", gap: 6 } }, list.map(s => {
+          const on = st.sel.indexOf(Number(s.id)) >= 0;
+          return _m('button', { key: s.id, onClick: () => toggleSel(Number(s.id)), style: { border: "1.5px solid " + (on ? "var(--forest)" : "#ddd"), background: on ? "var(--forest)" : "white", color: on ? "white" : "#444", borderRadius: 16, padding: "5px 11px", fontSize: 13, cursor: "pointer", fontFamily: "inherit" } }, (s.emoji || "🌿") + " " + s.name);
+        })),
+        st.sel.length === 0 && _m('div', { style: { fontSize: 11, color: "#888", marginTop: 8 } }, "選ばないときは、全山菜共通のものだけが出ます。")),
+      _m('div', { style: { ...featCard, background: done === total && total > 0 ? "#eaf6e6" : "white" } },
+        _m('div', { style: { display: "flex", justifyContent: "space-between", fontSize: 14, fontWeight: 700, color: "var(--forest)", marginBottom: 6 } }, _m('span', null, done === total && total > 0 ? "🎉 準備OK！気をつけて、いってらっしゃい" : "準備の進み具合"), _m('span', null, done + " / " + total)),
+        _m('div', { style: { height: 10, background: "var(--mist)", borderRadius: 6, overflow: "hidden" } }, _m('div', { style: { height: "100%", width: (total ? Math.round(done * 100 / total) : 0) + "%", background: "var(--forest)", transition: "width .2s" } })),
+        _m('button', { onClick: resetChecks, style: { ...featBtn, marginTop: 10, background: "var(--mist)", color: "var(--forest)", padding: "9px 12px", fontSize: 13 } }, "チェックを全部外す")),
+      section("🛡️ 出発前の確認", CHK_FIXED.map(f => row(f.k, null, f.t, null, f.go ? _m('button', { onClick: () => onGo && onGo(f.go), style: { border: "none", background: "var(--mist)", color: "var(--forest)", borderRadius: 10, padding: "6px 9px", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0, fontFamily: "inherit" } }, f.goLabel) : null))),
+      gearSection("👕 服装", gc, true),
+      gearSection("🎒 道具", gt, false),
+      section("📝 自分用の持ち物", [
+        ...st.extra.map(x => row("x" + x.id, "📌", x.t, null, _m('button', { onClick: () => delExtra(x.id), style: { border: "none", background: "none", color: "#c0392b", fontSize: 18, cursor: "pointer", flexShrink: 0 } }, "✕"))),
+        _m('div', { key: "add", style: { display: "flex", gap: 8, marginTop: 10 } },
+          _m('input', { value: txt, onChange: e => setTxt(e.target.value), onKeyDown: e => { if (e.key === "Enter") addExtra(); }, placeholder: "例：おやつ・タオル", style: { ...featInp, marginBottom: 0, flex: 1 } }),
+          _m('button', { onClick: addExtra, style: { ...featBtn, background: "var(--forest)", color: "white", padding: "10px 16px" } }, "追加"))])
+    )
+  );
+}
+
+/* --- 日の入りと下山の目安（計算だけなので、圏外でも使えます） --- */
+function sunCalc(dateStr, lat, lng) {
+  const p = String(dateStr).split("-").map(Number);
+  if (p.length < 3 || p.some(isNaN)) return null;
+  const y = p[0], mo = p[1], d = p[2], rad = Math.PI / 180;
+  const doy = Math.round((Date.UTC(y, mo - 1, d) - Date.UTC(y, 0, 0)) / 86400000);
+  const g = 2 * Math.PI / 365 * (doy - 1);
+  const eq = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+  const dec = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+  const cosH = Math.cos(90.833 * rad) / (Math.cos(lat * rad) * Math.cos(dec)) - Math.tan(lat * rad) * Math.tan(dec);
+  if (cosH > 1 || cosH < -1) return null;
+  const ha = Math.acos(cosH) / rad, base = Date.UTC(y, mo - 1, d);
+  return { sunrise: new Date(base + (720 - 4 * (lng + ha) - eq) * 60000), sunset: new Date(base + (720 - 4 * (lng - ha) - eq) * 60000) };
+}
+const sunHM = (dt) => String(dt.getHours()).padStart(2, "0") + ":" + String(dt.getMinutes()).padStart(2, "0");
+const sunDur = (ms) => { const m = Math.max(0, Math.round(ms / 60000)); return Math.floor(m / 60) + "時間" + String(m % 60).padStart(2, "0") + "分"; };
+function SunCard({ spots, plan, onSetOut }) {
+  const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } };
+  const [spotId, setSpotId] = useState(() => lsGet("sansai_sun_spot", "default"));
+  const [margin, setMargin] = useState(() => Number(lsGet("sansai_sun_margin", "120")) || 120);
+  const [gps, setGps] = useState(null);
+  const [gpsMsg, setGpsMsg] = useState("");
+  const [now, setNow] = useState(Date.now());
+  const [done, setDone] = useState(false);
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
+  useEffect(() => { try { localStorage.setItem("sansai_sun_spot", String(spotId)); localStorage.setItem("sansai_sun_margin", String(margin)); } catch (e) {} }, [spotId, margin]);
+  const getGps = () => {
+    if (!navigator.geolocation) { setGpsMsg("この端末では、現在地を取得できません。"); return; }
+    setGpsMsg("現在地を探しています…");
+    navigator.geolocation.getCurrentPosition(pos => { setGps({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setGpsMsg(""); }, () => setGpsMsg("現在地を取得できませんでした。スポットを選んでください。"), { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
+  };
+  const list = (spots || []).filter(s => typeof s.lat === "number" && typeof s.lng === "number");
+  let lat = 36.5, lng = 137.2, placeName = "中部・北陸の目安（石川・富山あたり）";
+  if (spotId === "gps" && gps) { lat = gps.lat; lng = gps.lng; placeName = "現在地"; }
+  else { const sp = list.find(s => String(s.id) === String(spotId)); if (sp) { lat = sp.lat; lng = sp.lng; placeName = sp.name; } }
+  const dateStr = (plan && plan.date) || "";
+  const t = dateStr ? sunCalc(dateStr, lat, lng) : null;
+  if (!t) return _m('div', { style: featCard }, _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 15, marginBottom: 6 } }, "🌇 日の入りと下山の目安"), _m('div', { style: { fontSize: 12, color: "#666" } }, "下の「入山の予定」で日付を入れると、日の入りの時刻を計算します。"));
+  const down = new Date(t.sunset.getTime() - margin * 60000), dusk = new Date(t.sunset.getTime() + 30 * 60000);
+  const dp = dateStr.split("-").map(Number);
+  const isToday = (() => { const n = new Date(); return n.getFullYear() === dp[0] && n.getMonth() + 1 === dp[1] && n.getDate() === dp[2]; })();
+  let inMs = null;
+  if (plan && plan.inTime && /^\d{1,2}:\d{2}$/.test(plan.inTime)) { const h = plan.inTime.split(":").map(Number); inMs = down.getTime() - new Date(dp[0], dp[1] - 1, dp[2], h[0], h[1]).getTime(); }
+  let status = null;
+  if (isToday) {
+    if (now < t.sunrise.getTime()) status = { c: "#2c7a7b", m: "日の出前です。日の出は " + sunHM(t.sunrise) + " です。" };
+    else if (now < down.getTime()) status = { c: "#2d7a3d", m: "下山を始める目安まで あと " + sunDur(down.getTime() - now) };
+    else if (now < t.sunset.getTime()) status = { c: "#c0392b", m: "⚠️ 下山を始める時刻を過ぎています。日の入りまで あと " + sunDur(t.sunset.getTime() - now) + "。そろそろ下りましょう。" };
+    else status = { c: "#c0392b", m: "⚠️ 日の入りを過ぎています。ヘッドライトを使い、足元に気をつけて、無理せず下山してください。" };
+  }
+  const selStyle = { ...featInp, marginBottom: 8 };
+  return _m('div', { style: featCard },
+    _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 15, marginBottom: 6 } }, "🌇 日の入りと下山の目安"),
+    _m('div', { style: { fontSize: 12, color: "#666", lineHeight: 1.7, marginBottom: 8 } }, "場所と日付から、日の出・日の入りを計算します。計算だけなので、圏外でも使えます。"),
+    _m('select', { value: spotId, onChange: e => { setSpotId(e.target.value); if (e.target.value === "gps" && !gps) getGps(); }, style: selStyle },
+      _m('option', { value: "default" }, "中部・北陸の目安"),
+      list.map(s => _m('option', { key: s.id, value: String(s.id) }, s.name)),
+      _m('option', { value: "gps" }, "📍 現在地を使う")),
+    gpsMsg && _m('div', { style: { fontSize: 12, color: "#c0392b", marginBottom: 6 } }, gpsMsg),
+    _m('div', { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, textAlign: "center", marginBottom: 10 } },
+      [["🌅 日の出", sunHM(t.sunrise)], ["🌇 日の入り", sunHM(t.sunset)], ["🌃 暗くなる頃", sunHM(dusk)]].map(a => _m('div', { key: a[0], style: { background: "var(--mist)", borderRadius: 10, padding: "8px 4px" } }, _m('div', { style: { fontSize: 11, color: "#666" } }, a[0]), _m('div', { style: { fontSize: 20, fontWeight: 700, color: "var(--forest)" } }, a[1])))),
+    _m('div', { style: { fontSize: 12, color: "#555", marginBottom: 4 } }, "日の入りの何時間前までに、下山を始めますか？"),
+    _m('select', { value: String(margin), onChange: e => { setMargin(Number(e.target.value)); setDone(false); }, style: selStyle },
+      [[60, "1時間前（慣れた道）"], [90, "1時間半前"], [120, "2時間前（おすすめ）"], [180, "3時間前（遠い・急な山）"]].map(o => _m('option', { key: o[0], value: String(o[0]) }, o[1]))),
+    _m('div', { style: { background: "#fff7e6", border: "1px solid #f1d9a8", borderRadius: 10, padding: "10px 12px", fontSize: 14, color: "#5a3a00", lineHeight: 1.7 } },
+      _m('div', { style: { fontWeight: 700 } }, "⏰ 下山を始める目安：" + sunHM(down)),
+      inMs !== null && _m('div', { style: { fontSize: 12 } }, inMs > 0 ? "入山 " + plan.inTime + " から、山にいられるのは 約" + sunDur(inMs) + "です。" : "入山時刻が、下山を始める目安より後になっています。時間を見直してください。")),
+    status && _m('div', { style: { marginTop: 10, fontSize: 13, fontWeight: 700, color: status.c, lineHeight: 1.7 } }, status.m),
+    _m('button', { onClick: () => { onSetOut && onSetOut(sunHM(down)); setDone(true); }, style: { ...featBtn, width: "100%", marginTop: 10, background: "var(--forest)", color: "white" } }, done ? "✅ 下山予定に入れました" : "この時刻を、下山予定に入れる"),
+    _m('div', { style: { fontSize: 11, color: "#888", lineHeight: 1.7, marginTop: 8 } }, "※ 谷や森の中は、日の入りの1時間ほど前から暗くなります。曇りや雨の日は、さらに早く暗くなります。「暗くなる頃」は、日の入りの30分後（空が暗くなる目安）です。ヘッドライトは必ず持って行きましょう。"));
+}
+
 /* --- 安全・連絡：入山の予定／現在地 --- */
 function SafetyView({ spots }) {
   const today = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
@@ -10846,6 +10999,7 @@ function SafetyView({ spots }) {
         featSendButtons(planText, setMsg),
         _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 13, margin: "14px 0 4px" } }, "下山したら"),
         _m('a', { href: lineLink(downText), target: "_blank", rel: "noopener noreferrer", style: { ...featBtn, background: "var(--mist)", color: "var(--forest)" } }, "✅ 「無事に下山しました」をLINEで送る")),
+      _m(SunCard, { spots: spots, plan: plan, onSetOut: (hm) => set("outTime", hm) }),
       _m('div', { style: featCard },
         _m('div', { style: { fontWeight: 700, color: "#c0392b", fontSize: 15, marginBottom: 6 } }, "📍 現在地を送る"),
         _m('div', { style: { fontSize: 12, color: "#666", lineHeight: 1.7, marginBottom: 8 } }, "ボタンを押したときだけ、現在地を調べて文章にします。地図のリンクつきです。圏外でも現在地は調べられるので、電波が戻ったときに送れます。"),
@@ -11299,6 +11453,7 @@ function App() {
     { id: "notices",  label: "お知らせ", icon: "📢" },
     { id: "calendar", label: "\u30ab\u30ec\u30f3\u30c0\u30fc", icon: "\ud83c\udf43" },
     { id: "plan",     label: "\u63a1\u53d6\u30d7\u30e9\u30f3", icon: "\ud83d\udcc5" },
+    { id: "checklist", label: "出発前チェック", icon: "✅" },
     { id: "spots",    label: "\u30b9\u30dd\u30c3\u30c8",   icon: "\ud83d\udccd" },
     { id: "blog",     label: "\u30d6\u30ed\u30b0",     icon: "\ud83d\udcdd" },
     { id: "info",     label: "\u5c71\u83dc\u56f3\u9451",   icon: "\ud83c\udf3f" },
@@ -11375,6 +11530,7 @@ function App() {
           , tab === "map"      && React.createElement(HarvestMapView, { spots: spots, sansaiList: sansaiList })
           , tab === "theme"    && React.createElement(ThemeView, { isAdmin: (secretOn || zukanIsAdminDevice()) })
           , tab === "safety"   && React.createElement(SafetyView, { spots: spots })
+          , tab === "checklist" && React.createElement(ChecklistView, { sansaiList: sansaiList, clothing: clothing, tools: tools, onGo: setTab })
           , tab === "summary"  && React.createElement(SummaryView, { sansaiList: sansaiList, spots: spots })
           , tab === "search"   && React.createElement(SearchView, { sansaiList: sansaiList, spots: spots, onGo: setTab })
           , tab === "notices"  && React.createElement(NoticesView, { isAdmin: (secretOn || zukanIsAdminDevice()) })
