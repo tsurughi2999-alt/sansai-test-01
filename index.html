@@ -2620,6 +2620,15 @@ function ScheduleForm({ spots, onClose, onSuccess, members, sansaiList }) {
 
 
 // ===== GPS \u30e6\u30fc\u30c6\u30a3\u30ea\u30c6\u30a3 =====
+// GPSの高度（標高）を取り出す。取れない端末では何も足さない
+function gpsAltOf(c) {
+  const o = {};
+  if (c && typeof c.altitude === "number" && isFinite(c.altitude)) {
+    o.altitude = Math.round(c.altitude);
+    if (typeof c.altitudeAccuracy === "number" && isFinite(c.altitudeAccuracy)) o.altitudeAccuracy = Math.round(c.altitudeAccuracy);
+  }
+  return o;
+}
 function useGPS() {
   const [gps, setGps] = useState(null);         // {lat, lng, accuracy, timestamp}
   const [gpsStatus, setGpsStatus] = useState("idle"); // idle | loading | ok | error
@@ -2639,6 +2648,7 @@ function useGPS() {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
           accuracy: Math.round(pos.coords.accuracy),
+          ...gpsAltOf(pos.coords),
           timestamp: new Date().toLocaleString("ja-JP"),
         });
         setGpsStatus("ok");
@@ -2702,7 +2712,7 @@ function GPSCapture({ gps, gpsStatus, gpsError, onCapture, onClear, googleMapsUr
               , React.createElement('div', { style: {fontSize:11, color:"#555", lineHeight:1.8},}, "\u7def\u5ea6\uff1a"
                 , gps.lat.toFixed(6), React.createElement('br', null), "\u7d4c\u5ea6\uff1a"
                 , gps.lng.toFixed(6), React.createElement('br', null), "\u7cbe\u5ea6\uff1a\u00b1"
-                , gps.accuracy, "m", React.createElement('br', null), "\u53d6\u5f97\u6642\u523b\uff1a"
+                , gps.accuracy, "m", React.createElement('br', null), "標高：", (gps.altitude != null ? "約" + gps.altitude + "m" + (gps.altitudeAccuracy != null ? "（±" + gps.altitudeAccuracy + "m）" : "") : "取得できませんでした"), React.createElement('br', null), "\u53d6\u5f97\u6642\u523b\uff1a"
                 , gps.timestamp
               )
               , React.createElement('div', { style: {display:"flex", gap:8, marginTop:8},}
@@ -4783,7 +4793,7 @@ function PatrolView({ spots, onScheduleSuccess, showToast, members, sansaiList, 
   return (
     React.createElement('div', null
       , React.createElement('div', { className: "section-title",}, "\ud83d\udd0d \u5c71\u83dc\u30d1\u30c8\u30ed\u30fc\u30eb" )
-      , React.createElement('div', { className: "section-desc",}, "\u30b9\u30dd\u30c3\u30c8\u306e\u5de1\u56de\u8a18\u9332\u30fb\u751f\u80b2\u72b6\u6cc1\u30fb\u30b9\u30b1\u30b8\u30e5\u30fc\u30eb\u7ba1\u7406 (ver 18d)")
+      , React.createElement('div', { className: "section-desc",}, "\u30b9\u30dd\u30c3\u30c8\u306e\u5de1\u56de\u8a18\u9332\u30fb\u751f\u80b2\u72b6\u6cc1\u30fb\u30b9\u30b1\u30b8\u30e5\u30fc\u30eb\u7ba1\u7406 (ver 18e)")
 
       /* \u30b5\u30de\u30ea\u30fc */
       , React.createElement('div', { style: {display:"flex", gap:10, marginBottom:20, flexWrap:"wrap"},}
@@ -8789,6 +8799,8 @@ function HarvestMapView({ spots, sansaiList }) {
   const [sansaiSel, setSansaiSel] = useState("");
   const [sel, setSel] = useState(null);
   const [me, setMe] = useState(null);
+  const [alt, setAlt] = useState(null);
+  const altBuf = React.useRef([]);
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedCount, setSavedCount] = useState(null);
@@ -8860,14 +8872,22 @@ function HarvestMapView({ spots, sansaiList }) {
 
   const handleLocate = () => {
     if (!navigator.geolocation) { setMsg("この端末では現在地を取得できません。"); return; }
-    if (watchRef.current != null) { navigator.geolocation.clearWatch(watchRef.current); watchRef.current = null; setMe(null); setMsg(""); return; }
+    if (watchRef.current != null) { navigator.geolocation.clearWatch(watchRef.current); watchRef.current = null; setMe(null); setAlt(null); altBuf.current = []; setMsg(""); return; }
     setMsg("現在地を探しています…");
     let first = true;
     watchRef.current = navigator.geolocation.watchPosition(pos => {
-      const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      const c = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy || 0) };
       setMe(c); setMsg("");
+      { // 高度：直近5回の平均でなめらかに表示（数字のぴょんぴょんを抑える）
+        const a = pos.coords.altitude;
+        if (typeof a === "number" && isFinite(a)) {
+          const buf = altBuf.current; buf.push(a); if (buf.length > 5) buf.shift();
+          const aa = pos.coords.altitudeAccuracy;
+          setAlt({ v: Math.round(buf.reduce((t, x) => t + x, 0) / buf.length), acc: (typeof aa === "number" && isFinite(aa)) ? Math.round(aa) : null });
+        } else setAlt({ v: null, acc: null });
+      }
       if (first) { first = false; setView(v => ({ x: mapLng2x(c.lng), y: mapLat2y(c.lat), z: Math.max(v.z, 14) })); }
-    }, () => { setMsg("現在地を取得できませんでした。位置情報の許可を確認してください。"); watchRef.current = null; setMe(null); }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
+    }, () => { setMsg("現在地を取得できませんでした。位置情報の許可を確認してください。"); watchRef.current = null; setMe(null); setAlt(null); altBuf.current = []; }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
   };
 
   const handleSaveArea = async () => {
@@ -8937,6 +8957,10 @@ function HarvestMapView({ spots, sansaiList }) {
       _m('div', { ref: boxRef, onPointerDown: onDown, onPointerMove: onMove, onPointerUp: onUp, onPointerCancel: onUp, onClick: () => { if (!moved.current) setSel(null); }, style: { position: "relative", width: "100%", height: "62vh", minHeight: 340, background: "#dfe8d8", borderRadius: 14, overflow: "hidden", touchAction: "none", border: "2px solid var(--mist)" } },
         tiles, pinEls,
         meS && _m('div', { style: { position: "absolute", left: meS.sx - 9, top: meS.sy - 9, width: 18, height: 18, borderRadius: "50%", background: "#1a73e8", border: "3px solid white", boxShadow: "0 0 0 2px rgba(26,115,232,0.35)", zIndex: 4, pointerEvents: "none", boxSizing: "border-box" } }),
+        me && _m('div', { style: { position: "absolute", left: 8, top: online ? 8 : 52, maxWidth: "calc(100% - 64px)", background: "rgba(255,255,255,0.93)", border: "1px solid #1a73e8", borderRadius: 10, padding: "5px 9px", zIndex: 6, pointerEvents: "none", lineHeight: 1.45 } },
+          _m('div', { style: { fontSize: 15, fontWeight: 700, color: "#1a4fa0" } }, "⛰ 標高 " + (alt && alt.v != null ? "約" + alt.v + "m" : (alt ? "取得できません" : "測定中…"))),
+          _m('div', { style: { fontSize: 10, color: "#444" } }, (alt && alt.v != null && alt.acc != null ? "高さの誤差 ±" + alt.acc + "m／" : "") + "位置の誤差 ±" + me.acc + "m"),
+          _m('div', { style: { fontSize: 10, color: "#444" } }, me.lat.toFixed(5) + ", " + me.lng.toFixed(5))),
         !online && _m('div', { style: { position: "absolute", left: 8, right: 56, top: 8, background: "rgba(122,90,0,0.92)", color: "white", fontSize: 11, lineHeight: 1.5, borderRadius: 8, padding: "6px 8px", zIndex: 6, pointerEvents: "none" } }, "📡 圏外：保存した地図を表示しています（保存していない場所は空白になります）"),
         _m('div', { onPointerDown: e => e.stopPropagation(), onClick: e => e.stopPropagation(), style: { position: "absolute", right: 8, top: 8, display: "flex", flexDirection: "column", gap: 6, zIndex: 7 } },
           _m('button', { style: ctl, onClick: () => zoomBtn(1) }, "＋"),
@@ -8956,7 +8980,7 @@ function HarvestMapView({ spots, sansaiList }) {
       _m('div', { style: { display: "flex", gap: 8, marginTop: 10 } },
         _m('button', { onClick: handleSaveArea, disabled: saving, style: { ...small, flex: 1, background: "var(--forest)", color: "white", opacity: saving ? 0.6 : 1 } }, "📥 この範囲を保存"),
         _m('button', { onClick: handleClearTiles, disabled: saving, style: { ...small, background: "var(--mist)", color: "var(--forest)" } }, "保存した地図を削除")),
-      _m('div', { style: { marginTop: 8, fontSize: 11, color: "#777", lineHeight: 1.7 } }, "電波のあるうちに行く場所を表示して「この範囲を保存」を押すと、圏外でも地図が見られます。一度見た場所も自動で保存されます。" + (savedCount != null ? "（保存済み：" + savedCount + "枚）" : "") + "\n広い範囲を何度も保存しないでください。現在地の青い点は、圏外でも表示されます。")
+      _m('div', { style: { marginTop: 8, fontSize: 11, color: "#777", lineHeight: 1.7 } }, "電波のあるうちに行く場所を表示して「この範囲を保存」を押すと、圏外でも地図が見られます。一度見た場所も自動で保存されます。" + (savedCount != null ? "（保存済み：" + savedCount + "枚）" : "") + "\n広い範囲を何度も保存しないでください。現在地の青い点と標高は、圏外でも表示されます。標高はGPSの値なので、数十mずれることがあります。")
     )
   );
 }
@@ -9888,11 +9912,11 @@ function SafetyView({ spots }) {
     if (!navigator.geolocation) { setLocMsg("この端末では、現在地を取得できません。"); return; }
     setLocMsg("現在地を探しています…（最大20秒）");
     navigator.geolocation.getCurrentPosition(pos => {
-      setLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy || 0), at: new Date() }); setLocMsg("");
+      setLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy || 0), alt: (typeof pos.coords.altitude === "number" && isFinite(pos.coords.altitude)) ? Math.round(pos.coords.altitude) : null, at: new Date() }); setLocMsg("");
     }, () => { setLocMsg("現在地を取得できませんでした。位置情報の許可と、空が開けた場所かを確認して、もう一度お試しください。"); }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
   };
   const locText = loc ? ["【現在地の連絡】", "日時：" + (loc.at.getMonth() + 1) + "/" + loc.at.getDate() + " " + String(loc.at.getHours()).padStart(2, "0") + ":" + String(loc.at.getMinutes()).padStart(2, "0"),
-    "地図：https://www.google.com/maps?q=" + loc.lat.toFixed(6) + "," + loc.lng.toFixed(6), "緯度 " + loc.lat.toFixed(6) + "／経度 " + loc.lng.toFixed(6) + "（誤差 約" + loc.acc + "m）", plan.dest && "行き先：" + plan.dest].filter(Boolean).join("\n") : "";
+    "地図：https://www.google.com/maps?q=" + loc.lat.toFixed(6) + "," + loc.lng.toFixed(6), "緯度 " + loc.lat.toFixed(6) + "／経度 " + loc.lng.toFixed(6) + "（誤差 約" + loc.acc + "m）", loc.alt != null && "標高 約" + loc.alt + "m（GPSの値・目安）", plan.dest && "行き先：" + plan.dest].filter(Boolean).join("\n") : "";
   return (
     _m('div', null,
       _m('div', { className: "section-title" }, "🛡️ 安全・連絡"),
