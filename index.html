@@ -9859,15 +9859,32 @@ function HomeAltBox() {
     if (!navigator.geolocation) return;
     setBusy(true);
     navigator.geolocation.getCurrentPosition(async pos => {
-      let a = pos.coords.altitude, from = "GPS";
-      if (!(typeof a === "number" && isFinite(a))) {
-        a = null; from = "";
+      // 端末ごとのGPS標高のばらつき（GPSチップの有無・楕円体高と海抜の違い）を避けるため、
+      // 通信できるときは、緯度経度から国土地理院の標高データで求める（どの端末でも同じ値になる）。
+      // 圏外のときだけ、GPSの標高を使う。
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      const gpsAlt = (typeof pos.coords.altitude === "number" && isFinite(pos.coords.altitude)) ? pos.coords.altitude : null;
+      let a = null, from = "";
+      const tryFetch = async (url, pick) => {
+        const ctl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+        const tm = setTimeout(() => { try { ctl && ctl.abort(); } catch (e) {} }, 6000);
         try {
-          const r = await fetch("https://api.open-meteo.com/v1/elevation?latitude=" + pos.coords.latitude + "&longitude=" + pos.coords.longitude);
+          const r = await fetch(url, ctl ? { signal: ctl.signal } : undefined);
           const j = await r.json();
-          if (j && j.elevation && isFinite(j.elevation[0])) { a = j.elevation[0]; from = "地図"; }
-        } catch (e) {}
+          const v = pick(j);
+          return (typeof v === "number" && isFinite(v)) ? v : null;
+        } catch (e) { return null; } finally { clearTimeout(tm); }
+      };
+      if (navigator.onLine !== false) {
+        a = await tryFetch("https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=" + lng + "&lat=" + lat + "&outtype=JSON", j => (j && typeof j.elevation === "number") ? j.elevation : null);
+        if (a != null) from = "地理院";
+        if (a == null) {
+          a = await tryFetch("https://api.open-meteo.com/v1/elevation?latitude=" + lat + "&longitude=" + lng, j => (j && j.elevation) ? j.elevation[0] : null);
+          if (a != null) from = "地図";
+        }
       }
+      if (a == null && gpsAlt != null) { a = gpsAlt; from = "GPS"; }
+      if (a == null) from = "";
       setAlt(a); setSrc(from); setBusy(false);
       if (a != null) { try { localStorage.setItem(SANSAI_ALT_KEY, JSON.stringify({ alt: a, src: from })); } catch (e) {} }
     }, () => { setBusy(false); }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 });
