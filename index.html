@@ -3294,14 +3294,81 @@ function PlanView({ spots, onScheduleSuccess, weatherLocations, setWeatherLocati
   );
 }
 
-function SpotsView({ spots, setSpots, sansaiList }) {
+const SPOT_PREFS = ["長野","岐阜","愛知","福井","石川","富山","新潟","山梨"];
+const SPOT_PREF_POLY = {
+  "新潟":[[139.55,38.55],[139.15,38.0],[138.55,37.45],[138.25,37.2],[137.85,37.05],[137.7,36.95],[138.1,36.9],[138.55,37.0],[138.65,36.65],[139.15,36.85],[139.6,37.2],[139.9,37.6],[139.7,38.0]],
+  "富山":[[137.75,36.95],[137.5,36.8],[137.1,36.8],[136.78,36.85],[136.78,36.5],[136.95,36.35],[137.2,36.3],[137.6,36.3],[137.75,36.55]],
+  "石川":[[136.78,36.85],[137.05,37.05],[137.35,37.45],[137.0,37.5],[136.7,37.2],[136.5,36.9],[136.25,36.3],[136.5,36.1],[136.78,36.2],[136.78,36.5]],
+  "福井":[[136.25,36.3],[136.5,36.1],[136.78,36.2],[136.55,35.8],[136.15,35.65],[135.9,35.45],[135.5,35.5],[135.8,35.75],[136.1,35.95],[136.2,36.15]],
+  "岐阜":[[136.78,36.2],[136.95,36.35],[137.2,36.3],[137.6,36.3],[137.6,35.7],[137.5,35.25],[137.0,35.2],[136.65,35.15],[136.4,35.45],[136.55,35.8]],
+  "長野":[[137.6,36.3],[137.75,36.55],[137.75,36.95],[138.1,36.9],[138.55,37.0],[138.65,36.65],[138.7,36.1],[138.4,35.9],[138.2,35.6],[137.95,35.3],[137.65,35.3],[137.6,35.7]],
+  "山梨":[[138.7,36.1],[138.95,35.95],[139.1,35.85],[139.1,35.65],[138.85,35.45],[138.6,35.2],[138.4,35.25],[138.2,35.6],[138.4,35.9]],
+  "愛知":[[136.65,35.15],[137.0,35.2],[137.5,35.25],[137.65,35.3],[137.95,35.3],[137.8,35.0],[137.35,34.65],[137.0,34.7],[136.9,34.8],[136.95,35.0],[136.7,35.0]]
+};
+const SPOT_PREF_COLOR = {"新潟":"#cfe6c4","富山":"#b9dccb","石川":"#d6e4a8","福井":"#f2dfa6","岐阜":"#bfdca6","長野":"#a8d3b0","山梨":"#e7cfa3","愛知":"#f1c9b0"};
+function spotX(lng){ return (lng - 135.4) * 100; }
+function spotY(lat){ return (38.7 - lat) * 123; }
+// 位置が登録済みか（昔の初期スポットは位置あり。新規で位置未入力のものは「なし」）
+function spotHasPos(s){ return s.hasPos === true || (s.hasPos === undefined && typeof s.id === "number" && s.id < 1000000 && !(s.lat === 36.5 && s.lng === 137.0)); }
+function spotPrefMatch(s, f){ return f === "all" || (f === "none" ? !s.pref : s.pref === f); }
+
+function SpotMap({ spots, prefF, setPrefF, onShowList }) {
+  const [sel, setSel] = useState(null);
+  const cnt = {}; SPOT_PREFS.forEach(k => { cnt[k] = spots.filter(s => s.pref === k).length; });
+  const pins = spots.filter(s => spotHasPos(s) && spotPrefMatch(s, prefF));
+  const selSpot = pins.find(s => s.id === sel) || null;
+  const names = spots.filter(s => spotPrefMatch(s, prefF));
+  return React.createElement('div', null
+    , React.createElement('div', { style: { fontSize: 12, color: "#888", marginBottom: 8, lineHeight: 1.6 },}, "県をタップすると、その県のスポットだけに絞り込みます（もう一度タップで全部に戻ります）。ピンは位置を登録したスポットです。")
+    , React.createElement('svg', { viewBox: "0 0 460 520", style: { width: "100%", maxWidth: 520, display: "block", margin: "0 auto", borderRadius: 18, background: "linear-gradient(#dcecf7,#c9e0f0)", border: "2px solid var(--mist)" },}
+      , React.createElement('text', { x: 22, y: 36, fontSize: 15, fill: "#7aa3bd", fontFamily: "serif",}, "日本海")
+      , React.createElement('text', { x: 330, y: 500, fontSize: 15, fill: "#7aa3bd", fontFamily: "serif",}, "太平洋")
+      , SPOT_PREFS.map(k => {
+          const pts = SPOT_PREF_POLY[k].map(c => spotX(c[0]).toFixed(1) + "," + spotY(c[1]).toFixed(1)).join(" ");
+          const cx = SPOT_PREF_POLY[k].reduce((a, c) => a + c[0], 0) / SPOT_PREF_POLY[k].length;
+          const cy = SPOT_PREF_POLY[k].reduce((a, c) => a + c[1], 0) / SPOT_PREF_POLY[k].length;
+          const on = prefF === k;
+          return React.createElement('g', { key: k, onClick: () => setPrefF(on ? "all" : k), style: { cursor: "pointer" },}
+            , React.createElement('polygon', { points: pts, fill: SPOT_PREF_COLOR[k], stroke: on ? "#2d6a4f" : "#fff", strokeWidth: on ? 4 : 2.5, strokeLinejoin: "round", opacity: prefF === "all" || on ? 1 : 0.45,})
+            , React.createElement('text', { x: spotX(cx), y: spotY(cy), textAnchor: "middle", fontSize: 13, fontWeight: 700, fill: "#2d4a3a", fontFamily: "serif", pointerEvents: "none",}, k)
+            , cnt[k] > 0 && React.createElement('g', { pointerEvents: "none",}
+                , React.createElement('circle', { cx: spotX(cx), cy: spotY(cy) + 14, r: 9, fill: "#2d6a4f",})
+                , React.createElement('text', { x: spotX(cx), y: spotY(cy) + 18, textAnchor: "middle", fontSize: 11, fill: "#fff", fontWeight: 700,}, cnt[k])
+              )
+          );
+        })
+      , pins.map(s => React.createElement('text', { key: s.id, x: spotX(s.lng), y: spotY(s.lat), textAnchor: "middle", fontSize: sel === s.id ? 26 : 19, onClick: e => { e.stopPropagation(); setSel(s.id); }, style: { cursor: "pointer" },}, "📍"))
+    )
+    , selSpot && React.createElement('div', { style: { margin: "10px 0 0", padding: "10px 14px", background: "white", border: "2px solid var(--mist)", borderRadius: 12, fontSize: 14, fontWeight: 700, color: "var(--forest)" },}, "📍 " + selSpot.name + (selSpot.pref ? "（" + selSpot.pref + "）" : ""))
+    , React.createElement('div', { style: { marginTop: 12, fontSize: 13, color: "#555", lineHeight: 1.9 },}
+      , React.createElement('div', { style: { fontWeight: 700, color: "var(--forest)" },}, (prefF === "all" ? "全部" : prefF === "none" ? "県未設定" : prefF) + "のスポット：" + names.length + "件" + "（ピン " + pins.length + "件）")
+      , names.map(s => React.createElement('div', { key: s.id, onClick: () => { if (spotHasPos(s)) setSel(s.id); },}, "・" + s.name + (s.pref ? "（" + s.pref + "）" : "") + (spotHasPos(s) ? "" : "　※位置なし")))
+      , React.createElement('button', { onClick: onShowList, style: { marginTop: 8, padding: "10px 16px", borderRadius: 10, border: "none", background: "var(--forest)", color: "white", fontWeight: 700, fontSize: 13, cursor: "pointer" },}, "📋 この絞り込みで一覧を見る")
+    )
+  );
+}
+
+function SpotsView({ spots, setSpots, sansaiList, isAdmin }) {
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [form, setForm] = useState({ name:"", notes:"", sansai:[] });
+  const [form, setForm] = useState({ name:"", notes:"", sansai:[], pref:"", lat:"", lng:"" });
+  const [sub, setSub] = useState("list");      // list | map（mapは管理者のみ）
+  const [prefF, setPrefF] = useState("all");   // all | none | 県名
+  const [locBusy, setLocBusy] = useState(false);
+  useEffect(() => { if (!isAdmin && sub === "map") setSub("list"); }, [isAdmin]);
+  const getHere = () => {
+    if (!navigator.geolocation) { alert("この端末では現在地を取得できません"); return; }
+    setLocBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => { setForm(f => ({ ...f, lat: pos.coords.latitude.toFixed(5), lng: pos.coords.longitude.toFixed(5) })); setLocBusy(false); },
+      () => { setLocBusy(false); alert("現在地を取得できませんでした。位置情報の許可を確認するか、数字を手で入れてください。"); },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 });
+  };
   // 並べ替え：▲▼で1つずつ、⤒⤓で先頭・末尾へ。順番はこの端末に自動で保存されます
   const [reorder, setReorder] = useState(false);
   const [movedId, setMovedId] = useState(null);
+  useEffect(() => { if (prefF !== "all") setReorder(false); }, [prefF]);
   const moveSpot = (id, how) => {
     setSpots(prev => {
       const a = prev.slice(); const i = a.findIndex(s => s.id === id);
@@ -3321,23 +3388,26 @@ function SpotsView({ spots, setSpots, sansaiList }) {
   }, [spots]);
 
   const openAdd = () => {
-    setForm({ name:"", notes:"", sansai:[] });
+    setForm({ name:"", notes:"", sansai:[], pref: SPOT_PREFS.includes(prefF) ? prefF : "", lat:"", lng:"" });
     setEditTarget(null);
     setShowForm(true);
   };
 
   const openEdit = (spot) => {
-    setForm({ name: spot.name, notes: spot.notes, sansai: [...spot.sansai] });
+    setForm({ name: spot.name, notes: spot.notes, sansai: [...spot.sansai], pref: spot.pref || "", lat: spotHasPos(spot) ? String(spot.lat) : "", lng: spotHasPos(spot) ? String(spot.lng) : "" });
     setEditTarget(spot);
     setShowForm(true);
   };
 
   const handleSave = () => {
     if (!form.name.trim()) return;
+    const la = parseFloat(form.lat), ln = parseFloat(form.lng);
+    const ok = isFinite(la) && isFinite(ln) && la >= 20 && la <= 46 && ln >= 122 && ln <= 154;
+    const base = { name: form.name, sansai: form.sansai, notes: form.notes, pref: form.pref || "" };
     if (editTarget) {
-      setSpots(prev => prev.map(s => s.id === editTarget.id ? { ...s, ...form } : s));
+      setSpots(prev => prev.map(s => s.id === editTarget.id ? { ...s, ...base, ...(ok ? { lat: la, lng: ln, hasPos: true } : { hasPos: false }) } : s));
     } else {
-      setSpots(prev => [...prev, { id: Date.now(), name: form.name, lat:36.5, lng:137.0, sansai: form.sansai, notes: form.notes, visits: 0 }]);
+      setSpots(prev => [...prev, { id: Date.now(), ...base, lat: ok ? la : 36.5, lng: ok ? ln : 137.0, hasPos: ok, visits: 0 }]);
     }
     setShowForm(false);
   };
@@ -3356,14 +3426,21 @@ function SpotsView({ spots, setSpots, sansaiList }) {
       , React.createElement('div', { className: "section-title",}, "\ud83d\udccd \u63a1\u53d6\u30b9\u30dd\u30c3\u30c8" )
       , React.createElement('div', { className: "section-desc",}, "\u3088\u304f\u884c\u304f\u30dd\u30a4\u30f3\u30c8\u3092\u7ba1\u7406\u3002\u5c71\u83dc\u306e\u7a2e\u985e\u3084\u899a\u3048\u66f8\u304d\u3092\u8a18\u9332\u3067\u304d\u307e\u3059\u3002")
 
-      , React.createElement('button', { onClick: () => setReorder(r => !r), style: { margin: "0 0 12px", padding: "9px 16px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, background: reorder ? "var(--forest)" : "var(--mist)", color: reorder ? "white" : "var(--forest)" },}, reorder ? "✅ 並べ替えを終わる" : "↕️ 並べ替え")
-      , reorder && React.createElement('div', { style: { fontSize: 12, color: "#888", marginBottom: 10, lineHeight: 1.6 },}, "▲▼で1つずつ動かせます。⤒は先頭へ、⤓は最後へ移動します。順番は自動で保存されます。")
-      , React.createElement('div', { className: "spot-cards",}
-        , spots.map((spot, idx) => (
+      , isAdmin && React.createElement('div', { style: { display: "flex", gap: 8, marginBottom: 12 },}
+        , [["list","📋 一覧"],["map","🗺️ 地域マップ（管理者）"]].map(t => React.createElement('button', { key: t[0], onClick: () => setSub(t[0]), style: { flex: 1, padding: "11px 0", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, background: sub === t[0] ? "var(--forest)" : "var(--mist)", color: sub === t[0] ? "white" : "var(--forest)" },}, t[1]))
+      )
+      , React.createElement('div', { style: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 },}
+        , [["all","全部",spots.length]].concat(SPOT_PREFS.map(k => [k, k, spots.filter(x => x.pref === k).length])).concat([["none","未設定",spots.filter(x => !x.pref).length]]).map(c => React.createElement('button', { key: c[0], onClick: () => setPrefF(c[0]), style: { padding: "7px 12px", borderRadius: 16, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, background: prefF === c[0] ? "var(--forest)" : "var(--mist)", color: prefF === c[0] ? "white" : "var(--forest)" },}, c[1] + " " + c[2]))
+      )
+      , sub === "map" && isAdmin && React.createElement(SpotMap, { spots: spots, prefF: prefF, setPrefF: setPrefF, onShowList: () => setSub("list"),})
+      , sub === "list" && prefF === "all" && React.createElement('button', { onClick: () => setReorder(r => !r), style: { margin: "0 0 12px", padding: "9px 16px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, background: reorder ? "var(--forest)" : "var(--mist)", color: reorder ? "white" : "var(--forest)" },}, reorder ? "✅ 並べ替えを終わる" : "↕️ 並べ替え")
+      , sub === "list" && reorder && React.createElement('div', { style: { fontSize: 12, color: "#888", marginBottom: 10, lineHeight: 1.6 },}, "▲▼で1つずつ動かせます。⤒は先頭へ、⤓は最後へ移動します。順番は自動で保存されます。")
+      , React.createElement('div', { className: "spot-cards", style: sub === "map" ? { display: "none" } : undefined,}
+        , spots.map((spot, idx) => !spotPrefMatch(spot, prefF) ? null : (
           React.createElement('div', { key: spot.id, id: "spot-card-" + spot.id, className: "spot-card",}
             , React.createElement('div', { className: "spot-card-header",}
               , React.createElement('div', { className: "spot-name",}, "\ud83d\udccd " , spot.name)
-              , React.createElement('div', { className: "spot-visits",}, "\u8a2a\u554f " , spot.visits, " \u56de" )
+              , React.createElement('div', { className: "spot-visits",}, (spot.pref ? spot.pref + "・" : "") + "\u8a2a\u554f " , spot.visits, " \u56de" )
             )
             , React.createElement('div', { className: "spot-card-body",}
               , React.createElement('div', { className: "spot-tags",}
@@ -3397,7 +3474,7 @@ function SpotsView({ spots, setSpots, sansaiList }) {
         )
       )
 
-      , React.createElement('button', { className: "add-btn", onClick: openAdd,}, "\uff0b \u30b9\u30dd\u30c3\u30c8\u3092\u8ffd\u52a0" )
+      , React.createElement('button', { className: "add-btn", style: sub === "map" ? { display: "none" } : undefined, onClick: openAdd,}, "\uff0b \u30b9\u30dd\u30c3\u30c8\u3092\u8ffd\u52a0" )
 
       /* \u8ffd\u52a0\u30fb\u7de8\u96c6\u30d5\u30a9\u30fc\u30e0 */
       , showForm && (
@@ -3407,6 +3484,21 @@ function SpotsView({ spots, setSpots, sansaiList }) {
             , React.createElement('div', { className: "form-group",}
               , React.createElement('label', { className: "form-label",}, "\u30b9\u30dd\u30c3\u30c8\u540d *" )
               , React.createElement('input', { className: "form-input", value: form.name, onChange: e=>setForm(f=>({...f,name:e.target.value})), placeholder: "\u4f8b\uff1a\u3007\u3007\u6797\u9053\u30fb\u25a1\u25a1\u6ca2",} )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "県")
+              , React.createElement('select', { className: "form-input", value: form.pref, onChange: e=>setForm(f=>({...f,pref:e.target.value})),}
+                , React.createElement('option', { value: "",}, "（未設定）")
+                , SPOT_PREFS.map(k => React.createElement('option', { key: k, value: k,}, k + (k === "新潟" || k === "山梨" ? "（例外）" : "")))
+              )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "位置（地域マップのピン用・任意）")
+              , React.createElement('div', { style: { display: "flex", gap: 8 },}
+                , React.createElement('input', { className: "form-input", inputMode: "decimal", value: form.lat, onChange: e=>setForm(f=>({...f,lat:e.target.value})), placeholder: "緯度 例 36.28",})
+                , React.createElement('input', { className: "form-input", inputMode: "decimal", value: form.lng, onChange: e=>setForm(f=>({...f,lng:e.target.value})), placeholder: "経度 例 137.12",})
+              )
+              , React.createElement('button', { type: "button", onClick: getHere, disabled: locBusy, style: { marginTop: 8, padding: "9px 14px", borderRadius: 10, border: "none", background: "var(--mist)", color: "var(--forest)", fontWeight: 700, fontSize: 13, cursor: "pointer" },}, locBusy ? "取得中…" : "📍 いまいる場所を入れる")
             )
             , React.createElement('div', { className: "form-group",}
               , React.createElement('label', { className: "form-label",}, "\u63a1\u308c\u308b\u5c71\u83dc")
@@ -10539,7 +10631,7 @@ function App() {
           , tab === "home"     && React.createElement(HomeView, { onTabChange: setTab, secretOn: secretOn, onSecretTap: () => setShowUnlock(true),} )
           , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: (secretOn || zukanIsAdminDevice()),} )
           , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
-          , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots, sansaiList: sansaiList,} )
+          , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots, sansaiList: sansaiList, isAdmin: (secretOn || zukanIsAdminDevice()),} )
           , tab === "blog"     && React.createElement(ShareTab, { kind: "blog", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, onOwnChanged: () => setPosts(shareLoadOwn("blog")), renderOwn: (k) => React.createElement(BlogView, { key: k, posts: posts, setPosts: setPosts, spots: spots, members: members, sansaiList: sansaiList }) })
           , tab === "info"     && React.createElement(SansaiInfoView, { spots: spots, sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: (secretOn || zukanIsAdminDevice()),} )
           , tab === "members"  && React.createElement(React.Fragment, null, React.createElement(MembersView, { members: members, setMembers: setMembers, isAdmin: (secretOn || zukanIsAdminDevice()),} ), React.createElement(AuthPanel, { isAdmin: (secretOn || zukanIsAdminDevice()),} ))
