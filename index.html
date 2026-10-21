@@ -3299,6 +3299,26 @@ function SpotsView({ spots, setSpots, sansaiList }) {
   const [editTarget, setEditTarget] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [form, setForm] = useState({ name:"", notes:"", sansai:[] });
+  // 並べ替え：▲▼で1つずつ、⤒⤓で先頭・末尾へ。順番はこの端末に自動で保存されます
+  const [reorder, setReorder] = useState(false);
+  const [movedId, setMovedId] = useState(null);
+  const moveSpot = (id, how) => {
+    setSpots(prev => {
+      const a = prev.slice(); const i = a.findIndex(s => s.id === id);
+      if (i < 0) return prev;
+      const j = how === "up" ? i - 1 : how === "down" ? i + 1 : how === "top" ? 0 : a.length - 1;
+      if (j < 0 || j >= a.length || j === i) return prev;
+      const [it] = a.splice(i, 1); a.splice(j, 0, it);
+      return a;
+    });
+    setMovedId(id);
+  };
+  useEffect(() => {
+    if (movedId == null) return;
+    const el = document.getElementById("spot-card-" + movedId);
+    if (el && el.scrollIntoView) { try { el.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {} }
+    setMovedId(null);
+  }, [spots]);
 
   const openAdd = () => {
     setForm({ name:"", notes:"", sansai:[] });
@@ -3336,9 +3356,11 @@ function SpotsView({ spots, setSpots, sansaiList }) {
       , React.createElement('div', { className: "section-title",}, "\ud83d\udccd \u63a1\u53d6\u30b9\u30dd\u30c3\u30c8" )
       , React.createElement('div', { className: "section-desc",}, "\u3088\u304f\u884c\u304f\u30dd\u30a4\u30f3\u30c8\u3092\u7ba1\u7406\u3002\u5c71\u83dc\u306e\u7a2e\u985e\u3084\u899a\u3048\u66f8\u304d\u3092\u8a18\u9332\u3067\u304d\u307e\u3059\u3002")
 
+      , React.createElement('button', { onClick: () => setReorder(r => !r), style: { margin: "0 0 12px", padding: "9px 16px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, background: reorder ? "var(--forest)" : "var(--mist)", color: reorder ? "white" : "var(--forest)" },}, reorder ? "✅ 並べ替えを終わる" : "↕️ 並べ替え")
+      , reorder && React.createElement('div', { style: { fontSize: 12, color: "#888", marginBottom: 10, lineHeight: 1.6 },}, "▲▼で1つずつ動かせます。⤒は先頭へ、⤓は最後へ移動します。順番は自動で保存されます。")
       , React.createElement('div', { className: "spot-cards",}
-        , spots.map(spot => (
-          React.createElement('div', { key: spot.id, className: "spot-card",}
+        , spots.map((spot, idx) => (
+          React.createElement('div', { key: spot.id, id: "spot-card-" + spot.id, className: "spot-card",}
             , React.createElement('div', { className: "spot-card-header",}
               , React.createElement('div', { className: "spot-name",}, "\ud83d\udccd " , spot.name)
               , React.createElement('div', { className: "spot-visits",}, "\u8a2a\u554f " , spot.visits, " \u56de" )
@@ -3351,8 +3373,11 @@ function SpotsView({ spots, setSpots, sansaiList }) {
                 })
               )
               , React.createElement('div', { className: "spot-notes",}, spot.notes)
+              , reorder && React.createElement('div', { style: {display:"flex", gap:8, marginTop:12},}
+                , [["top","⤒ 先頭",idx===0],["up","▲ 上へ",idx===0],["down","▼ 下へ",idx===spots.length-1],["bottom","⤓ 最後",idx===spots.length-1]].map(b => React.createElement('button', { key: b[0], disabled: b[2], onClick: () => moveSpot(spot.id, b[0]), style: {flex:1, padding:"12px 0", background: b[2] ? "#eee" : "var(--mist)", border:"none", borderRadius:8, cursor: b[2] ? "default" : "pointer", fontSize:13, fontWeight:700, color: b[2] ? "#bbb" : "var(--forest)"},}, b[1]))
+              )
               /* \u64cd\u4f5c\u30dc\u30bf\u30f3 */
-              , React.createElement('div', { style: {display:"flex", gap:8, marginTop:12},}
+              , !reorder && React.createElement('div', { style: {display:"flex", gap:8, marginTop:12},}
                 , React.createElement('button', {
                   onClick: ()=>openEdit(spot),
                   style: {flex:1, padding:"7px 0", background:"var(--mist)", border:"none", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600, color:"var(--forest)"},}, "\u270f\ufe0f \u7de8\u96c6"
