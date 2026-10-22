@@ -3298,14 +3298,17 @@ const SPOT_PREFS = ["長野","岐阜","愛知","福井","石川","富山","新�
 const SPOT_PREF_POLY = {
   "新潟":[[139.55,38.55],[139.15,38.0],[138.55,37.45],[138.25,37.2],[137.85,37.05],[137.7,36.95],[138.1,36.9],[138.55,37.0],[138.65,36.65],[139.15,36.85],[139.6,37.2],[139.9,37.6],[139.7,38.0]],
   "富山":[[137.75,36.95],[137.5,36.8],[137.1,36.8],[136.78,36.85],[136.78,36.5],[136.95,36.35],[137.2,36.3],[137.6,36.3],[137.75,36.55]],
-  "石川":[[136.78,36.85],[137.05,37.05],[137.35,37.45],[137.0,37.5],[136.7,37.2],[136.5,36.9],[136.25,36.3],[136.5,36.1],[136.78,36.2],[136.78,36.5]],
-  "福井":[[136.25,36.3],[136.5,36.1],[136.78,36.2],[136.55,35.8],[136.15,35.65],[135.9,35.45],[135.5,35.5],[135.8,35.75],[136.1,35.95],[136.2,36.15]],
+  "石川":[[136.78,36.85],[136.95,36.95],[137.1,37.05],[137.2,37.2],[137.35,37.4],[137.25,37.5],[137.0,37.5],[136.8,37.4],[136.7,37.25],[136.7,37.1],[136.55,36.9],[136.35,36.55],[136.25,36.3],[136.5,36.1],[136.78,36.2],[136.78,36.5]],
+  "福井":[[136.25,36.3],[136.5,36.1],[136.78,36.2],[136.55,35.8],[136.15,35.65],[135.9,35.45],[135.5,35.5],[135.65,35.65],[135.9,35.65],[136.0,35.8],[136.1,35.95],[136.2,36.15]],
   "岐阜":[[136.78,36.2],[136.95,36.35],[137.2,36.3],[137.6,36.3],[137.6,35.7],[137.5,35.25],[137.0,35.2],[136.65,35.15],[136.4,35.45],[136.55,35.8]],
   "長野":[[137.6,36.3],[137.75,36.55],[137.75,36.95],[138.1,36.9],[138.55,37.0],[138.65,36.65],[138.7,36.1],[138.4,35.9],[138.2,35.6],[137.95,35.3],[137.65,35.3],[137.6,35.7]],
   "山梨":[[138.7,36.1],[138.95,35.95],[139.1,35.85],[139.1,35.65],[138.85,35.45],[138.6,35.2],[138.4,35.25],[138.2,35.6],[138.4,35.9]],
-  "愛知":[[136.65,35.15],[137.0,35.2],[137.5,35.25],[137.65,35.3],[137.95,35.3],[137.8,35.0],[137.35,34.65],[137.0,34.7],[136.9,34.8],[136.95,35.0],[136.7,35.0]]
+  "愛知":[[136.65,35.15],[137.0,35.2],[137.5,35.25],[137.65,35.3],[137.95,35.3],[137.8,35.0],[137.3,34.65],[137.05,34.62],[137.0,34.75],[136.95,34.85],[136.85,34.7],[136.85,35.0],[136.7,35.0]]
 };
 const SPOT_PREF_COLOR = {"新潟":"#cfe6c4","富山":"#b9dccb","石川":"#d6e4a8","福井":"#f2dfa6","岐阜":"#bfdca6","長野":"#a8d3b0","山梨":"#e7cfa3","愛知":"#f1c9b0"};
+const SPOT_SADO = [[138.55,38.3],[138.4,38.25],[138.25,37.95],[138.3,37.8],[138.5,37.95],[138.55,38.1]]; // 佐渡島（新潟）
+const SPOT_GUESS = [["飛騨","岐阜"],["白川","岐阜"],["郡上","岐阜"],["高山","岐阜"],["下呂","岐阜"],["岐阜","岐阜"],["白山","石川"],["能登","石川"],["金沢","石川"],["加賀","石川"],["瀬女","石川"],["石川","石川"],["黒部","富山"],["立山","富山"],["五箇山","富山"],["砺波","富山"],["氷見","富山"],["魚津","富山"],["片貝","富山"],["富山","富山"],["福井","福井"],["越前","福井"],["若狭","福井"],["勝山","福井"],["白馬","長野"],["木曽","長野"],["安曇野","長野"],["飯山","長野"],["信濃","長野"],["長野","長野"],["甲府","山梨"],["山梨","山梨"],["名古屋","愛知"],["設楽","愛知"],["豊田","愛知"],["愛知","愛知"],["上越","新潟"],["糸魚川","新潟"],["妙高","新潟"],["魚沼","新潟"],["新潟","新潟"]];
+function spotLabel(s){ return s ? (s.name + (s.pref ? "（" + s.pref + "）" : "")) : ""; }
 function spotX(lng){ return (lng - 135.4) * 100; }
 function spotY(lat){ return (38.7 - lat) * 123; }
 // 位置が登録済みか（昔の初期スポットは位置あり。新規で位置未入力のものは「なし」）
@@ -3314,6 +3317,7 @@ function spotPrefMatch(s, f){ return f === "all" || (f === "none" ? !s.pref : s.
 
 function SpotMap({ spots, prefF, setPrefF, onShowList }) {
   const [sel, setSel] = useState(null);
+  useEffect(() => { setSel(null); }, [prefF]);
   const cnt = {}; SPOT_PREFS.forEach(k => { cnt[k] = spots.filter(s => s.pref === k).length; });
   const pins = spots.filter(s => spotHasPos(s) && spotPrefMatch(s, prefF));
   const selSpot = pins.find(s => s.id === sel) || null;
@@ -3330,6 +3334,7 @@ function SpotMap({ spots, prefF, setPrefF, onShowList }) {
           const on = prefF === k;
           return React.createElement('g', { key: k, onClick: () => setPrefF(on ? "all" : k), style: { cursor: "pointer" },}
             , React.createElement('polygon', { points: pts, fill: SPOT_PREF_COLOR[k], stroke: on ? "#2d6a4f" : "#fff", strokeWidth: on ? 4 : 2.5, strokeLinejoin: "round", opacity: prefF === "all" || on ? 1 : 0.45,})
+            , k === "新潟" && React.createElement('polygon', { points: SPOT_SADO.map(c => spotX(c[0]).toFixed(1) + "," + spotY(c[1]).toFixed(1)).join(" "), fill: SPOT_PREF_COLOR[k], stroke: on ? "#2d6a4f" : "#fff", strokeWidth: on ? 3 : 2, strokeLinejoin: "round", opacity: prefF === "all" || on ? 1 : 0.45,})
             , React.createElement('text', { x: spotX(cx), y: spotY(cy), textAnchor: "middle", fontSize: 13, fontWeight: 700, fill: "#2d4a3a", fontFamily: "serif", pointerEvents: "none",}, k)
             , cnt[k] > 0 && React.createElement('g', { pointerEvents: "none",}
                 , React.createElement('circle', { cx: spotX(cx), cy: spotY(cy) + 14, r: 9, fill: "#2d6a4f",})
@@ -3355,6 +3360,15 @@ function SpotsView({ spots, setSpots, sansaiList, isAdmin }) {
   const [form, setForm] = useState({ name:"", notes:"", sansai:[], pref:"", lat:"", lng:"" });
   const [sub, setSub] = useState("list");      // list | map（mapは管理者のみ）
   const [prefF, setPrefF] = useState("all");   // all | none | 県名
+  const [bulk, setBulk] = useState(false);     // 県をまとめて設定するモード
+  useEffect(() => { if (prefF !== "all" && prefF !== "none") setBulk(false); }, [prefF]);
+  const setPrefOf = (id, v) => setSpots(prev => prev.map(x => x.id === id ? { ...x, pref: v } : x));
+  const guessAll = () => {
+    let n = 0;
+    const next = spots.map(x => { if (x.pref) return x; const g = SPOT_GUESS.find(k => x.name.indexOf(k[0]) >= 0); if (g) { n++; return { ...x, pref: g[1] }; } return x; });
+    if (n === 0) { alert("名前から県を推測できるスポットはありませんでした。"); return; }
+    if (confirm("県が未設定のスポットのうち " + n + " 件に、名前から推測した県を入れます。あとで直せます。よろしいですか？")) setSpots(next);
+  };
   const [locBusy, setLocBusy] = useState(false);
   useEffect(() => { if (!isAdmin && sub === "map") setSub("list"); }, [isAdmin]);
   const getHere = () => {
@@ -3433,7 +3447,11 @@ function SpotsView({ spots, setSpots, sansaiList, isAdmin }) {
         , [["all","全部",spots.length]].concat(SPOT_PREFS.map(k => [k, k, spots.filter(x => x.pref === k).length])).concat([["none","未設定",spots.filter(x => !x.pref).length]]).map(c => React.createElement('button', { key: c[0], onClick: () => setPrefF(c[0]), style: { padding: "7px 12px", borderRadius: 16, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, background: prefF === c[0] ? "var(--forest)" : "var(--mist)", color: prefF === c[0] ? "white" : "var(--forest)" },}, c[1] + " " + c[2]))
       )
       , sub === "map" && isAdmin && React.createElement(SpotMap, { spots: spots, prefF: prefF, setPrefF: setPrefF, onShowList: () => setSub("list"),})
-      , sub === "list" && prefF === "all" && React.createElement('button', { onClick: () => setReorder(r => !r), style: { margin: "0 0 12px", padding: "9px 16px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, background: reorder ? "var(--forest)" : "var(--mist)", color: reorder ? "white" : "var(--forest)" },}, reorder ? "✅ 並べ替えを終わる" : "↕️ 並べ替え")
+      , sub === "list" && prefF === "all" && React.createElement('button', { onClick: () => { setReorder(r => !r); setBulk(false); }, style: { margin: "0 0 12px", padding: "9px 16px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, background: reorder ? "var(--forest)" : "var(--mist)", color: reorder ? "white" : "var(--forest)" },}, reorder ? "✅ 並べ替えを終わる" : "↕️ 並べ替え")
+      , sub === "list" && (prefF === "all" || prefF === "none") && React.createElement('button', { onClick: () => { setBulk(b => !b); setReorder(false); }, style: { margin: "0 0 12px 8px", padding: "9px 16px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, background: bulk ? "var(--forest)" : "var(--mist)", color: bulk ? "white" : "var(--forest)" },}, bulk ? "✅ 設定を終わる" : "🏷️ 県をまとめて設定")
+      , sub === "list" && bulk && React.createElement('div', { style: { fontSize: 12, color: "#888", marginBottom: 10, lineHeight: 1.7 },}
+        , "各スポットの県を選ぶとすぐ保存されます。"
+        , React.createElement('button', { onClick: guessAll, style: { display: "block", marginTop: 8, padding: "9px 14px", borderRadius: 10, border: "none", background: "var(--mist)", color: "var(--forest)", fontWeight: 700, fontSize: 13, cursor: "pointer" },}, "🔍 名前から県を推測して未設定に入れる"))
       , sub === "list" && reorder && React.createElement('div', { style: { fontSize: 12, color: "#888", marginBottom: 10, lineHeight: 1.6 },}, "▲▼で1つずつ動かせます。⤒は先頭へ、⤓は最後へ移動します。順番は自動で保存されます。")
       , React.createElement('div', { className: "spot-cards", style: sub === "map" ? { display: "none" } : undefined,}
         , spots.map((spot, idx) => !spotPrefMatch(spot, prefF) ? null : (
@@ -3454,7 +3472,10 @@ function SpotsView({ spots, setSpots, sansaiList, isAdmin }) {
                 , [["top","⤒ 先頭",idx===0],["up","▲ 上へ",idx===0],["down","▼ 下へ",idx===spots.length-1],["bottom","⤓ 最後",idx===spots.length-1]].map(b => React.createElement('button', { key: b[0], disabled: b[2], onClick: () => moveSpot(spot.id, b[0]), style: {flex:1, padding:"12px 0", background: b[2] ? "#eee" : "var(--mist)", border:"none", borderRadius:8, cursor: b[2] ? "default" : "pointer", fontSize:13, fontWeight:700, color: b[2] ? "#bbb" : "var(--forest)"},}, b[1]))
               )
               /* \u64cd\u4f5c\u30dc\u30bf\u30f3 */
-              , !reorder && React.createElement('div', { style: {display:"flex", gap:8, marginTop:12},}
+              , bulk && React.createElement('select', { className: "form-input", style: { marginTop: 12 }, value: spot.pref || "", onChange: e => setPrefOf(spot.id, e.target.value),}
+                , React.createElement('option', { value: "",}, "（県未設定）")
+                , SPOT_PREFS.map(k => React.createElement('option', { key: k, value: k,}, k)))
+              , !reorder && !bulk && React.createElement('div', { style: {display:"flex", gap:8, marginTop:12},}
                 , React.createElement('button', {
                   onClick: ()=>openEdit(spot),
                   style: {flex:1, padding:"7px 0", background:"var(--mist)", border:"none", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:600, color:"var(--forest)"},}, "\u270f\ufe0f \u7de8\u96c6"
@@ -6714,7 +6735,7 @@ function HarvestView({ spots, members, sansaiList }) {
 
   const sansaiName = (id) => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _160 => _160.find, 'call', _161 => _161(s => s.id === id), 'optionalAccess', _162 => _162.name]), () => ( "\u4e0d\u660e"));
   const sansaiEmoji = (id) => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _163 => _163.find, 'call', _164 => _164(s => s.id === id), 'optionalAccess', _165 => _165.emoji]), () => ( "\ud83c\udf3f"));
-  const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _166 => _166.find, 'call', _167 => _167(s => s.id === Number(id)), 'optionalAccess', _168 => _168.name]), () => ( "\u4e0d\u660e"));
+  const spotName = (id) => _nullishCoalesce(_optionalChain([spots, 'access', _166 => _166.find, 'call', _167 => _167(s => s.id === Number(id)), 'optionalAccess', _168 => spotLabel(_168)]), () => ( "\u4e0d\u660e"));
 
   // \u30d5\u30a3\u30eb\u30bf\u30fc\u9069\u7528
   const filtered = harvests.filter(h => {
@@ -6955,7 +6976,7 @@ function HarvestView({ spots, members, sansaiList }) {
               , React.createElement('label', { className: "form-label",}, "\u30b9\u30dd\u30c3\u30c8")
               , React.createElement('select', { className: "form-select", value: form.spotId, onChange: e=>setForm(f=>({...f,spotId:e.target.value})),}
                 , React.createElement('option', { value: "",}, "\u9078\u629e\uff08\u4efb\u610f\uff09")
-                , spots.map(s=>React.createElement('option', { key: s.id, value: s.id,}, s.name))
+                , spots.map(s=>React.createElement('option', { key: s.id, value: s.id,}, spotLabel(s)))
               )
             )
             , React.createElement('div', { className: "form-group",}
@@ -7262,7 +7283,7 @@ function MemoView({ spots, sansaiList }) {
 
   const sansaiName = id => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _179 => _179.find, 'call', _180 => _180(s=>s.id===id), 'optionalAccess', _181 => _181.name]), () => (""));
   const sansaiEmoji = id => _nullishCoalesce(_optionalChain([(sansaiList||SANSAI_DATA), 'access', _182 => _182.find, 'call', _183 => _183(s=>s.id===id), 'optionalAccess', _184 => _184.emoji]), () => ("\ud83c\udf3f"));
-  const spotName = id => _nullishCoalesce(_optionalChain([spots, 'access', _185 => _185.find, 'call', _186 => _186(s=>s.id===Number(id)), 'optionalAccess', _187 => _187.name]), () => (""));
+  const spotName = id => _nullishCoalesce(_optionalChain([spots, 'access', _185 => _185.find, 'call', _186 => _186(s=>s.id===Number(id)), 'optionalAccess', _187 => spotLabel(_187)]), () => (""));
 
   const cardStyle = {background:"white", borderRadius:14, padding:16,
     boxShadow:"0 2px 12px rgba(0,0,0,0.08)", border:"1px solid var(--mist)", marginBottom:12};
@@ -7305,7 +7326,7 @@ function MemoView({ spots, sansaiList }) {
             , React.createElement('select', { className: "form-select", value: form.spotId,
               onChange: e=>updateForm("spotId",e.target.value),}
               , React.createElement('option', { value: "",}, "\u9078\u629e\uff08\u4efb\u610f\uff09")
-              , spots.map(s=>React.createElement('option', { key: s.id, value: s.id,}, s.name))
+              , spots.map(s=>React.createElement('option', { key: s.id, value: s.id,}, spotLabel(s)))
             )
           )
         )
