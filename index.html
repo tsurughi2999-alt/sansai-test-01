@@ -2066,6 +2066,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap, onMemberView }) {
 
         )
         , React.createElement(SunBadge, { style: {fontSize:13, color:"rgba(255,255,255,0.85)", marginTop:6, letterSpacing:0.5, textShadow:"0 1px 4px rgba(0,0,0,0.4)"} })
+        , React.createElement('div', { style: {display:"inline-block", marginTop:10, padding:"4px 14px", borderRadius:14, fontSize:12.5, fontWeight:700, letterSpacing:0.5, color:"white", background: (secretOn || zukanIsAdminDevice()) ? "rgba(107,70,193,0.85)" : "rgba(42,77,143,0.85)", border:"1px solid rgba(255,255,255,0.45)"},}, (secretOn || zukanIsAdminDevice()) ? "🔑 管理者表示" : "👥 メンバー表示")
         /* \u88c5\u98fe\u30e9\u30a4\u30f3 */
         , React.createElement('div', { style: {display:"flex", alignItems:"center", justifyContent:"center", gap:12, margin:"20px 0 0"},}
           , React.createElement('div', { style: {height:1, width:60, background:"rgba(255,255,255,0.3)"},})
