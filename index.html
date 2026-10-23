@@ -3099,12 +3099,17 @@ function AreaManager({ weatherLocations, setWeatherLocations }) {
 
   // \u30c7\u30d5\u30a9\u30eb\u30c8\u30a8\u30ea\u30a2\u304b\u3069\u3046\u304b\uff08wl1\u301cwl7\u306f\u521d\u671f\u5024\uff09
   const isDefault = (id) => /^wl[1-7]$/.test(id);
+  // メンバー表示では、最初は閉じた1行にして、標準の7か所は出さない
+  const isAdminView = (() => { try { return sessionStorage.getItem("sansai_secret_on") === "1" || zukanIsAdminDevice(); } catch (e) { return false; } })();
+  const [openList, setOpenList] = useState(false);
+  const expanded = isAdminView || openList;
+  const visibleLocs = isAdminView ? weatherLocations : weatherLocations.filter(l => !isDefault(l.id));
 
   return (
     React.createElement('div', { style: {background:"white", borderRadius:14, padding:"16px", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", border:"1px solid var(--mist)", marginBottom:20},}
-      , React.createElement('div', { style: {display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12},}
-        , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)"},}, "\ud83d\udccd \u30a8\u30ea\u30a2\u7ba1\u7406" )
-        , React.createElement('button', { onClick: ()=>setShowForm(true), style: {
+      , React.createElement('div', { onClick: isAdminView ? undefined : (() => { setOpenList(o => !o); setShowForm(false); }), style: {display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: expanded ? 12 : 0, cursor: isAdminView ? "default" : "pointer"},}
+        , React.createElement('div', { style: {fontSize:15, fontWeight:700, color:"var(--forest)"},}, "\ud83d\udccd \u30a8\u30ea\u30a2\u7ba1\u7406" , isAdminView ? "" : (expanded ? "  \u25b4" : "  \u25be"))
+        , expanded && React.createElement('button', { onClick: (e)=>{ e.stopPropagation(); setShowForm(true); }, style: {
           background:"var(--forest)", color:"white", border:"none",
           borderRadius:8, padding:"6px 14px", cursor:"pointer",
           fontSize:12, fontWeight:600,
@@ -3112,8 +3117,9 @@ function AreaManager({ weatherLocations, setWeatherLocations }) {
       )
 
       /* \u30a8\u30ea\u30a2\u4e00\u89a7 */
-      , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:6},}
-        , weatherLocations.map(loc => (
+      , expanded && React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:6},}
+        , visibleLocs.length === 0 && React.createElement('div', { style: {fontSize:12, color:"#aaa", padding:"4px 2px", lineHeight:1.7},}, "追加したエリアはまだありません。「＋ エリアを追加」から、天気を見たい場所を追加できます。")
+        , visibleLocs.map(loc => (
           React.createElement('div', { key: loc.id, style: {display:"flex", alignItems:"center", gap:10, padding:"8px 12px", background:"var(--soil)", borderRadius:10},}
             , React.createElement('span', { style: {fontSize:16},}, "\ud83d\udccd")
             , React.createElement('div', { style: {flex:1},}
