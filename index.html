@@ -1943,7 +1943,7 @@ function GearView({ sansaiList }) {
   );
 }
 
-function HomeView({ onTabChange, secretOn, onSecretTap }) {
+function HomeView({ onTabChange, secretOn, onSecretTap, onMemberView }) {
   const [secretCount, setSecretCount] = useState(0);
   const [backupStatus, setBackupStatus] = useState("");
   const [lastBackup, setLastBackup] = useState(() => { try { return Number(localStorage.getItem("sansai_last_backup")) || 0; } catch (e) { return 0; } });
@@ -2047,6 +2047,9 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
   const MENU_ICON_FIX = { calendar:"🗓️", plan:"🌤️", info:"📖", patrol:"🥾", gear:"🎒", manual:"❓" };
   menuItems.forEach(m => { if (MENU_ICON_FIX[m.id]) m.icon = MENU_ICON_FIX[m.id]; });
   if (secretOn) menuItems.push({ id:"secret", icon:"📝", label:"メモ", desc:"作成者専用・非公開", color:"#6b46c1" });
+  const canReturnToAdmin = (() => { try { return !secretOn && localStorage.getItem(MEMBER_VIEW_KEY) === "1" && localStorage.getItem(ZUKAN_ADMIN_KEY) === "1"; } catch (e) { return false; } })();
+  if (canReturnToAdmin) menuItems.push({ id:"adminreturn", icon:"🔑", label:"管理者表示に戻る", desc:"合言葉を入力して切り替え", color:"#6b46c1" });
+  if (secretOn || zukanIsAdminDevice()) menuItems.push({ id:"memberview", icon:"👥", label:"メンバー表示にする", desc:"この端末をメンバーと同じ表示に", color:"#2a4d8f" });
 
   return (
     React.createElement('div', { style: {minHeight:"100vh", background:"linear-gradient(160deg,var(--hero1) 0%,var(--hero2) 40%,var(--hero1) 100%)", padding:"0 0 40px"},}
@@ -2077,7 +2080,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap }) {
       , React.createElement('div', { style: {padding:"0 16px"},}
         , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:12},}
           , menuItems.map(item => (
-            React.createElement('button', { key: item.id, onClick: () => onTabChange(item.id),
+            React.createElement('button', { key: item.id, onClick: () => (item.id === "memberview" ? (onMemberView && onMemberView()) : item.id === "adminreturn" ? (onSecretTap && onSecretTap()) : onTabChange(item.id)),
               style: {background:"rgba(255,255,255,0.24)", backdropFilter:"blur(10px)",
                 border:"1px solid rgba(255,255,255,0.38)", borderRadius:16, padding:"20px 14px",
                 cursor:"pointer", textAlign:"left", transition:"all 0.2s",
@@ -10428,6 +10431,7 @@ function App() {
   const [secretOn, setSecretOn] = useState(() => { try { localStorage.removeItem("sansai_secret_on"); return sessionStorage.getItem("sansai_secret_on") === "1"; } catch (e) { return false; } });
   const [showUnlock, setShowUnlock] = useState(false);
   const unlockSecret = () => { try { sessionStorage.setItem("sansai_secret_on", "1"); localStorage.setItem(ZUKAN_ADMIN_KEY, "1"); localStorage.removeItem(MEMBER_VIEW_KEY); } catch (e) {} setSecretOn(true); setShowUnlock(false); setTab("secret"); };
+  const [, setViewTick] = useState(0);
   const lockSecret = () => { try { sessionStorage.removeItem("sansai_secret_on"); } catch (e) {} setSecretOn(false); setTab(t => t === "secret" ? "home" : t); };
   // 5分以上バックグラウンドにあった場合は自動ロック
   useEffect(() => {
@@ -10557,6 +10561,8 @@ function App() {
     if (!window.confirm("この端末をメンバー表示に切り替えます。\n\n・「メモ」タブと編集ボタンが隠れます\n・アプリを開くたびに、管理者の最新の配信データ（お知らせを含む）が自動で取り込まれます\n・今すぐ、配信データで図鑑・カレンダー・メンバー名簿を上書きします（上書き前の内容は端末内に退避されます）\n\nこの端末で編集して、まだ書き出していない内容があるときは、先に「配信用に書き出す」をしてください。\n\n元に戻すには、ホーム画面の一番下の文字を7回タップして、合言葉を入力します。\n\nよろしいですか？")) return;
     try { localStorage.setItem(MEMBER_VIEW_KEY, "1"); } catch (e) {}
     lockSecret();
+    setViewTick(n => n + 1);
+    setWeatherLocations(INITIAL_WEATHER_LOCATIONS); // 管理者として追加したエリアは、メンバー表示では出さない
     await syncZukan(true);
   };
 
@@ -10659,7 +10665,7 @@ function App() {
                 background:"var(--forest)", color:"white", border:"none", borderRadius:20,
                 fontSize:13, fontWeight:700, cursor:"pointer", boxShadow:"0 2px 6px rgba(0,0,0,0.2)"},}
               , "\u25c0 \u8868\u7d19\u306b\u623b\u308b")
-          , tab === "home"     && React.createElement(HomeView, { onTabChange: setTab, secretOn: secretOn, onSecretTap: () => setShowUnlock(true),} )
+          , tab === "home"     && React.createElement(HomeView, { onTabChange: setTab, secretOn: secretOn, onSecretTap: () => setShowUnlock(true), onMemberView: switchToMemberView,} )
           , tab === "calendar" && React.createElement(CalendarView, { sansaiList: sansaiList, setSansaiList: setSansaiList, isAdmin: (secretOn || zukanIsAdminDevice()),} )
           , tab === "plan"     && React.createElement(PlanView, { spots: spots, onScheduleSuccess: handleScheduleSuccess, weatherLocations: weatherLocations, setWeatherLocations: setWeatherLocations, members: members, sansaiList: sansaiList, clothing: clothing, tools: tools,} )
           , tab === "spots"    && React.createElement(SpotsView, { spots: spots, setSpots: setSpots, sansaiList: sansaiList, isAdmin: (secretOn || zukanIsAdminDevice()),} )
