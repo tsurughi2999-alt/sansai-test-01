@@ -2133,7 +2133,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap, onMemberView }) {
       , React.createElement('div', { style: {textAlign:"center", fontSize:11, color:"rgba(255,255,255,0.7)", padding:"18px 16px 0", lineHeight:1.6},}, (() => { const v = zukanLocalVer(); return v ? "📚 図鑑・名簿の最終更新：" + new Date(v).toLocaleString("ja-JP", {month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit"}) : "📚 図鑑・名簿：まだ配信データを受け取っていません"; })())
 
       /* \u30d5\u30c3\u30bf\u30fc */
-      , React.createElement('div', { onClick: () => { const n = secretCount + 1; if (n >= 7) { setSecretCount(0); onSecretTap && onSecretTap(); } else setSecretCount(n); }, style: {textAlign:"center", marginTop:32, color:"rgba(255,255,255,0.4)", fontSize:11, userSelect:"none"},}, "山菜採り手帳 v2.2（2026-10-24版） | 中部・北陸エリア"
+      , React.createElement('div', { onClick: () => { const n = secretCount + 1; if (n >= 7) { setSecretCount(0); onSecretTap && onSecretTap(); } else setSecretCount(n); }, style: {textAlign:"center", marginTop:32, color:"rgba(255,255,255,0.4)", fontSize:11, userSelect:"none"},}, "山菜採り手帳 v2.3（2026-10-24版） | 中部・北陸エリア"
 
       )
     )
@@ -6664,7 +6664,7 @@ function HarvestView({ spots, members, sansaiList }) {
   const emptyForm = {
     date: today, sansaiId: 1, spotId: _nullishCoalesce(_optionalChain([spots, 'access', _158 => _158[0], 'optionalAccess', _159 => _159.id]), () => ( "")),
     collectors: [], amount: "", unit: "g", condition: "\u826f\u597d", memo: "", photos: [], gps: null,
-    companions: [],
+    companions: [], extra: [],
   };
   const [form, setForm] = useState(emptyForm);
   const [companionInput, setCompanionInput] = useState("");
@@ -6700,11 +6700,16 @@ function HarvestView({ spots, members, sansaiList }) {
 
   const saveHarvest = () => {
     if (!form.date || !form.sansaiId || !form.amount) return;
-    const data = { ...form, sansaiId: Number(form.sansaiId), spotId: Number(form.spotId), amount: Number(form.amount), gps: harvestGPS.gps || form.gps || null };
+    const { extra, ...rest } = form;
+    const gpsV = harvestGPS.gps || form.gps || null;
+    const data = { ...rest, sansaiId: Number(form.sansaiId), spotId: Number(form.spotId), amount: Number(form.amount), gps: gpsV };
+    // 同じ日・同じ場所で、山菜を複数採ったとき：山菜ごとに1件の記録にして保存する（写真は1件目だけ）
+    const base = Date.now();
+    const more = (extra || []).filter(r => r && r.sansaiId && Number(r.amount) > 0).map((r, i) => ({ ...rest, id: base + i + 1, photos: [], sansaiId: Number(r.sansaiId), spotId: Number(form.spotId), amount: Number(r.amount), unit: r.unit || "g", gps: gpsV }));
     if (editTarget) {
-      setHarvests(prev => prev.map(h => h.id === editTarget.id ? { ...h, ...data } : h));
+      setHarvests(prev => [...more, ...prev.map(h => h.id === editTarget.id ? { ...h, ...data } : h)]);
     } else {
-      setHarvests(prev => [{ id: Date.now(), ...data }, ...prev]);
+      setHarvests(prev => [{ id: base, ...data }, ...more, ...prev]);
     }
     setForm(emptyForm);
     setCompanionInput("");
@@ -6986,6 +6991,25 @@ function HarvestView({ spots, members, sansaiList }) {
                   , UNITS.map(u=>React.createElement('option', { key: u,}, u))
                 )
               )
+            )
+            , (form.extra || []).map((r, i) => React.createElement('div', { key: "ex" + i, style: {background:"var(--mist)", borderRadius:10, padding:10, marginBottom:12},}
+              , React.createElement('div', { style: {display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8},}
+                , React.createElement('span', { style: {fontSize:12, fontWeight:700, color:"var(--forest)"},}, "＋ " + (i + 2) + "種類め")
+                , React.createElement('button', { type: "button", onClick: () => setForm(f => ({ ...f, extra: (f.extra || []).filter((_, k) => k !== i) })), style: {background:"#fee", border:"none", borderRadius:8, padding:"4px 10px", cursor:"pointer", color:"#c0392b", fontSize:12, fontWeight:600},}, "削除")
+              )
+              , React.createElement('select', { className: "form-select", value: r.sansaiId, onChange: e => { const v = e.target.value; setForm(f => ({ ...f, extra: (f.extra || []).map((x, k) => k === i ? { ...x, sansaiId: v } : x) })); }, style: {marginBottom:8},}
+                , (sansaiList||SANSAI_DATA).map(s => React.createElement('option', { key: s.id, value: s.id,}, s.emoji, " ", s.name))
+              )
+              , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"2fr 1fr", gap:10},}
+                , React.createElement('input', { type: "number", className: "form-input", value: r.amount, onChange: e => { const v = e.target.value; setForm(f => ({ ...f, extra: (f.extra || []).map((x, k) => k === i ? { ...x, amount: v } : x) })); }, placeholder: "採取量", min: "0",})
+                , React.createElement('select', { className: "form-select", value: r.unit, onChange: e => { const v = e.target.value; setForm(f => ({ ...f, extra: (f.extra || []).map((x, k) => k === i ? { ...x, unit: v } : x) })); },}
+                  , UNITS.map(u => React.createElement('option', { key: u,}, u))
+                )
+              )
+            ))
+            , React.createElement('div', { style: {marginBottom:14},}
+              , React.createElement('button', { type: "button", onClick: () => setForm(f => ({ ...f, extra: [...(f.extra || []), { sansaiId: (sansaiList||SANSAI_DATA)[0] ? (sansaiList||SANSAI_DATA)[0].id : 1, amount: "", unit: f.unit || "g" }] })), style: {width:"100%", padding:"11px 0", background:"var(--mist)", border:"2px dashed var(--fern)", borderRadius:10, cursor:"pointer", fontSize:13, fontWeight:700, color:"var(--forest)"},}, "＋ 別の山菜も記録する")
+              , React.createElement('div', { style: {fontSize:11, color:"#888", marginTop:6, lineHeight:1.6},}, "同じ日・同じスポット・同じメンバーで、山菜ごとに別の記録として保存されます。採取量を入れた分だけ登録され、写真は1件目につきます。")
             )
             , React.createElement('div', { className: "form-group",}
               , React.createElement('label', { className: "form-label",}, "\u30b9\u30dd\u30c3\u30c8")
