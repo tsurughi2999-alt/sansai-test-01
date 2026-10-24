@@ -817,12 +817,12 @@ const DANGER_LEVEL = {
 // ===== 図鑑の区分（植物・果実・キノコ）と五十音順 =====
 const SANSAI_CATEGORIES = {
   plant:    { label: "植物",   icon: "🌿", noun: "山菜",   color: "#2d4a2d" },
-  fruit:    { label: "果実と樹の実", icon: "🍇", noun: "果実",   color: "#7b3f8c" },
+  fruit:    { label: "果実と樹の実", icon: "🍎", noun: "果実",   color: "#7b3f8c" },
   mushroom: { label: "キノコ", icon: "🍄", noun: "キノコ", color: "#8a5a2b" },
 };
 const MUSHROOM_NAME_RE = /(茸|きのこ|キノコ|シメジ|ナメコ|マツタケ|マイタケ|シイタケ|ヒラタケ|ナラタケ|ムキタケ|クリタケ|ハツタケ|エノキタケ|ナメタケ|ショウゲンジ|チチタケ|アミタケ|タモギタケ|カノシタ|コウタケ|ホウキタケ|キクラゲ)/;
-const FRUIT_NAME_RE = /(アケビ|ムベ|ヤマブドウ|山ブドウ|サルナシ|コクワ|キイチゴ|木苺|野イチゴ|ノイチゴ|ヤマモモ|グミ|桑の実|クワの実|ナツハゼ|ガマズミ|ブルーベリー|ヤマボウシ)/;
-const FRUIT_EMOJI_RE = /[🍇🍒🍓🫐🍎🍑🍊🍐🍋🍈🍉]/u;
+const FRUIT_NAME_RE = /(アケビ|ムベ|ヤマブドウ|山ブドウ|サルナシ|コクワ|キイチゴ|木苺|野イチゴ|ノイチゴ|ヤマモモ|グミ|桑の実|クワの実|ナツハゼ|ガマズミ|ブルーベリー|ヤマボウシ|柿|柚子|ユズ|林檎|リンゴ|梨|桃|梅|ミカン|蜜柑|金柑|キンカン|枇杷|ビワ|ザクロ|石榴|スモモ|アンズ|杏|カリン|花梨|イチジク|キウイ|イチゴ|苺|スダチ|カボス)/;
+const FRUIT_EMOJI_RE = /[🍇🍒🍓🫐🍎🍏🍑🍊🍐🍋🍈🍉🍌🍍🥭🥝]/u;
 // 区分が未設定の旧データは、絵文字と名前から自動で振り分ける
 function sansaiCategory(e) {
   if (e && SANSAI_CATEGORIES[e.category]) return e.category;
@@ -2133,7 +2133,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap, onMemberView }) {
       , React.createElement('div', { style: {textAlign:"center", fontSize:11, color:"rgba(255,255,255,0.7)", padding:"18px 16px 0", lineHeight:1.6},}, (() => { const v = zukanLocalVer(); return v ? "📚 図鑑・名簿の最終更新：" + new Date(v).toLocaleString("ja-JP", {month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit"}) : "📚 図鑑・名簿：まだ配信データを受け取っていません"; })())
 
       /* \u30d5\u30c3\u30bf\u30fc */
-      , React.createElement('div', { onClick: () => { const n = secretCount + 1; if (n >= 7) { setSecretCount(0); onSecretTap && onSecretTap(); } else setSecretCount(n); }, style: {textAlign:"center", marginTop:32, color:"rgba(255,255,255,0.4)", fontSize:11, userSelect:"none"},}, "山菜採り手帳 v2.1（2026-10-24版） | 中部・北陸エリア"
+      , React.createElement('div', { onClick: () => { const n = secretCount + 1; if (n >= 7) { setSecretCount(0); onSecretTap && onSecretTap(); } else setSecretCount(n); }, style: {textAlign:"center", marginTop:32, color:"rgba(255,255,255,0.4)", fontSize:11, userSelect:"none"},}, "山菜採り手帳 v2.2（2026-10-24版） | 中部・北陸エリア"
 
       )
     )
@@ -2148,7 +2148,7 @@ function CalendarView({ sansaiList, setSansaiList, isAdmin }) {
   const [editTarget, setEditTarget] = useState(null); // null=\u65b0\u898f\u3001obj=\u7de8\u96c6\u4e2d\u306e\u5143\u30a8\u30f3\u30c8\u30ea
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const EMOJIS = ["\ud83c\udf3f","\ud83c\udf43","\ud83c\udf31","\ud83c\udf3e","\ud83c\udf00","\ud83e\uddc5","\ud83c\udf40","\ud83e\udeb4","\ud83c\udf47","\ud83c\udf44","\ud83c\udf38","\ud83c\udf8b","\ud83c\udf3a","\ud83e\udd6c","\ud83e\uddc4","\ud83d\udca7","\ud83c\udf3a","\ud83c\udf3f"];
+  const EMOJIS = ["\ud83c\udf3f","\ud83c\udf43","\ud83c\udf31","\ud83c\udf3e","\ud83c\udf00","\ud83e\uddc5","\ud83c\udf40","\ud83e\udeb4","\ud83c\udf47","\ud83c\udf44","\ud83c\udf38","\ud83c\udf8b","\ud83c\udf3a","\ud83e\udd6c","\ud83e\uddc4","\ud83d\udca7","\ud83c\udf3a","\ud83c\udf3f","🍎","🍏","🍊","🍋","🍐","🍑","🍒","🍓","🫐","🥝","🌰","🍈","🍌","🍍","🥭","🍇","🍅","🫒","🍉"];
   const COLORS = ["#7cb87a","#a8c86e","#6aab5e","#8dc66b","#5a9e52","#b5d97a","#79c47e","#4e8f5d","#c8d96e","#4caf6e","#2e7d32","#5c8a4e","#4a90c4","#6d8c3e","#e07b8a","#7db84a"];
 
   const emptyForm = { name:"", emoji:"\ud83c\udf3f", months:[], region:"", color:"#6aab5e", desc:"", photoId:null };
@@ -2281,7 +2281,7 @@ function CalendarView({ sansaiList, setSansaiList, isAdmin }) {
             , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"80px 1fr", gap:12},}
               , React.createElement('div', { className: "form-group",}
                 , React.createElement('label', { className: "form-label",}, "\u7d75\u6587\u5b57")
-                , React.createElement('select', { className: "form-select", value: form.emoji, onChange: e=>setForm(f=>({...f,emoji:e.target.value})),}
+                , React.createElement('select', { className: "form-select", value: form.emoji, onChange: e=>setForm(f=>({...f,emoji:e.target.value,emojiLocked:true})),}
                   , EMOJIS.map(e=>React.createElement('option', { key: e, value: e,}, e))
                 )
               )
@@ -6096,7 +6096,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
   const emptyForm = { name:"", emoji: SANSAI_CATEGORIES[catTab].icon, months:[], region:"", color:"#6aab5e", desc:"", customSpots:[], notes:"", photoId:null, category: catTab, yomi:"", wiki:"", lookalikeIds:[] };
   const [form, setForm] = useState(emptyForm);
 
-  const EMOJIS = ["\ud83c\udf3f","\ud83c\udf43","\ud83c\udf31","\ud83c\udf3e","\ud83c\udf00","\ud83e\uddc5","\ud83c\udf40","\ud83e\udeb4","\ud83c\udf47","\ud83c\udf44","\ud83c\udf38","\ud83c\udf8b","\ud83c\udf3a","\ud83e\udd6c","\ud83c\udf32"];
+  const EMOJIS = ["\ud83c\udf3f","\ud83c\udf43","\ud83c\udf31","\ud83c\udf3e","\ud83c\udf00","\ud83e\uddc5","\ud83c\udf40","\ud83e\udeb4","\ud83c\udf47","\ud83c\udf44","\ud83c\udf38","\ud83c\udf8b","\ud83c\udf3a","\ud83e\udd6c","\ud83c\udf32","🍎","🍊","🍋","🍐","🍑","🍒","🍓","🫐","🌰","🥝","🍏","🍈","🍌","🍍","🥭","🍇","🍅","🫒","🍉"];
   const COLORS = ["#6aab5e","#2e7d32","#7b5ea7","#c8945e","#d4884a","#4caf6e","#a8c86e","#8dc66b","#9b7fc8","#c8d96e"];
 
   const toggleMonth = (m) => setForm(f => ({
@@ -6108,7 +6108,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
     if (!form.name.trim() || form.months.length === 0) return;
     const newEntry = { ...form, id: Date.now(), isCustom: true };
     setEntries(prev => [...prev, newEntry]);
-    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", photoId:newEntry.photoId||null, isCustom:true, category:newEntry.category||catTab, yomi:newEntry.yomi||"", wiki:newEntry.wiki||"", lookalikeIds:newEntry.lookalikeIds||[], prep:newEntry.prep||"", cook:newEntry.cook||"", keep:newEntry.keep||""}]);
+    setSansaiList(prev => [...prev, {id:newEntry.id, name:newEntry.name, emoji:newEntry.emoji, months:newEntry.months, region:newEntry.region, color:newEntry.color||"#6aab5e", desc:newEntry.desc, customSpots:newEntry.customSpots||[], notes:newEntry.notes||"", photoId:newEntry.photoId||null, isCustom:true, category:newEntry.category||catTab, yomi:newEntry.yomi||"", wiki:newEntry.wiki||"", lookalikeIds:newEntry.lookalikeIds||[], prep:newEntry.prep||"", cook:newEntry.cook||"", keep:newEntry.keep||"", emojiLocked:newEntry.emojiLocked===true}]);
     setForm(emptyForm);
     setShowAddForm(false);
   };
@@ -6179,7 +6179,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
       , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"80px 1fr", gap:12},}
         , React.createElement('div', { className: "form-group",}
           , React.createElement('label', { className: "form-label",}, "\u7d75\u6587\u5b57")
-          , React.createElement('select', { className: "form-select", value: form.emoji, onChange: e=>setForm(f=>({...f,emoji:e.target.value})),}
+          , React.createElement('select', { className: "form-select", value: form.emoji, onChange: e=>setForm(f=>({...f,emoji:e.target.value,emojiLocked:true})),}
             , EMOJIS.map(e=>React.createElement('option', { key: e, value: e,}, e))
           )
         )
@@ -6191,7 +6191,7 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
       , React.createElement('div', { className: "form-group",}
         , React.createElement('label', { className: "form-label",}, "区分")
         , React.createElement('select', { className: "form-select", value: form.category || catTab,
-            onChange: e => { const v = e.target.value; setForm(f => ({ ...f, category: v, emoji: (f.emoji === "🌿" || f.emoji === "🍇" || f.emoji === "🍄") ? SANSAI_CATEGORIES[v].icon : f.emoji })); },}
+            onChange: e => { const v = e.target.value; setForm(f => ({ ...f, category: v, emoji: (f.emoji === "🌿" || f.emoji === "🍇" || f.emoji === "🍎" || f.emoji === "🍄") ? SANSAI_CATEGORIES[v].icon : f.emoji })); },}
           , Object.keys(SANSAI_CATEGORIES).map(k => React.createElement('option', { key: k, value: k,}, SANSAI_CATEGORIES[k].icon + " " + SANSAI_CATEGORIES[k].label))
         )
       )
@@ -9800,11 +9800,17 @@ const SANSAI_EMOJI_DICT = [
   ["栗","🌰"],["クリ","🌰"],["クルミ","🌰"],["ドングリ","🌰"],["トチ","🌰"],["銀杏","🍂"],["ギンナン","🍂"],
   ["イチジク","🍑"],["山ブドウ","🍇"],["ヤマブドウ","🍇"],["ブドウ","🍇"],["アケビ","🟣"],["木通","🟣"],["通草","🟣"],["コケモモ","🍒"],["アキグミ","🍒"],["グミ","🍒"],
   ["クロマメノキ","🫐"],["ブルーベリー","🫐"],["ナツハゼ","🫐"],["ヤマモモ","🍓"],["キイチゴ","🍓"],["ラズベリー","🍓"],["ヤマボウシ","🍓"],
-  ["サルナシ","🥝"],["コクワ","🥝"],["マタタビ","🥝"],["ユズ","🍋"],["カリン","🍋"],["リンゴ","🍎"],
+  ["サルナシ","🥝"],["コクワ","🥝"],["マタタビ","🥝"],["ユズ","🍋"],["柚子","🍋"],["柚","🍋"],["スダチ","🍋"],["酢橘","🍋"],["カボス","🍋"],["カリン","🍐"],["花梨","🍐"],["リンゴ","🍎"],["林檎","🍎"],["ザクロ","🍎"],["石榴","🍎"],
+  ["柿","🍊"],["ミカン","🍊"],["蜜柑","🍊"],["橙","🍊"],["ダイダイ","🍊"],["キンカン","🍊"],["金柑","🍊"],["ビワ","🍊"],["枇杷","🍊"],
+  ["梨","🍐"],["桃","🍑"],["梅","🍑"],["杏","🍑"],["アンズ","🍑"],["スモモ","🍑"],["李","🍑"],["イチゴ","🍓"],["苺","🍓"],["桑の実","🫐"],["キウイ","🥝"],
   ["むかご","🥔"],["ムカゴ","🥔"],["自然薯","🍠"],["ジネンジョ","🍠"],["ヤマイモ","🍠"],["山芋","🍠"],["長芋","🍠"],["ヤマノイモ","🍠"],
   ["紫蘇","🌿"],["シソ","🌿"],["エゴマ","🌿"],["タケノコ","🥕"],["筍","🥕"],["竹の子","🥕"],["根曲がり竹","🎋"],
   ["キノコ","🍄"],["茸","🍄"],["タケ","🍄"],["シメジ","🍄"],["シイタケ","🍄"],["マイタケ","🍄"],["ナメコ","🍄"],["エノキ","🍄"],["ヒラタケ","🍄"],["ナラタケ","🍄"],["ムキタケ","🍄"],
-  ["ニンニク","🧄"],["ノビル","🧅"],["ウド","🪴"],["ワラビ","🌾"],["ゼンマイ","🌀"],["コゴミ","🌀"],["ミョウガ","🌺"],["ワサビ","🍃"]
+  ["ニンニク","🧄"],["ノビル","🧅"],["ウド","🪴"],["ワラビ","🌾"],["ゼンマイ","🌀"],["コゴミ","🌀"],["ミョウガ","🌺"],["ワサビ","🍃"],
+  ["青リンゴ","🍏"],["青りんご","🍏"],["ズミ","🍎"],["ヤマナシ","🍐"],["洋梨","🍐"],["無花果","🍑"],["ナツメ","🍑"],["棗","🍑"],
+  ["サクランボ","🍒"],["さくらんぼ","🍒"],["桜桃","🍒"],["ユスラウメ","🍒"],["ナナカマド","🍒"],["ガマズミ","🍒"],["ニワトコ","🫐"],["ハスカップ","🫐"],["ブラックベリー","🫐"],
+  ["レモン","🍋"],["ライム","🍋"],["柑橘","🍊"],["ポンカン","🍊"],["デコポン","🍊"],["文旦","🍊"],["ハッサク","🍊"],["八朔","🍊"],
+  ["スイカ","🍉"],["メロン","🍈"],["バナナ","🍌"],["パイナップル","🍍"],["マンゴー","🥭"],["オリーブ","🫒"]
 ];
 let SANSAI_EMOJI_TABLE = null;
 function sansaiAutoEmoji(name) {
@@ -9822,6 +9828,7 @@ function fixSansaiEmojis(list) {
   let changed = false;
   const out = list.map(s => {
     if (!s || typeof s !== "object") return s;
+    if (s.emojiLocked) return s;
     const e = sansaiAutoEmoji(s.name);
     if (e && s.emoji !== e) { changed = true; return { ...s, emoji: e }; }
     return s;
