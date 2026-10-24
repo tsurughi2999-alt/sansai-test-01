@@ -1948,7 +1948,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap, onMemberView }) {
   const [backupStatus, setBackupStatus] = useState("");
   const [lastBackup, setLastBackup] = useState(() => { try { return Number(localStorage.getItem("sansai_last_backup")) || 0; } catch (e) { return 0; } });
   const importInputRef = useRef(null);
-  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_patrol_sched","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1","sansai_danger_custom_v1","sansai_danger_over_v1","sansai_notices","sansai_theme_pref","sansai_theme_policy","sansai_theme_dark","sansai_header_img","sansai_header_off"];
+  const BACKUP_KEYS = ["sansai_list_v2","sansai_spots","sansai_members","sansai_memos","sansai_clothing","sansai_tools","sansai_patrol","sansai_patrol_sched","sansai_harvests","sansai_blog","sansai_links_v1","sansai_manual_v1","sansai_qa_v1","sansai_secret_notes","sansai_secret_hash","sansai_manual_imgs_v1","sansai_danger_custom_v1","sansai_danger_over_v1","sansai_notices","sansai_theme_pref","sansai_theme_policy","sansai_theme_dark","sansai_header_img","sansai_header_off","sansai_bear_log","sansai_bear_chk","sansai_recipes_v1","sansai_trip_plan"];
 
   const handleExport = async () => {
     const FOLDER_NAME = "\u5c71\u83dc\u624b\u5e33\u30d0\u30c3\u30af\u30a2\u30c3\u30d7";
@@ -2046,6 +2046,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap, onMemberView }) {
   { const pi = menuItems.findIndex(m => m.id === "plan"); menuItems.splice(pi >= 0 ? pi + 1 : 2, 0, { id:"checklist", icon:"✅", label:"出発前チェック", desc:"持ち物・安全の最終確認", color:"#27ae60" }); }
   const MENU_ICON_FIX = { calendar:"🗓️", plan:"🌤️", info:"📖", patrol:"🥾", gear:"🎒", manual:"❓" };
   menuItems.forEach(m => { if (MENU_ICON_FIX[m.id]) m.icon = MENU_ICON_FIX[m.id]; });
+  { const si = menuItems.findIndex(m => m.id === "safety"); menuItems.splice(si >= 0 ? si + 1 : menuItems.length, 0, { id:"bear", icon:"🐻", label:"クマ対策", desc:"出没情報・遭遇時の対処・記録", color:"#c0392b" }, { id:"recipes", icon:"🍳", label:"レシピ・保存", desc:"料理と保存のしかた", color:"#d35400" }, { id:"forecast", icon:"🌡️", label:"旬の予測", desc:"積算温度で時期の目安", color:"#2980b9" }); }
   if (secretOn) menuItems.push({ id:"secret", icon:"📝", label:"メモ", desc:"作成者専用・非公開", color:"#6b46c1" });
   const canReturnToAdmin = (() => { try { return !secretOn && localStorage.getItem(MEMBER_VIEW_KEY) === "1" && localStorage.getItem(ZUKAN_ADMIN_KEY) === "1"; } catch (e) { return false; } })();
   if (canReturnToAdmin) menuItems.push({ id:"adminreturn", icon:"🔑", label:"管理者表示に戻る", desc:"合言葉を入力して切り替え", color:"#6b46c1" });
@@ -2075,6 +2076,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap, onMemberView }) {
         )
       )
 
+      , React.createElement(HomeTripCard, { onGo: onTabChange })
       , React.createElement(SeasonCard, { onGo: onTabChange })
       , React.createElement(LastYearCard, { onGo: onTabChange })
       /* \u30e1\u30cb\u30e5\u30fc\u30b0\u30ea\u30c3\u30c9 */
@@ -2131,7 +2133,7 @@ function HomeView({ onTabChange, secretOn, onSecretTap, onMemberView }) {
       , React.createElement('div', { style: {textAlign:"center", fontSize:11, color:"rgba(255,255,255,0.7)", padding:"18px 16px 0", lineHeight:1.6},}, (() => { const v = zukanLocalVer(); return v ? "📚 図鑑・名簿の最終更新：" + new Date(v).toLocaleString("ja-JP", {month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit"}) : "📚 図鑑・名簿：まだ配信データを受け取っていません"; })())
 
       /* \u30d5\u30c3\u30bf\u30fc */
-      , React.createElement('div', { onClick: () => { const n = secretCount + 1; if (n >= 7) { setSecretCount(0); onSecretTap && onSecretTap(); } else setSecretCount(n); }, style: {textAlign:"center", marginTop:32, color:"rgba(255,255,255,0.4)", fontSize:11, userSelect:"none"},}, "山菜採り手帳 v2.0（2026-10-23版） | 中部・北陸エリア"
+      , React.createElement('div', { onClick: () => { const n = secretCount + 1; if (n >= 7) { setSecretCount(0); onSecretTap && onSecretTap(); } else setSecretCount(n); }, style: {textAlign:"center", marginTop:32, color:"rgba(255,255,255,0.4)", fontSize:11, userSelect:"none"},}, "山菜採り手帳 v2.1（2026-10-24版） | 中部・北陸エリア"
 
       )
     )
@@ -3362,7 +3364,7 @@ function SpotsView({ spots, setSpots, sansaiList, isAdmin }) {
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [form, setForm] = useState({ name:"", notes:"", sansai:[], pref:"", lat:"", lng:"" });
+  const [form, setForm] = useState({ name:"", notes:"", sansai:[], pref:"", lat:"", lng:"", parking:"", permit:"", gate:"", signal:"" });
   const [sub, setSub] = useState("list");      // list | map（mapは管理者のみ）
   const [prefF, setPrefF] = useState("all");   // all | none | 県名
   const [locBusy, setLocBusy] = useState(false);
@@ -3398,13 +3400,13 @@ function SpotsView({ spots, setSpots, sansaiList, isAdmin }) {
   }, [spots]);
 
   const openAdd = () => {
-    setForm({ name:"", notes:"", sansai:[], pref: SPOT_PREFS.includes(prefF) ? prefF : "", lat:"", lng:"" });
+    setForm({ name:"", notes:"", sansai:[], pref: SPOT_PREFS.includes(prefF) ? prefF : "", lat:"", lng:"", parking:"", permit:"", gate:"", signal:"" });
     setEditTarget(null);
     setShowForm(true);
   };
 
   const openEdit = (spot) => {
-    setForm({ name: spot.name, notes: spot.notes, sansai: [...spot.sansai], pref: spot.pref || "", lat: spotHasPos(spot) ? String(spot.lat) : "", lng: spotHasPos(spot) ? String(spot.lng) : "" });
+    setForm({ name: spot.name, notes: spot.notes, sansai: [...spot.sansai], pref: spot.pref || "", lat: spotHasPos(spot) ? String(spot.lat) : "", lng: spotHasPos(spot) ? String(spot.lng) : "", parking: spot.parking || "", permit: spot.permit || "", gate: spot.gate || "", signal: spot.signal || "" });
     setEditTarget(spot);
     setShowForm(true);
   };
@@ -3413,7 +3415,7 @@ function SpotsView({ spots, setSpots, sansaiList, isAdmin }) {
     if (!form.name.trim()) return;
     const la = parseFloat(form.lat), ln = parseFloat(form.lng);
     const ok = isFinite(la) && isFinite(ln) && la >= 20 && la <= 46 && ln >= 122 && ln <= 154;
-    const base = { name: form.name, sansai: form.sansai, notes: form.notes, pref: form.pref || "" };
+    const base = { name: form.name, sansai: form.sansai, notes: form.notes, pref: form.pref || "", parking: (form.parking || "").trim(), permit: form.permit || "", gate: (form.gate || "").trim(), signal: form.signal || "" };
     if (editTarget) {
       setSpots(prev => prev.map(s => s.id === editTarget.id ? { ...s, ...base, ...(ok ? { lat: la, lng: ln, hasPos: true } : { hasPos: false }) } : s));
     } else {
@@ -3460,6 +3462,7 @@ function SpotsView({ spots, setSpots, sansaiList, isAdmin }) {
                 })
               )
               , React.createElement('div', { className: "spot-notes",}, spot.notes)
+              , (spot.parking || spot.permit || spot.gate || spot.signal) && React.createElement('div', { style: {display:"flex", flexWrap:"wrap", gap:6, marginTop:8},}, [["🅿️", spot.parking], ["📋", spot.permit], ["🚧", spot.gate], ["📶", spot.signal]].filter(x => x[1]).map(x => React.createElement('span', { key: x[0], style: {background:"var(--mist)", borderRadius:12, padding:"3px 10px", fontSize:12, color:"var(--forest)"},}, x[0] + " " + x[1])))
               , reorder && React.createElement('div', { style: {display:"flex", gap:8, marginTop:12},}
                 , [["top","⤒ 先頭",idx===0],["up","▲ 上へ",idx===0],["down","▼ 下へ",idx===spots.length-1],["bottom","⤓ 最後",idx===spots.length-1]].map(b => React.createElement('button', { key: b[0], disabled: b[2], onClick: () => moveSpot(spot.id, b[0]), style: {flex:1, padding:"12px 0", background: b[2] ? "#eee" : "var(--mist)", border:"none", borderRadius:8, cursor: b[2] ? "default" : "pointer", fontSize:13, fontWeight:700, color: b[2] ? "#bbb" : "var(--forest)"},}, b[1]))
               )
@@ -3511,6 +3514,28 @@ function SpotsView({ spots, setSpots, sansaiList, isAdmin }) {
               , React.createElement('button', { type: "button", onClick: getHere, disabled: locBusy, style: { marginTop: 8, padding: "9px 14px", borderRadius: 10, border: "none", background: "var(--mist)", color: "var(--forest)", fontWeight: 700, fontSize: 13, cursor: "pointer" },}, locBusy ? "取得中…" : "📍 いまいる場所を入れる")
             )
             , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "🅿️ 駐車場（任意）")
+              , React.createElement('input', { className: "form-input", value: form.parking || "", onChange: e=>setForm(f=>({...f,parking:e.target.value})), placeholder: "例：林道入口に3台ほど",} )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "📋 入山許可・所有者")
+              , React.createElement('select', { className: "form-input", value: form.permit || "", onChange: e=>setForm(f=>({...f,permit:e.target.value})),}
+                , React.createElement('option', { value: "",}, "（未設定）")
+                , ["許可は不要", "要確認", "許可が必要", "私有地（承諾済み）"].map(k => React.createElement('option', { key: k, value: k,}, k))
+              )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "🚧 林道ゲート・通行止め（任意）")
+              , React.createElement('input', { className: "form-input", value: form.gate || "", onChange: e=>setForm(f=>({...f,gate:e.target.value})), placeholder: "例：11月〜4月は閉鎖",} )
+            )
+            , React.createElement('div', { className: "form-group",}
+              , React.createElement('label', { className: "form-label",}, "📶 携帯の電波")
+              , React.createElement('select', { className: "form-input", value: form.signal || "", onChange: e=>setForm(f=>({...f,signal:e.target.value})),}
+                , React.createElement('option', { value: "",}, "（未設定）")
+                , ["つながる", "一部つながらない", "圏外"].map(k => React.createElement('option', { key: k, value: k,}, k))
+              )
+            )
+            , React.createElement('div', { className: "form-group",}
               , React.createElement('label', { className: "form-label",}, "\u63a1\u308c\u308b\u5c71\u83dc")
               , React.createElement('div', { className: "sansai-check-grid",}
                 , (sansaiList||(sansaiList||SANSAI_DATA)).map(s => (
@@ -3548,18 +3573,6 @@ function SpotsView({ spots, setSpots, sansaiList, isAdmin }) {
             )
           )
         )
-      )
-      , React.createElement('div', { className: "form-group",}
-        , React.createElement('label', { className: "form-label",}, "🍳 下処理・アク抜き")
-        , React.createElement('textarea', { className: "form-textarea", style: {minHeight:60}, value: form.prep || "", onChange: e=>setForm(f=>({...f,prep:e.target.value})), placeholder: "例：たっぷりのお湯で2分ゆで、冷水にさらす",} )
-      )
-      , React.createElement('div', { className: "form-group",}
-        , React.createElement('label', { className: "form-label",}, "🍽️ おすすめの食べ方")
-        , React.createElement('textarea', { className: "form-textarea", style: {minHeight:60}, value: form.cook || "", onChange: e=>setForm(f=>({...f,cook:e.target.value})), placeholder: "例：天ぷら・おひたし・味噌和え",} )
-      )
-      , React.createElement('div', { className: "form-group",}
-        , React.createElement('label', { className: "form-label",}, "🧊 保存のしかた")
-        , React.createElement('textarea', { className: "form-textarea", style: {minHeight:60}, value: form.keep || "", onChange: e=>setForm(f=>({...f,keep:e.target.value})), placeholder: "例：ゆでて冷凍。塩漬けで1年もつ",} )
       )
     )
   );
@@ -6279,6 +6292,19 @@ function SansaiInfoView({ spots, sansaiList, setSansaiList, isAdmin }) {
       , React.createElement('div', { className: "form-group",}
         , React.createElement('label', { className: "form-label",}, "\u8aac\u660e\u30fb\u7279\u5fb4")
         , React.createElement('textarea', { className: "form-textarea", value: form.desc, onChange: e=>setForm(f=>({...f,desc:e.target.value})), placeholder: "\u5473\u30fb\u8abf\u7406\u6cd5\u30fb\u63a1\u53d6\u306e\u30b3\u30c4\u306a\u3069...",} )
+      )
+
+      , React.createElement('div', { className: "form-group",}
+        , React.createElement('label', { className: "form-label",}, "🍳 下処理・アク抜き")
+        , React.createElement('textarea', { className: "form-textarea", style: {minHeight:60}, value: form.prep || "", onChange: e=>setForm(f=>({...f,prep:e.target.value})), placeholder: "例：たっぷりのお湯で2分ゆで、冷水にさらす",} )
+      )
+      , React.createElement('div', { className: "form-group",}
+        , React.createElement('label', { className: "form-label",}, "🍽️ おすすめの食べ方")
+        , React.createElement('textarea', { className: "form-textarea", style: {minHeight:60}, value: form.cook || "", onChange: e=>setForm(f=>({...f,cook:e.target.value})), placeholder: "例：天ぷら・おひたし・味噌和え",} )
+      )
+      , React.createElement('div', { className: "form-group",}
+        , React.createElement('label', { className: "form-label",}, "🧊 保存のしかた")
+        , React.createElement('textarea', { className: "form-textarea", style: {minHeight:60}, value: form.keep || "", onChange: e=>setForm(f=>({...f,keep:e.target.value})), placeholder: "例：ゆでて冷凍。塩漬けで1年もつ",} )
       )
 
       , React.createElement('div', { className: "form-group",}
@@ -10137,7 +10163,8 @@ function SafetyView({ spots }) {
         _m('div', { style: { background: "#f7faf5", borderRadius: 10, padding: "10px 12px", fontSize: 12, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap", userSelect: "text" } }, planText),
         featSendButtons(planText, setMsg),
         _m('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 13, margin: "14px 0 4px" } }, "下山したら"),
-        _m('a', { href: lineLink(downText), target: "_blank", rel: "noopener noreferrer", style: { ...featBtn, background: "var(--mist)", color: "var(--forest)" } }, "✅ 「無事に下山しました」をLINEで送る")),
+        _m('a', { href: lineLink(downText), onClick: () => x24.set("sansai_trip_done", plan.date + "|" + plan.dest), target: "_blank", rel: "noopener noreferrer", style: { ...featBtn, background: "var(--mist)", color: "var(--forest)" } }, "✅ 「無事に下山しました」をLINEで送る")),
+      _m(TripActivateBox, null),
       _m(SunCard, { spots: spots, plan: plan, onSetOut: (hm) => set("outTime", hm) }),
       _m('div', { style: featCard },
         _m('div', { style: { fontWeight: 700, color: "#c0392b", fontSize: 15, marginBottom: 6 } }, "📍 現在地を送る"),
@@ -10413,6 +10440,397 @@ function ShareTab({ kind, isAdmin, spots, sansaiList, renderOwn, onOwnChanged })
   );
 }
 
+/* ===== 追加機能（2026-10-24）：下山カード／クマ対策／レシピ・保存／旬の予測／文字サイズ ===== */
+const x24 = {
+  get: (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} },
+  json: (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || "null"); return (v === null || v === undefined) ? d : v; } catch (e) { return d; } },
+  save: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  ymd: (d) => { d = d || new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); },
+  hm: (d) => String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"),
+};
+const x24Sub = { fontSize: 12, color: "#666", lineHeight: 1.7 };
+const x24Title = { fontWeight: 700, color: "var(--forest)", fontSize: 15, marginBottom: 8 };
+const x24Pill = (on) => ({ padding: "8px 14px", borderRadius: 16, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, background: on ? "var(--forest)" : "var(--mist)", color: on ? "white" : "var(--forest)" });
+
+/* --- 文字サイズ（この端末だけの設定） --- */
+const FONT_SCALE_KEY = "sansai_font_scale";
+const FONT_SCALES = [["1", "標準"], ["1.12", "大"], ["1.25", "特大"]];
+function applyFontScale(v) {
+  try {
+    let s = v || x24.get(FONT_SCALE_KEY, "1");
+    if (!FONT_SCALES.some(f => f[0] === s)) s = "1";
+    const el = document.getElementById("root");
+    if (!el) return;
+    if (s === "1") el.style.removeProperty("zoom"); else el.style.zoom = s;
+  } catch (e) {}
+}
+applyFontScale();
+function FontScaleCard() {
+  const [v, setV] = useState(() => { const s = x24.get(FONT_SCALE_KEY, "1"); return FONT_SCALES.some(f => f[0] === s) ? s : "1"; });
+  const pick = (s) => { setV(s); x24.set(FONT_SCALE_KEY, s); applyFontScale(s); };
+  return _m('div', { style: featCard },
+    _m('div', { style: x24Title }, "🔠 文字の大きさ"),
+    _m('div', { style: { ...x24Sub, marginBottom: 10 } }, "画面全体の文字と部品を、大きくできます。この端末だけの設定で、ほかのメンバーの画面には影響しません。"),
+    _m('div', { style: { display: "flex", gap: 8 } }, FONT_SCALES.map(f => _m('button', { key: f[0], onClick: () => pick(f[0]), style: { ...x24Pill(v === f[0]), flex: 1, padding: "12px 0" } }, f[1]))),
+    _m('div', { style: { ...x24Sub, marginTop: 10, background: "var(--mist)", borderRadius: 10, padding: "10px 12px" } }, "見本：タラの芽は、天ぷらがおいしい。"));
+}
+
+/* --- 入山中の表示（表紙）と、そのスイッチ（安全・連絡タブ） --- */
+function TripActivateBox() {
+  const [, tick] = useState(0);
+  const plan = x24.json("sansai_trip_plan", null) || {};
+  const key = (plan.date || "") + "|" + (plan.dest || "");
+  const active = x24.get("sansai_trip_active", "") === key && x24.get("sansai_trip_done", "") !== key;
+  const on = () => { x24.set("sansai_trip_active", key); try { localStorage.removeItem("sansai_trip_done"); } catch (e) {} tick(n => n + 1); };
+  const off = () => { try { localStorage.removeItem("sansai_trip_active"); } catch (e) {} tick(n => n + 1); };
+  return _m('div', { style: featCard },
+    _m('div', { style: x24Title }, "🥾 入山中を、表紙に出す"),
+    _m('div', { style: { ...x24Sub, marginBottom: 8 } }, "上の「入山の予定」を入れて、下のボタンを押すと、表紙に「下山予定までの残り時間」と「下山しました」ボタンが出ます。山の中でも、表紙を開くだけで下山連絡ができます。"),
+    !plan.dest && _m('div', { style: { fontSize: 12, color: "#c0392b", marginBottom: 8 } }, "先に「行き先」を入れてください。"),
+    active
+      ? _m('div', null, _m('div', { style: { fontSize: 13, fontWeight: 700, color: "#2d7a3d", marginBottom: 8 } }, "✅ 入山中として、表紙に表示しています（" + plan.dest + "）"),
+          _m('button', { onClick: off, style: { ...featBtn, width: "100%", background: "var(--mist)", color: "var(--forest)" } }, "表示をやめる"))
+      : _m('button', { onClick: on, disabled: !plan.dest, style: { ...featBtn, width: "100%", background: plan.dest ? "var(--forest)" : "#ccc", color: "white" } }, "🥾 いま入山する（表紙に表示）"));
+}
+function HomeTripCard({ onGo }) {
+  const [now, setNow] = useState(Date.now());
+  const [, tick] = useState(0);
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
+  const plan = x24.json("sansai_trip_plan", null);
+  if (!plan || typeof plan !== "object" || !plan.dest) return null;
+  const key = (plan.date || "") + "|" + plan.dest;
+  if (x24.get("sansai_trip_active", "") !== key || x24.get("sansai_trip_done", "") === key) return null;
+  let leftMs = null;
+  const dp = String(plan.date || "").split("-").map(Number), hp = String(plan.outTime || "").split(":").map(Number);
+  if (dp.length === 3 && hp.length === 2 && !dp.concat(hp).some(isNaN)) leftMs = new Date(dp[0], dp[1] - 1, dp[2], hp[0], hp[1]).getTime() - now;
+  const over = leftMs !== null && leftMs < 0;
+  const dur = (ms) => { const m = Math.max(0, Math.round(ms / 60000)); return m >= 60 ? Math.floor(m / 60) + "時間" + (m % 60) + "分" : m + "分"; };
+  const downText = "【下山のお知らせ】\n無事に下山しました。\n行き先：" + plan.dest + "\n時刻：" + x24.hm(new Date());
+  const finish = () => { x24.set("sansai_trip_done", key); tick(n => n + 1); };
+  return _m('div', { style: { padding: "0 16px 14px" } },
+    _m('div', { style: { background: over ? "rgba(192,57,43,0.6)" : "rgba(255,255,255,0.14)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 16, padding: 14, color: "white" } },
+      _m('div', { style: { fontSize: 14, fontWeight: 700, marginBottom: 6 } }, "🥾 入山中：" + plan.dest),
+      leftMs !== null
+        ? _m('div', { style: { fontSize: 13, lineHeight: 1.7, marginBottom: 10 } }, over ? "⚠️ 下山予定（" + plan.outTime + "）を " + dur(-leftMs) + " 過ぎています。無事なら、下山の連絡をしてください。" : "下山予定 " + plan.outTime + " まで あと " + dur(leftMs))
+        : _m('div', { style: { fontSize: 12, lineHeight: 1.7, marginBottom: 10, opacity: 0.85 } }, "下山予定の時刻が入っていません。「安全・連絡」で入れると、残り時間が出ます。"),
+      _m('a', { href: lineLink(downText), target: "_blank", rel: "noopener noreferrer", onClick: finish, style: { ...featBtn, background: "white", color: "#2d4a2d", marginBottom: 8 } }, "✅ 無事に下山しました（LINEで送る）"),
+      _m('div', { style: { display: "flex", gap: 8 } },
+        _m('button', { onClick: finish, style: { ...featBtn, flex: 1, background: "rgba(255,255,255,0.2)", color: "white", fontSize: 12, padding: "10px 6px" } }, "送らずに終える"),
+        _m('button', { onClick: () => onGo && onGo("safety"), style: { ...featBtn, flex: 1, background: "rgba(255,255,255,0.2)", color: "white", fontSize: 12, padding: "10px 6px" } }, "安全・連絡を開く"))));
+}
+
+/* --- クマ対策 --- */
+const BEAR_LOG_KEY = "sansai_bear_log";
+const BEAR_CHK_KEY = "sansai_bear_chk";
+const BEAR_CHK_ITEMS = ["クマ鈴など、音の出るものを持った", "クマスプレー（使い方を確認済み・期限内）を持った", "ラジオを持った（音を出し続ける）", "ホイッスルを持った", "ひとりで行かない（行き先と帰宅予定を伝えた）", "行く場所の最近の出没情報を確認した", "食べ物の残り・ゴミを山に置かない"];
+const BEAR_PREFS = ["長野", "岐阜", "愛知", "福井", "石川", "富山", "新潟", "山梨"];
+function BearView({ spots }) {
+  const [log, setLog] = useState(() => { const v = x24.json(BEAR_LOG_KEY, []); return Array.isArray(v) ? v : []; });
+  const [chk, setChk] = useState(() => { const v = x24.json(BEAR_CHK_KEY, {}); return (v && typeof v === "object") ? v : {}; });
+  const [form, setForm] = useState(() => ({ date: x24.ymd(), time: x24.hm(new Date()), kind: "目撃", place: "", memo: "", gps: null }));
+  const [gpsMsg, setGpsMsg] = useState("");
+  const [msg, setMsg] = useState("");
+  useEffect(() => { x24.save(BEAR_LOG_KEY, log); }, [log]);
+  useEffect(() => { x24.save(BEAR_CHK_KEY, chk); }, [chk]);
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const getGps = () => {
+    if (!navigator.geolocation) { setGpsMsg("この端末では、現在地を取得できません。"); return; }
+    setGpsMsg("現在地を探しています…");
+    navigator.geolocation.getCurrentPosition(pos => { set("gps", { lat: pos.coords.latitude, lng: pos.coords.longitude }); setGpsMsg("📍 現在地を入れました"); }, () => setGpsMsg("現在地を取得できませんでした。場所は文字で入れてください。"), { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  };
+  const add = () => {
+    if (!form.place.trim() && !form.gps && !form.memo.trim()) { setMsg("場所かメモを入れてください。"); return; }
+    setLog(prev => [{ id: Date.now(), ...form }, ...prev]);
+    setForm({ date: x24.ymd(), time: x24.hm(new Date()), kind: "目撃", place: "", memo: "", gps: null });
+    setGpsMsg(""); setMsg("記録しました。");
+  };
+  const shareText = (r) => ["【クマの" + r.kind + "情報】", "日時：" + String(r.date).slice(5).replace("-", "/") + " " + r.time, r.place && "場所：" + r.place, r.gps && "地図：https://www.google.com/maps?q=" + r.gps.lat.toFixed(6) + "," + r.gps.lng.toFixed(6), r.memo && "状況：" + r.memo, "※念のため、お気をつけください。"].filter(Boolean).join("\n");
+  const searchUrl = (q) => "https://www.google.com/search?q=" + encodeURIComponent(q);
+  const guide = [
+    ["🐻 出会わないために", ["鈴やラジオで音を出し、人がいることを知らせる。見通しの悪い藪・沢沿い・風の強い日は特に。", "ひとりで行かない。山菜採りに夢中になっても、ときどき顔を上げて周りを見る。", "早朝と夕方は活動しやすい時間帯。霧や雨の日は、音が届きにくい。", "フン・足跡・木の爪あと・食べ跡があったら、引き返す。", "食べ物の残りやゴミを、山に置かない。"]],
+    ["👀 遠くに見つけたら", ["気づかれていなければ、静かに距離をとって、引き返す。大声を出さない。"]],
+    ["⚠️ 近くで出会ったら", ["落ち着いて、クマから目をそらさず、ゆっくり後ずさりする。", "背中を向けて走って逃げない。追ってくることがある。", "石を投げたり、大声で騒いだりしない。"]],
+    ["💨 向かってきたら", ["クマスプレーを使う。風上から、安全クリップを外して、クマに向けて噴射する。", "使い方は、山に入る前に必ず確認しておく。"]],
+    ["🛡️ 襲われたら", ["うつぶせになり、両手で首の後ろを守る。リュックは背負ったまま、背中を守る。", "助けを呼び、落ち着いたら、すぐ 119 番へ。"]],
+  ];
+  return _m('div', null,
+    _m('div', { className: "section-title" }, "🐻 クマ対策"),
+    _m('div', { className: "section-desc" }, "山に入る前の確認と、出会ったときの対処、見かけた情報の記録をまとめました。最新の出没情報は、必ず自治体の公式情報で確認してください。"),
+    _m('div', { style: featCard },
+      _m('div', { style: x24Title }, "🔎 出没情報を調べる"),
+      _m('div', { style: { ...x24Sub, marginBottom: 8 } }, "各県の「クマ 出没情報」を検索します。公式の情報（県・市町村のページ）を開いて確認してください。"),
+      _m('div', { style: { display: "flex", flexWrap: "wrap", gap: 8 } },
+        BEAR_PREFS.map(p => _m('a', { key: p, href: searchUrl(p + "県 クマ 出没情報"), target: "_blank", rel: "noopener noreferrer", style: { ...x24Pill(false), textDecoration: "none" } }, p + "県")),
+        _m('a', { href: searchUrl("環境省 クマ類 出没情報"), target: "_blank", rel: "noopener noreferrer", style: { ...x24Pill(false), textDecoration: "none" } }, "全国（環境省）"))),
+    _m('div', { style: featCard },
+      _m('div', { style: x24Title }, "🎒 クマ対策の持ち物・確認"),
+      BEAR_CHK_ITEMS.map(it => _m('label', { key: it, style: { display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: "1px solid var(--mist)", fontSize: 14, cursor: "pointer" } },
+        _m('input', { type: "checkbox", checked: !!chk[it], onChange: () => setChk(c => ({ ...c, [it]: !c[it] })), style: { width: 20, height: 20 } }), it)),
+      _m('button', { onClick: () => setChk({}), style: { ...featBtn, marginTop: 10, width: "100%", background: "var(--mist)", color: "var(--forest)", fontSize: 12, padding: "9px 0" } }, "チェックを全部はずす")),
+    guide.map(g => _m('div', { key: g[0], style: featCard },
+      _m('div', { style: x24Title }, g[0]),
+      g[1].map((l, i) => _m('div', { key: i, style: { fontSize: 13, color: "#333", lineHeight: 1.8, paddingLeft: 14, textIndent: -14 } }, "・" + l)))),
+    _m('div', { style: { ...x24Sub, margin: "0 0 14px" } }, "※ クマの行動は個体や状況で違います。ここに書いたのは一般的な目安です。クマを見かけたり、痕跡を見つけたりしたら、市町村の役場や警察にも連絡しましょう。"),
+    _m('div', { style: featCard },
+      _m('div', { style: x24Title }, "📝 見かけた・痕跡の記録"),
+      _m('div', { style: { display: "flex", gap: 8, marginBottom: 8 } },
+        ["目撃", "痕跡"].map(k => _m('button', { key: k, onClick: () => set("kind", k), style: { ...x24Pill(form.kind === k), flex: 1 } }, k === "目撃" ? "👀 目撃した" : "🐾 痕跡を見つけた"))),
+      _m('div', { style: { display: "flex", gap: 8 } },
+        _m('input', { type: "date", value: form.date, onChange: e => set("date", e.target.value), style: { ...featInp, flex: 1.4 } }),
+        _m('input', { type: "time", value: form.time, onChange: e => set("time", e.target.value), style: { ...featInp, flex: 1 } })),
+      spots && spots.length > 0 && _m('select', { value: "", onChange: e => { if (e.target.value) set("place", e.target.value); }, style: featInp }, _m('option', { value: "" }, "登録したスポットから選ぶ"), spots.map(s => _m('option', { key: s.id, value: s.name }, s.name))),
+      _m('input', { value: form.place, onChange: e => set("place", e.target.value), placeholder: "場所（例：○○沢の入口）", style: featInp }),
+      _m('textarea', { value: form.memo, onChange: e => set("memo", e.target.value), placeholder: "状況（例：親子連れ・フン・爪あと・向かった方向）", style: { ...featInp, minHeight: 64 } }),
+      _m('button', { onClick: getGps, style: { ...featBtn, width: "100%", background: "var(--mist)", color: "var(--forest)", marginBottom: 8 } }, form.gps ? "📍 現在地を入れ直す" : "📍 現在地を入れる（任意）"),
+      gpsMsg && _m('div', { style: { fontSize: 12, color: "#444", marginBottom: 8 } }, gpsMsg),
+      _m('button', { onClick: add, style: { ...featBtn, width: "100%", background: "var(--forest)", color: "white" } }, "記録する"),
+      msg && _m('div', { style: { fontSize: 12, color: "#444", marginTop: 8 } }, msg)),
+    log.length === 0
+      ? _m('div', { style: { textAlign: "center", color: "#aaa", fontSize: 13, padding: 16 } }, "記録はまだありません。")
+      : log.map(r => _m('div', { key: r.id, style: featCard },
+          _m('div', { style: { fontWeight: 700, fontSize: 14, color: r.kind === "目撃" ? "#c0392b" : "#b9770e", marginBottom: 4 } }, (r.kind === "目撃" ? "👀 目撃　" : "🐾 痕跡　") + String(r.date).slice(5).replace("-", "/") + " " + r.time),
+          r.place && _m('div', { style: { fontSize: 13 } }, "📍 " + r.place),
+          r.memo && _m('div', { style: { fontSize: 13, color: "#444", whiteSpace: "pre-wrap", marginTop: 2 } }, r.memo),
+          r.gps && _m('a', { href: "https://www.google.com/maps?q=" + r.gps.lat.toFixed(6) + "," + r.gps.lng.toFixed(6), target: "_blank", rel: "noopener noreferrer", style: { fontSize: 12, color: "#2980b9" } }, "地図で見る"),
+          featSendButtons(shareText(r), setMsg),
+          _m('button', { onClick: () => { if (window.confirm("この記録を削除しますか？")) setLog(prev => prev.filter(x => x.id !== r.id)); }, style: { ...featBtn, marginTop: 8, width: "100%", background: "#fee", color: "#c0392b", fontSize: 12, padding: "9px 0" } }, "🗑️ 削除"))));
+}
+
+/* --- レシピ・保存 --- */
+const RECIPE_KEY = "sansai_recipes_v1";
+function RecipeView({ sansaiList }) {
+  const { photos: photoStore, savePhoto, removePhoto } = usePhotos();
+  const [recipes, setRecipes] = useState(() => { const v = x24.json(RECIPE_KEY, []); return Array.isArray(v) ? v : []; });
+  const [sub, setSub] = useState("mine");
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(null);
+  const [form, setForm] = useState(null);
+  const [msg, setMsg] = useState("");
+  useEffect(() => { try { safeLocalSave(RECIPE_KEY, recipes); } catch (e) {} }, [recipes]);
+  const list = Array.isArray(sansaiList) ? sansaiList : [];
+  const nameOf = (id) => { const s = list.find(x => String(x.id) === String(id)); return s ? (s.emoji || "🌿") + " " + s.name : ""; };
+  const blank = () => ({ id: null, title: "", sansaiId: "", ingredients: "", steps: "", keep: "", memo: "", photoId: null });
+  const save = () => {
+    if (!form.title.trim()) { setMsg("料理名を入れてください。"); return; }
+    if (form.id) setRecipes(prev => prev.map(r => r.id === form.id ? { ...form } : r));
+    else setRecipes(prev => [{ ...form, id: Date.now() }, ...prev]);
+    setForm(null); setMsg("");
+  };
+  const del = (r) => { if (!window.confirm("「" + r.title + "」を削除しますか？")) return; if (r.photoId) { try { removePhoto(r.photoId); } catch (e) {} } setRecipes(prev => prev.filter(x => x.id !== r.id)); setOpen(null); };
+  const shareText = (r) => ["【レシピ】" + r.title, r.sansaiId && nameOf(r.sansaiId) && "山菜：" + nameOf(r.sansaiId), r.ingredients && "■材料\n" + r.ingredients, r.steps && "■作り方\n" + r.steps, r.keep && "■保存\n" + r.keep, r.memo && "■メモ\n" + r.memo].filter(Boolean).join("\n");
+  const shown = recipes.filter(r => !q.trim() || (r.title + " " + nameOf(r.sansaiId) + " " + r.ingredients + " " + r.steps).indexOf(q.trim()) >= 0);
+  const zukan = list.filter(s => s && (s.prep || s.cook || s.keep));
+  const basics = [
+    ["🧊 冷凍", "下ゆでして冷水にとり、水気をよく切ります。小分けにして空気を抜き、冷凍します。凍ったまま調理でき、早めに使い切るのがおすすめです。"],
+    ["🧂 塩漬け", "塩を多めに使って漬け、重しをして空気に触れさせないようにします。使う前に、水を替えながら十分に塩抜きをします。"],
+    ["🌞 乾燥", "ゆでてから干します。使うときは、水やぬるま湯でもどします。もどし汁は、よくすすいでから使いましょう。"],
+    ["🫙 水煮の瓶詰め", "自己流の常温保存は避け、冷蔵または冷凍で保存するのが安全です。保存食は、見た目やにおいに異変があれば食べないでください。"],
+    ["⚠️ アク抜きが必要なもの", "ワラビなどは、必ずアク抜きをしてから食べます。山菜ごとの下処理は、図鑑の「下処理・アク抜き」を確認してください。"],
+  ];
+  const fld = (label, key, rows, ph) => _m('div', { className: "form-group" }, _m('label', { className: "form-label" }, label), _m('textarea', { className: "form-textarea", style: { minHeight: rows }, value: form[key], onChange: e => { const v = e.target.value; setForm(f => ({ ...f, [key]: v })); }, placeholder: ph }));
+  return _m('div', null,
+    _m('div', { className: "section-title" }, "🍳 レシピ・保存"),
+    _m('div', { className: "section-desc" }, "採った山菜の料理と保存のしかたを、記録しておけます。この端末に保存され、バックアップにも入ります。"),
+    _m('div', { style: { display: "flex", gap: 8, marginBottom: 12 } },
+      [["mine", "📒 マイレシピ"], ["zukan", "🌿 図鑑のメモ"], ["basics", "🧊 保存のきほん"]].map(t => _m('button', { key: t[0], onClick: () => setSub(t[0]), style: { ...x24Pill(sub === t[0]), flex: 1, padding: "11px 4px", fontSize: 12 } }, t[1]))),
+    sub === "mine" && _m('div', null,
+      _m('input', { value: q, onChange: e => setQ(e.target.value), placeholder: "🔎 料理名・山菜名・材料で探す", style: featInp }),
+      shown.length === 0 && _m('div', { style: { textAlign: "center", color: "#aaa", fontSize: 13, padding: 20 } }, recipes.length ? "見つかりませんでした。" : "レシピはまだありません。下のボタンから追加できます。"),
+      shown.map(r => _m('div', { key: r.id, style: featCard },
+        _m('div', { onClick: () => setOpen(open === r.id ? null : r.id), style: { cursor: "pointer", display: "flex", gap: 12, alignItems: "center" } },
+          r.photoId && photoStore[r.photoId] && _m('img', { src: photoStore[r.photoId], style: { width: 56, height: 56, borderRadius: 10, objectFit: "cover", flexShrink: 0 } }),
+          _m('div', { style: { flex: 1, minWidth: 0 } },
+            _m('div', { style: { fontWeight: 700, fontSize: 15, color: "var(--forest)" } }, r.title),
+            r.sansaiId && nameOf(r.sansaiId) && _m('div', { style: { fontSize: 12, color: "#666" } }, nameOf(r.sansaiId))),
+          _m('div', { style: { color: "#999", fontSize: 12 } }, open === r.id ? "▲" : "▼")),
+        open === r.id && _m('div', { style: { marginTop: 10, fontSize: 13, lineHeight: 1.8, color: "#333" } },
+          r.photoId && photoStore[r.photoId] && _m('img', { src: photoStore[r.photoId], style: { width: "100%", borderRadius: 10, marginBottom: 8 } }),
+          [["材料", r.ingredients], ["作り方", r.steps], ["保存のしかた", r.keep], ["メモ", r.memo]].filter(x => x[1]).map(x => _m('div', { key: x[0], style: { marginBottom: 8 } }, _m('div', { style: { fontWeight: 700, color: "var(--forest)" } }, x[0]), _m('div', { style: { whiteSpace: "pre-wrap" } }, x[1]))),
+          featSendButtons(shareText(r), setMsg),
+          _m('div', { style: { display: "flex", gap: 8, marginTop: 8 } },
+            _m('button', { onClick: () => setForm({ ...blank(), ...r }), style: { ...featBtn, flex: 1, background: "var(--mist)", color: "var(--forest)", fontSize: 12, padding: "9px 0" } }, "✏️ 編集"),
+            _m('button', { onClick: () => del(r), style: { ...featBtn, flex: 1, background: "#fee", color: "#c0392b", fontSize: 12, padding: "9px 0" } }, "🗑️ 削除"))))),
+      msg && !form && _m('div', { style: { fontSize: 12, color: "#444", marginBottom: 8 } }, msg),
+      _m('button', { className: "add-btn", onClick: () => { setMsg(""); setForm(blank()); } }, "＋ レシピを追加")),
+    sub === "zukan" && _m('div', null,
+      _m('div', { style: { ...x24Sub, marginBottom: 10 } }, "図鑑に入っている「下処理・食べ方・保存のしかた」の一覧です。内容を入れるのは、管理者です（図鑑の編集画面から）。"),
+      zukan.length === 0 && _m('div', { style: { textAlign: "center", color: "#aaa", fontSize: 13, padding: 20 } }, "まだ入っていません。"),
+      zukan.map(s => _m('div', { key: s.id, style: featCard },
+        _m('div', { style: x24Title }, (s.emoji || "🌿") + " " + s.name),
+        [["🍳 下処理・アク抜き", s.prep], ["🍽️ おすすめの食べ方", s.cook], ["🧊 保存のしかた", s.keep]].filter(x => x[1]).map(x => _m('div', { key: x[0], style: { fontSize: 13, lineHeight: 1.8, marginBottom: 6 } }, _m('div', { style: { fontWeight: 700, color: "#555" } }, x[0]), _m('div', { style: { whiteSpace: "pre-wrap" } }, x[1])))))),
+    sub === "basics" && _m('div', null,
+      _m('div', { style: { ...x24Sub, marginBottom: 10 } }, "一般的な保存の考え方です。山菜の種類や家庭で違うので、目安として使ってください。"),
+      basics.map(b => _m('div', { key: b[0], style: featCard }, _m('div', { style: x24Title }, b[0]), _m('div', { style: { fontSize: 13, lineHeight: 1.8, color: "#333" } }, b[1])))),
+    form && _m('div', { className: "form-overlay", onClick: e => { if (e.target === e.currentTarget) setForm(null); } },
+      _m('div', { className: "form-box" },
+        _m('div', { className: "form-title" }, form.id ? "✏️ レシピを編集" : "🍳 レシピを追加"),
+        _m('div', { className: "form-group" }, _m('label', { className: "form-label" }, "料理名 *"), _m('input', { className: "form-input", value: form.title, onChange: e => { const v = e.target.value; setForm(f => ({ ...f, title: v })); }, placeholder: "例：タラの芽の天ぷら" })),
+        _m('div', { className: "form-group" }, _m('label', { className: "form-label" }, "使う山菜（任意）"),
+          _m('select', { className: "form-input", value: String(form.sansaiId || ""), onChange: e => { const v = e.target.value; setForm(f => ({ ...f, sansaiId: v })); } }, _m('option', { value: "" }, "（選ばない）"), list.map(s => _m('option', { key: s.id, value: String(s.id) }, (s.emoji || "🌿") + " " + s.name)))),
+        fld("材料", "ingredients", 70, "例：タラの芽 10個、天ぷら粉、水"),
+        fld("作り方", "steps", 90, "例：はかまを取り、衣をつけて170℃で揚げる"),
+        fld("保存のしかた", "keep", 60, "例：ゆでて小分けにして冷凍"),
+        fld("メモ", "memo", 50, "例：去年より衣を薄くした"),
+        _m('div', { className: "form-group" }, _m('label', { className: "form-label" }, "📷 写真（任意）"),
+          _m('div', { style: { display: "flex", alignItems: "center", gap: 12 } },
+            form.photoId && photoStore[form.photoId] && _m('img', { src: photoStore[form.photoId], style: { width: 64, height: 64, borderRadius: 10, objectFit: "cover" } }),
+            _m('label', { style: { padding: "10px 14px", borderRadius: 10, cursor: "pointer", background: "var(--soil)", border: "2px dashed var(--fern)", fontSize: 12, fontWeight: 600, color: "var(--moss)" } },
+              _m('input', { type: "file", accept: "image/*", style: { display: "none" }, onChange: e => { const file = e.target.files[0]; if (!file || !file.type.startsWith("image/")) return; compressImageFile(file, 800, 0.82, async (dataUrl) => { const id = await savePhoto(dataUrl); setForm(f => ({ ...f, photoId: id })); }); e.target.value = ""; } }),
+              "🖼 写真を選ぶ"),
+            form.photoId && _m('button', { type: "button", onClick: () => setForm(f => ({ ...f, photoId: null })), style: { background: "#fee", border: "none", borderRadius: 8, padding: "8px 12px", cursor: "pointer", color: "#c0392b", fontSize: 11, fontWeight: 600 } }, "外す"))),
+        msg && _m('div', { style: { fontSize: 12, color: "#c0392b", marginBottom: 8 } }, msg),
+        _m('div', { className: "form-actions" },
+          _m('button', { className: "btn-cancel", onClick: () => setForm(null) }, "キャンセル"),
+          _m('button', { className: "btn-submit", onClick: save }, form.id ? "保存する" : "追加する")))));
+}
+
+/* --- 旬の予測（積算温度） --- */
+const FC_CACHE_KEY = "sansai_fc_cache_v1";
+const FC_DEFAULT = { lat: 36.5, lng: 137.2, name: "中部・北陸の目安（石川・富山あたり）" };
+const fcMem = {};
+const fcPad = (n) => String(n).padStart(2, "0");
+const fcKey = (lat, lng, y) => lat.toFixed(2) + "," + lng.toFixed(2) + "," + y;
+function fcLoadDisk() { const v = x24.json(FC_CACHE_KEY, {}); return (v && typeof v === "object") ? v : {}; }
+function fcSaveDisk(k, map) { const all = fcLoadDisk(); all[k] = map; const ks = Object.keys(all); while (ks.length > 24) delete all[ks.shift()]; x24.save(FC_CACHE_KEY, all); }
+async function fcFetchJson(url) { const r = await fetch(url); if (!r.ok) throw new Error("http" + r.status); return r.json(); }
+function fcFill(map, j) { const d = j && j.daily; if (!d || !d.time || !d.temperature_2m_mean) return; d.time.forEach((t, i) => { const v = d.temperature_2m_mean[i]; if (typeof v === "number" && isFinite(v)) map[String(t).slice(5)] = v; }); }
+function fcDays(year) { const out = []; for (let m = 2; m <= 12; m++) { const dim = new Date(year, m, 0).getDate(); for (let d = 1; d <= dim; d++) out.push(fcPad(m) + "-" + fcPad(d)); } return out; }
+async function fcYear(lat, lng, year) {
+  const k = fcKey(lat, lng, year);
+  if (fcMem[k]) return fcMem[k];
+  const now = new Date(), cy = now.getFullYear();
+  if (year < cy) { const disk = fcLoadDisk(); if (disk[k]) { fcMem[k] = disk[k]; return disk[k]; } }
+  const base = "latitude=" + lat.toFixed(3) + "&longitude=" + lng.toFixed(3) + "&daily=temperature_2m_mean&timezone=Asia%2FTokyo";
+  const map = {};
+  if (year < cy) {
+    fcFill(map, await fcFetchJson("https://archive-api.open-meteo.com/v1/archive?" + base + "&start_date=" + year + "-02-01&end_date=" + year + "-12-31"));
+    fcSaveDisk(k, map);
+  } else {
+    const end = new Date(now.getTime() - 8 * 86400000);
+    if (end >= new Date(year, 1, 1)) fcFill(map, await fcFetchJson("https://archive-api.open-meteo.com/v1/archive?" + base + "&start_date=" + year + "-02-01&end_date=" + x24.ymd(end)));
+    fcFill(map, await fcFetchJson("https://api.open-meteo.com/v1/forecast?" + base + "&past_days=10&forecast_days=16"));
+  }
+  fcMem[k] = map;
+  return map;
+}
+function fcCumulAt(map, year, md) {
+  let s = 0, miss = 0;
+  const days = fcDays(year);
+  for (let i = 0; i < days.length; i++) {
+    const v = map[days[i]];
+    if (typeof v === "number") s += Math.max(0, v); else miss++;
+    if (days[i] === md) return { sum: s, miss: miss };
+  }
+  return null;
+}
+function fcClim(maps) {
+  const sum = {}, cnt = {};
+  maps.forEach(m => Object.keys(m).forEach(k => { sum[k] = (sum[k] || 0) + m[k]; cnt[k] = (cnt[k] || 0) + 1; }));
+  const out = {};
+  Object.keys(sum).forEach(k => { out[k] = sum[k] / cnt[k]; });
+  return out;
+}
+function fcProject(thisMap, clim, target, year) {
+  let s = 0, usedClim = false;
+  const days = fcDays(year);
+  for (let i = 0; i < days.length; i++) {
+    let v = thisMap[days[i]];
+    if (typeof v !== "number") { v = clim[days[i]]; if (typeof v !== "number") return null; usedClim = true; }
+    s += Math.max(0, v);
+    if (s >= target) return { md: days[i], usedClim: usedClim };
+  }
+  return null;
+}
+function ForecastView({ spots, sansaiList }) {
+  const posSpots = (spots || []).filter(s => spotHasPos(s));
+  const [loc, setLoc] = useState(() => x24.get("sansai_fc_loc", "default"));
+  const [onlySpot, setOnlySpot] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [res, setRes] = useState(null);
+  const sp = posSpots.find(s => String(s.id) === String(loc));
+  const place = sp ? { lat: sp.lat, lng: sp.lng, name: sp.name } : FC_DEFAULT;
+  const list = Array.isArray(sansaiList) ? sansaiList : [];
+  const run = async () => {
+    setBusy(true); setErr(""); setRes(null);
+    try {
+      x24.set("sansai_fc_loc", sp ? String(sp.id) : "default");
+      const cy = new Date().getFullYear(), todayMD = x24.ymd().slice(5);
+      let recs = shareLoadOwn("harvest").filter(r => r && /^\d{4}-\d{2}-\d{2}$/.test(String(r.date)) && String(r.date).slice(5) >= "02-01" && r.sansaiId !== undefined && r.sansaiId !== "");
+      if (sp && onlySpot) recs = recs.filter(r => String(r.spotId) === String(sp.id));
+      const groups = {};
+      recs.forEach(r => {
+        const id = String(r.sansaiId), y = Number(String(r.date).slice(0, 4));
+        const g = groups[id] || (groups[id] = { id: id, years: {} });
+        if (!g.years[y] || String(r.date) < g.years[y]) g.years[y] = String(r.date);
+      });
+      const yearSet = {}; yearSet[cy] = true; [cy - 1, cy - 2, cy - 3].forEach(y => { yearSet[y] = true; });
+      Object.keys(groups).forEach(id => Object.keys(groups[id].years).map(Number).filter(y => y < cy).sort((a, b) => b - a).slice(0, 6).forEach(y => { yearSet[y] = true; }));
+      const years = Object.keys(yearSet).map(Number);
+      const maps = {};
+      await Promise.all(years.map(async y => { maps[y] = await fcYear(place.lat, place.lng, y); }));
+      const clim = fcClim(years.filter(y => y < cy).map(y => maps[y]));
+      const nowC = fcCumulAt(maps[cy], cy, todayMD);
+      const lastC = fcCumulAt(maps[cy - 1], cy - 1, todayMD);
+      const rows = Object.keys(groups).map(id => {
+        const g = groups[id], s = list.find(x => String(x.id) === id);
+        const past = Object.keys(g.years).map(Number).filter(y => y < cy).sort((a, b) => b - a).slice(0, 6).map(y => { const c = fcCumulAt(maps[y], y, g.years[y].slice(5)); return c ? { year: y, date: g.years[y], sum: c.sum, miss: c.miss } : null; }).filter(Boolean);
+        const target = past.length ? past.reduce((a, p) => a + p.sum, 0) / past.length : null;
+        const proj = target !== null ? fcProject(maps[cy], clim, target, cy) : null;
+        return { id: id, name: s ? s.name : "山菜", emoji: s ? (s.emoji || "🌿") : "🌿", past: past, target: target, proj: proj, thisFirst: g.years[cy] || null };
+      }).filter(r => r.past.length || r.thisFirst).sort((a, b) => (a.proj && b.proj) ? a.proj.md.localeCompare(b.proj.md) : (a.proj ? -1 : 1));
+      setRes({ place: place, rows: rows, nowSum: nowC ? nowC.sum : null, lastSum: lastC ? lastC.sum : null, cy: cy, recCount: recs.length });
+    } catch (e) {
+      setErr("気温のデータを取得できませんでした。電波のある場所で、もう一度お試しください。");
+    }
+    setBusy(false);
+  };
+  const mdText = (md) => Number(md.slice(0, 2)) + "/" + Number(md.slice(3));
+  const statusOf = (r, cy) => {
+    if (!r.proj) return r.target === null ? "去年より前の記録がまだないので、予測できません。" : "目安の積算温度に達する日を、計算できませんでした。";
+    const t = new Date(); const today = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+    const pd = new Date(cy, Number(r.proj.md.slice(0, 2)) - 1, Number(r.proj.md.slice(3)));
+    const days = Math.round((pd - today) / 86400000);
+    let s;
+    if (days < 0) s = "今年は " + mdText(r.proj.md) + " ごろに、目安に達していました。";
+    else if (days === 0) s = "今日あたりが、目安の時期です。";
+    else s = mdText(r.proj.md) + " ごろが目安です（あと約" + days + "日）。";
+    if (r.proj.usedClim && days > 16) s += "予報が出ていない先は、例年並みの気温で計算しています。";
+    return s;
+  };
+  return _m('div', null,
+    _m('div', { className: "section-title" }, "🌡️ 旬の予測"),
+    _m('div', { className: "section-desc" }, "気温を毎日足した「積算温度」で、山菜が採れそうな時期を見積もります。収穫記録で「その年の最初に採った日」を基準にします。あくまで目安です。"),
+    _m('div', { style: featCard },
+      _m('div', { style: x24Title }, "📍 場所"),
+      _m('select', { value: sp ? String(sp.id) : "default", onChange: e => { setLoc(e.target.value); setRes(null); }, style: featInp },
+        _m('option', { value: "default" }, FC_DEFAULT.name),
+        posSpots.map(s => _m('option', { key: s.id, value: String(s.id) }, s.name))),
+      sp && _m('label', { style: { display: "flex", alignItems: "center", gap: 8, fontSize: 13, marginBottom: 10 } },
+        _m('input', { type: "checkbox", checked: onlySpot, onChange: () => { setOnlySpot(v => !v); setRes(null); }, style: { width: 18, height: 18 } }), "このスポットの収穫記録だけで予測する"),
+      _m('button', { onClick: run, disabled: busy, style: { ...featBtn, width: "100%", background: busy ? "#999" : "var(--forest)", color: "white" } }, busy ? "気温を取得しています…" : "🌡️ 気温を取得して予測する"),
+      _m('div', { style: { ...x24Sub, marginTop: 8 } }, "インターネットにつながっているときに使えます。過去の気温は、いちど取得すると、この端末に保存されます。")),
+    err && _m('div', { style: { ...featCard, borderColor: "#f0b4ac", color: "#c0392b", fontSize: 13 } }, err),
+    res && _m('div', null,
+      _m('div', { style: featCard },
+        _m('div', { style: x24Title }, "🌡️ 今年の積算温度（2/1〜今日）"),
+        res.nowSum !== null
+          ? _m('div', { style: { fontSize: 14, lineHeight: 1.8 } }, "約 " + Math.round(res.nowSum) + "℃", res.lastSum !== null && _m('span', { style: { fontSize: 13, color: "#555" } }, "　（去年の今日：約 " + Math.round(res.lastSum) + "℃ ／ " + (res.nowSum >= res.lastSum ? "今年のほうが約" + Math.round(res.nowSum - res.lastSum) + "℃ 進んでいます" : "今年のほうが約" + Math.round(res.lastSum - res.nowSum) + "℃ 遅れています") + "）"))
+          : _m('div', { style: x24Sub }, "計算できませんでした。"),
+        _m('div', { style: { ...x24Sub, marginTop: 6 } }, "場所：" + res.place.name)),
+      res.rows.length === 0
+        ? _m('div', { style: { ...featCard, fontSize: 13, color: "#555", lineHeight: 1.8 } }, res.recCount === 0 ? "収穫記録がまだありません。収穫記録に「いつ・どの山菜を採ったか」を入れると、毎年の積算温度から、時期を予測できます（できれば2年以上）。" : "予測に使える記録が見つかりませんでした。場所の絞り込みをはずすと、ほかのスポットの記録も使えます。")
+        : res.rows.map(r => _m('div', { key: r.id, style: featCard },
+            _m('div', { style: x24Title }, r.emoji + " " + r.name),
+            _m('div', { style: { fontSize: 14, fontWeight: 700, color: "#2d4a2d", lineHeight: 1.7, marginBottom: 6 } }, statusOf(r, res.cy)),
+            r.past.length > 0 && _m('div', { style: { fontSize: 12, color: "#555", lineHeight: 1.8 } },
+              r.past.map(p => _m('div', { key: p.year }, p.year + "年：" + mdText(p.date.slice(5)) + " に初収穫（積算 約" + Math.round(p.sum) + "℃" + (p.miss > 3 ? "・気温の欠けあり" : "") + "）")),
+              r.target !== null && _m('div', { style: { marginTop: 4 } }, "目安の積算温度：約 " + Math.round(r.target) + "℃")),
+            r.thisFirst && _m('div', { style: { fontSize: 12, color: "#555", marginTop: 4 } }, "今年の初収穫：" + mdText(r.thisFirst.slice(5)))))),
+    _m('div', { style: { ...x24Sub, marginTop: 4 } }, "※ 2/1から、日ごとの平均気温（0℃以上の分）を足しています。標高が高い場所や、日当たり・雪どけで、実際の時期はずれます。同じ場所の記録で比べるほど、ずれは小さくなります。"));
+}
+
 function App() {
   const [tab, setTab] = useState("home");
   /* \u8868\u7d19(home)\u306b\u623b\u308b\uff1a\u753b\u9762\u306e\u623b\u308b\u30dc\u30bf\u30f3\u3068\u7aef\u672b\u306e\u6a19\u6e96\u300c\u623b\u308b\u300d\u30dc\u30bf\u30f3\u3069\u3061\u3089\u3082\u8868\u7d19\u3078 */
@@ -10614,6 +11032,9 @@ function App() {
     { id: "areamap",  label: "エリアマップ", icon: "🧭" },
     { id: "theme",    label: "テーマ", icon: "🎨" },
     { id: "safety",   label: "安全・連絡", icon: "🛡️" },
+    { id: "bear",     label: "クマ対策", icon: "🐻" },
+    { id: "recipes",  label: "レシピ・保存", icon: "🍳" },
+    { id: "forecast", label: "旬の予測", icon: "🌡️" },
     { id: "summary",  label: "年間まとめ", icon: "📊" },
     { id: "search",   label: "検索", icon: "🔎" },
     { id: "gear",     label: "\u670d\u88c5\u30fb\u9053\u5177", icon: "\ud83d\udc55" },
@@ -10677,8 +11098,11 @@ function App() {
           , tab === "harvest"  && React.createElement(ShareTab, { kind: "harvest", isAdmin: (secretOn || zukanIsAdminDevice()), spots: spots, sansaiList: sansaiList, renderOwn: (k) => React.createElement(HarvestView, { key: k, spots: spots, members: members, sansaiList: sansaiList,} ),} )
           , tab === "map"      && React.createElement(HarvestMapView, { spots: spots, sansaiList: sansaiList })
           , tab === "areamap"  && React.createElement(AreaMapView, { spots: spots, sansaiList: sansaiList })
-          , tab === "theme"    && React.createElement(ThemeView, { isAdmin: (secretOn || zukanIsAdminDevice()) })
+          , tab === "theme"    && React.createElement(React.Fragment, null, React.createElement(ThemeView, { isAdmin: (secretOn || zukanIsAdminDevice()) }), React.createElement(FontScaleCard, null))
           , tab === "safety"   && React.createElement(SafetyView, { spots: spots })
+          , tab === "bear"     && React.createElement(BearView, { spots: spots })
+          , tab === "recipes"  && React.createElement(RecipeView, { sansaiList: sansaiList })
+          , tab === "forecast" && React.createElement(ForecastView, { spots: spots, sansaiList: sansaiList })
           , tab === "checklist" && React.createElement(ChecklistView, { sansaiList: sansaiList, clothing: clothing, tools: tools, onGo: setTab })
           , tab === "summary"  && React.createElement(SummaryView, { sansaiList: sansaiList, spots: spots })
           , tab === "search"   && React.createElement(SearchView, { sansaiList: sansaiList, spots: spots, onGo: setTab })
