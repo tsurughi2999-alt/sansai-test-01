@@ -8092,6 +8092,34 @@ function ZukanAdminPanel({ sansaiList, members, spots, onSync, onMemberView }) {
     if (!window.confirm("この端末の図鑑・カレンダー・メンバー名簿を、GitHub上の配信データで上書きします。よろしいですか？\n（上書き前の内容は端末内に退避されます）")) return;
     onSync(true);
   };
+  const handleExportFn = async () => {
+    setBusy(true);
+    setStatus("書き出し中です（写真を縮小しています）…");
+    try {
+      const out = {};
+      const list = [];
+      for (const s of sansaiList) {
+        if (!s || !s.name) continue;
+        const cat = sansaiCategory(s);
+        if (cat === "cultivated" || s.kind === "cultivated") continue;
+        const c = { ...s, category: cat };
+        delete c.customSpots; delete c.notes; delete c.lookalikeIds;
+        if (s.photoId && photos[s.photoId]) out[s.photoId] = await zukanShrink(photos[s.photoId], 720, 0.72);
+        list.push(c);
+      }
+      const json = JSON.stringify({ app: "sansai-zukan-copy", version: 1, exportedAt: new Date().toISOString(), list, photos: out });
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "fieldnote-zukan.json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      setStatus("✅ fieldnote-zukan.json を保存しました（" + list.length + "件・写真" + Object.keys(out).length + "枚・約" + (json.length / 1048576).toFixed(1) + "MB）\nフィールドノートの「管理者専用」ページで、このファイルを選んでコピーしてください");
+    } catch (e) {
+      setStatus("❌ 書き出しに失敗しました");
+    }
+    setBusy(false);
+  };
   const btn = { display: "block", width: "100%", padding: "12px 14px", marginTop: 10, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" };
   return (
     React.createElement('div', { style: { marginTop: 20, padding: 16, background: "white", border: "2px solid var(--mist)", borderRadius: 14 } }
@@ -8099,7 +8127,8 @@ function ZukanAdminPanel({ sansaiList, members, spots, onSync, onMemberView }) {
       , React.createElement('div', { style: { fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.7 } },
           "図鑑・カレンダー・メンバー名簿・使い方の画像を編集したら「書き出す」で zukan.json を作り、GitHubのリポジトリに上書きアップロードします。メンバーの端末は、次に開いたときに自動で最新になります。")
       , React.createElement('button', { onClick: handleExport, disabled: busy, style: { ...btn, background: "var(--forest)", color: "white", opacity: busy ? 0.6 : 1 } }, "📤 配信用に書き出す（zukan.json）")
-      , React.createElement('button', { onClick: handleCheck, disabled: busy, style: { ...btn, background: "#f3f6fb", color: "#2a4d8f", border: "1px solid #c9d6ea", opacity: busy ? 0.6 : 1 } }, "🔎 配信状況を確認する")
+      , React.createElement('button', { onClick: handleExportFn, disabled: busy, style: { ...btn, background: "#fff7e6", color: "#8a5a00", border: "1px solid #ecd29c", opacity: busy ? 0.6 : 1 } }, "📘 フィールドノート用に図鑑を書き出す")
+  , React.createElement('button', { onClick: handleCheck, disabled: busy, style: { ...btn, background: "#f3f6fb", color: "#2a4d8f", border: "1px solid #c9d6ea", opacity: busy ? 0.6 : 1 } }, "🔎 配信状況を確認する")
       , React.createElement('button', { onClick: handleImport, style: { ...btn, background: "var(--mist)", color: "var(--forest)" } }, "📥 配信データを今すぐ取り込む")
       , React.createElement('div', { style: { marginTop: 18, paddingTop: 14, borderTop: "1px dashed #cfe0c6" } }
         , React.createElement('div', { style: { fontWeight: 700, color: "var(--forest)", fontSize: 14 } }, "👥 メンバー表示に切り替える")
